@@ -1,4 +1,4 @@
-#include "s21_string.h"
+#include "s21_functions.h"
 
 int main() {
 	char string[] = "Address family not supported by protocol family";
