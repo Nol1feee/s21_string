@@ -47,5 +47,10 @@ char s21_strerror(int errnum) {
 	return 0;
 }
 
-void s21_strcmp(char *str_one, char *str_two) {
+int  s21_strcmp(char *str_one, char *str_two) {
+	while(*str_one && *str_one == *str_two) {
+		str_one++;
+		str_two++;
+	}
+return *str_one - *str_two;
 }
