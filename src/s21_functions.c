@@ -47,14 +47,3 @@ char *s21_strerror(int errnum) {
 	}
 	return res;
 }
-
-//фун-ия посимвольно сравнивает 2 строки, если они равны - возвращает 0,
-//если 1ый несовпадающий символ 1ой строки "больше" - возвращает положительное число,
-//если символ второй строки больше - отрицательное
-int s21_strcmp(char *str_one, char *str_two) {
-	while(*str_one && *str_one == *str_two) {
-		str_one++;
-		str_two++;
-	}
-return *str_one - *str_two;
-}
