@@ -1,10 +1,7 @@
 #include "s21_functions.h"
 
-<<<<<<< HEAD
 // work great
-=======
 //возвращает длину строки без '\0'
->>>>>>> vlad
 s21_size_t s21_strlen(char *string) {
   s21_size_t len = 0;
   while (*(string + len)) {
@@ -102,13 +99,22 @@ char *s21_strrchr(const char *str, int c) {
     if (*str == c) res = (char *)str;
   } while (*str++);
   return (res);
-=======
-  // work great
-  int s21_strcmp(char *str_one, char *str_two) {
-    while (*str_one && *str_one == *str_two) {
-      str_one++;
-      str_two++;
+
+int s21_memcmp(void *str1, void *str2, size_t n) {
+    int result = 0;
+    unsigned char *p_1 = str1;
+    unsigned char *p_2 = str2;
+
+    while (p_1 && p_2 && n > 0) {
+        n--;
+        if (*p_1 != *p_2) {
+            result = (*p_1) - (*p_2);
+            break;
+        }
+        p_1++;
+        p_2++;
     }
+<<<<<<< HEAD
     return *str_one - *str_two;
 >>>>>>> vlad
   }
@@ -152,3 +158,56 @@ char *s21_strerror(int errnum) {
 	return res;
 }
 >>>>>>> vlad
+=======
+    if (!p_2) {
+        result = *p_1;
+    } else if (!p_1) {
+        result = -(*p_2);
+    }
+    return result;
+}
+
+int s21_strcmp(char *str1, char *str2) {
+    int result = 0;
+    char *p_1 = str1;
+    char *p_2 = str2;
+
+    while (*p_1 == *p_2) {
+        p_1++;
+        p_2++;
+        if (*p_1 == '\0' || *p_2 == '\0') {
+            break;
+        }
+    }
+    if (*p_1 != '\0' && *p_2 != '\0') {
+        result = *p_1 - *p_2;
+    } else if (*p_1 == '\0') {
+        result = -*p_2;
+    } else if (*p_2 == '\0') {
+        result = *p_1;
+    }
+    return result;
+}
+
+int s21_strncmp(char *str1, char *str2, size_t n) {
+    int result = 0;
+    unsigned char *p_1 = str1;
+    unsigned char *p_2 = str2;
+
+    while (p_1 && p_2 && n > 0) {
+        n--;
+        if (*p_1 != *p_2) {
+            result = (*p_1) - (*p_2);
+            break;
+        }
+        p_1++;
+        p_2++;
+    }
+    if (!p_2) {
+        result = *p_1;
+    } else if (!p_1) {
+        result = -(*p_2);
+    }
+    return result;
+}
+>>>>>>> 006930ffad820ad7b14d461d3aa6dba9e7b70be7
