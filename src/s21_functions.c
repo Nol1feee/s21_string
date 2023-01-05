@@ -9,7 +9,7 @@ s21_size_t s21_strlen(char *string) {
   }
   return len;
 }
-<<<<<<< HEAD
+
 //фун-ия для strtok
 int enum_delim(char str, const char *delim) {
   int flag = 0;
@@ -18,18 +18,8 @@ int enum_delim(char str, const char *delim) {
       flag = 1;
     }
     delim++;
-=======
-
-<<<<<<< HEAD
-// don't work with NULL, otherwise work great
-char s21_strtok(char *string, char *delim) {
-  s21_size_t len = s21_strlen(string);
-  for (int i = 0; i < len; i++) {
-    if (string[i] == *delim) string[i] = '\0';
-    break;
->>>>>>> test
   }
-  return flag;
+return flag;
 }
 //делит строку на токены
 char *s21_strtok(char *str, const char *delim) {
@@ -59,7 +49,7 @@ char *s21_strtok(char *str, const char *delim) {
 }
 
 // work great
-char *s21_strcat(char *str_change, char *str_add);
+char *s21_strcat(char *str_change, char *str_add)
 {
   return (s21_strncat(str_change, str_add,
                       s21_strlen(str_change) + s21_strlen(str_add)));
@@ -103,9 +93,7 @@ void *s21_memchr(void const *str, int c, size_t n) {
 // Выполняет поиск первого вхождения символа c (беззнаковый тип) в строке, на
 // которую указывает аргумент str.
 char *s21_strchr(const char *str, int c) {
-  for (; *str != '\0' && *str != c; ++str)
-    ;
-
+  for (; *str != '\0' && *str != c; ++str);
   return *str == c ? (char *)str : NULL;
 }
 // Находит первый символ в строке str1, который соответствует любому символу,
@@ -136,15 +124,8 @@ char *s21_strrchr(const char *str, int c) {
     if (*str == c) res = (char *)str;
   } while (*str++);
   return (res);
-<<<<<<< HEAD
 }
-  // work great
-  int s21_strcmp(char *str_one, char *str_two) {
-    while (*str_one && *str_one == *str_two) {
-      str_one++;
-      str_two++;
-=======
-
+// Сравнивает первые n байтов str1 и str2.
 int s21_memcmp(void *str1, void *str2, size_t n) {
     int result = 0;
     unsigned char *p_1 = str1;
@@ -158,12 +139,14 @@ int s21_memcmp(void *str1, void *str2, size_t n) {
         }
         p_1++;
         p_2++;
->>>>>>> test
     }
-<<<<<<< HEAD
-    return *str_one - *str_two;
-  }
-=======
+    if (!p_2) {
+        result = *p_1;
+    } else if (!p_1) {
+        result = -(*p_2);
+    }
+    return result;
+}
 //don't work with NULL, otherwise work great
 char *s21_strtok(char *string, char *delim) {
 	s21_size_t len = s21_strlen(string);
@@ -202,16 +185,8 @@ char *s21_strerror(int errnum) {
 	}
 	return res;
 }
->>>>>>> vlad
-=======
-    if (!p_2) {
-        result = *p_1;
-    } else if (!p_1) {
-        result = -(*p_2);
-    }
-    return result;
-}
-
+// Сравнивает строку, на которую указывает str1, 
+//cо строкой, на которую указывает str2. 
 int s21_strcmp(char *str1, char *str2) {
     int result = 0;
     char *p_1 = str1;
@@ -233,7 +208,8 @@ int s21_strcmp(char *str1, char *str2) {
     }
     return result;
 }
-
+// Сравнивает строку, на которую указывает str1, 
+//со строкой, на которую указывает str2
 int s21_strncmp(char *str1, char *str2, size_t n) {
     int result = 0;
     unsigned char *p_1 = str1;
@@ -255,4 +231,3 @@ int s21_strncmp(char *str1, char *str2, size_t n) {
     }
     return result;
 }
->>>>>>> 006930ffad820ad7b14d461d3aa6dba9e7b70be7
