@@ -1,6 +1,7 @@
 #include "s21_functions.h"
 
 // work great
+//возвращает длину строки без '\0'
 s21_size_t s21_strlen(char *string) {
   s21_size_t len = 0;
   while (*(string + len)) {
@@ -8,6 +9,7 @@ s21_size_t s21_strlen(char *string) {
   }
   return len;
 }
+<<<<<<< HEAD
 //фун-ия для strtok
 int enum_delim(char str, const char *delim) {
   int flag = 0;
@@ -16,6 +18,16 @@ int enum_delim(char str, const char *delim) {
       flag = 1;
     }
     delim++;
+=======
+
+<<<<<<< HEAD
+// don't work with NULL, otherwise work great
+char s21_strtok(char *string, char *delim) {
+  s21_size_t len = s21_strlen(string);
+  for (int i = 0; i < len; i++) {
+    if (string[i] == *delim) string[i] = '\0';
+    break;
+>>>>>>> test
   }
   return flag;
 }
@@ -124,12 +136,123 @@ char *s21_strrchr(const char *str, int c) {
     if (*str == c) res = (char *)str;
   } while (*str++);
   return (res);
+<<<<<<< HEAD
 }
   // work great
   int s21_strcmp(char *str_one, char *str_two) {
     while (*str_one && *str_one == *str_two) {
       str_one++;
       str_two++;
+=======
+
+int s21_memcmp(void *str1, void *str2, size_t n) {
+    int result = 0;
+    unsigned char *p_1 = str1;
+    unsigned char *p_2 = str2;
+
+    while (p_1 && p_2 && n > 0) {
+        n--;
+        if (*p_1 != *p_2) {
+            result = (*p_1) - (*p_2);
+            break;
+        }
+        p_1++;
+        p_2++;
+>>>>>>> test
     }
+<<<<<<< HEAD
     return *str_one - *str_two;
   }
+=======
+//don't work with NULL, otherwise work great
+char *s21_strtok(char *string, char *delim) {
+	s21_size_t len = s21_strlen(string);
+	for(int i = 0; i < len; i++) {
+		if(string[i] == *delim) 
+			string[i] = '\0';
+			break;
+	}
+	return string;
+}
+
+//фун-ия добавляет в конец str_change содержание str_add
+char *s21_strcat(char *str_change, char *str_add) {
+	return(s21_strncat(str_change, str_add, s21_strlen(str_change) + s21_strlen(str_add)));
+}
+
+//фун-ия добавляет в конец str_change содержание str_add не более n байт 
+char *s21_strncat(char *str_change, char *str_add, s21_size_t n) {
+	size_t len_str_change = strlen(str_change);
+	int i = 0;
+	while(str_add[i] != '\0' && i < n) {
+		str_change[len_str_change + i] = str_add[i]; 
+		i++;
+	}
+	str_change[len_str_change + i] = '\0';
+	return str_change;
+}
+//выводит сообщение об ошибке (для линукса и мак ос разные)
+//заменить спринтф на с21_спринтф!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+char *s21_strerror(int errnum) { 
+	static char res[50] = {0};
+	if(errnum >= 0 && errnum < AMOUNT_ERRORS) {
+		strcpy(res, errors[errnum]);
+	} else {
+		sprintf(res, "Unknown error: %d", errnum);
+	}
+	return res;
+}
+>>>>>>> vlad
+=======
+    if (!p_2) {
+        result = *p_1;
+    } else if (!p_1) {
+        result = -(*p_2);
+    }
+    return result;
+}
+
+int s21_strcmp(char *str1, char *str2) {
+    int result = 0;
+    char *p_1 = str1;
+    char *p_2 = str2;
+
+    while (*p_1 == *p_2) {
+        p_1++;
+        p_2++;
+        if (*p_1 == '\0' || *p_2 == '\0') {
+            break;
+        }
+    }
+    if (*p_1 != '\0' && *p_2 != '\0') {
+        result = *p_1 - *p_2;
+    } else if (*p_1 == '\0') {
+        result = -*p_2;
+    } else if (*p_2 == '\0') {
+        result = *p_1;
+    }
+    return result;
+}
+
+int s21_strncmp(char *str1, char *str2, size_t n) {
+    int result = 0;
+    unsigned char *p_1 = str1;
+    unsigned char *p_2 = str2;
+
+    while (p_1 && p_2 && n > 0) {
+        n--;
+        if (*p_1 != *p_2) {
+            result = (*p_1) - (*p_2);
+            break;
+        }
+        p_1++;
+        p_2++;
+    }
+    if (!p_2) {
+        result = *p_1;
+    } else if (!p_1) {
+        result = -(*p_2);
+    }
+    return result;
+}
+>>>>>>> 006930ffad820ad7b14d461d3aa6dba9e7b70be7
