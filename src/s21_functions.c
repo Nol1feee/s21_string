@@ -8,15 +8,42 @@ s21_size_t s21_strlen(char *string) {
   }
   return len;
 }
-
-// don't work with NULL, otherwise work great
-char s21_strtok(char *string, char *delim) {
-  s21_size_t len = s21_strlen(string);
-  for (int i = 0; i < len; i++) {
-    if (string[i] == *delim) string[i] = '\0';
-    break;
+//фун-ия для strtok
+int enum_delim(char str, const char *delim) {
+  int flag = 0;
+  while (*delim && flag == 0) {
+    if (str == *delim) {
+      flag = 1;
+    }
+    delim++;
   }
-  return string[i];
+  return flag;
+}
+//делит строку на токены
+char *s21_strtok(char *str, const char *delim) {
+	char *res = NULL;
+	static char *buf = NULL;
+	if(str) {
+		buf = NULL;
+	} else {
+		str = buf;
+	}
+	res = str;
+	//переместить res = str, тк будет фейлить много тестов, но пока что я хз куда
+	while(*str) {
+		if(enum_delim(*str, delim)) {
+			break;
+		}	
+		str++;
+	}
+	if(*str) {
+		*str = '\0';
+		buf = str + 1;
+	} else {
+		res = NULL;
+		buf = NULL;
+	}
+	return res;
 }
 
 // work great
@@ -97,7 +124,7 @@ char *s21_strrchr(const char *str, int c) {
     if (*str == c) res = (char *)str;
   } while (*str++);
   return (res);
-=======
+}
   // work great
   int s21_strcmp(char *str_one, char *str_two) {
     while (*str_one && *str_one == *str_two) {
@@ -105,5 +132,4 @@ char *s21_strrchr(const char *str, int c) {
       str_two++;
     }
     return *str_one - *str_two;
->>>>>>> vlad
   }
