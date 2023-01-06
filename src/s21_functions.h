@@ -1,6 +1,6 @@
 #pragma once 
-
-#define s21_size_t unsigned long long 
+//long long
+#define s21_size_t unsigned  
 #define s21_NULL (void*)0
 
 #include <stdio.h>

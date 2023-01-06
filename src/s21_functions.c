@@ -48,37 +48,6 @@ char *s21_strtok(char *str, const char *delim) {
 	return res;
 }
 
-// work great
-char *s21_strcat(char *str_change, char *str_add)
-{
-  return (s21_strncat(str_change, str_add,
-                      s21_strlen(str_change) + s21_strlen(str_add)));
-}
-
-// work great
-char *s21_strncat(char *str_change, char *str_add, s21_size_t n) {
-  size_t len_str_change = strlen(str_change);
-  int i = 0;
-  while (str_add[i] != '\0' && i < n) {
-    str_change[len_str_change + i] = str_add[i];
-    i++;
-  }
-  str_change[len_str_change + i] = '\0';
-  return str_change;
-}
-
-char *s21_strerror(int errnum) {
-  // ошибка без static - address of stack memory associated with local variable
-  // 'res' returned [-Wreturn-stack-address]
-  static char res[50] = {0};
-  if (errnum >= 0 && errnum < AMOUNT_ERRORS) {
-    strcpy(res, errors[errnum]);
-  }  // else {
-  //	printf("Unknown error: %d", errnum);
-  //}
-  return res;
-}
-
 void *s21_memchr(void const *str, int c, size_t n) {
   char *res = NULL;
   while (n-- > 0) {
@@ -146,16 +115,6 @@ int s21_memcmp(void *str1, void *str2, size_t n) {
         result = -(*p_2);
     }
     return result;
-}
-//don't work with NULL, otherwise work great
-char *s21_strtok(char *string, char *delim) {
-	s21_size_t len = s21_strlen(string);
-	for(int i = 0; i < len; i++) {
-		if(string[i] == *delim) 
-			string[i] = '\0';
-			break;
-	}
-	return string;
 }
 
 //фун-ия добавляет в конец str_change содержание str_add
