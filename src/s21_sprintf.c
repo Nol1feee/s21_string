@@ -1,22 +1,36 @@
-#include <limits.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-typedef struct s21 {
-  int format;
-  int fill_left;
-  int signed_conversion;
-  int space_signed_conversion;
-  int width;
-  int floating;
-  int h_flag;
-  int l_flag;
-  char* pointer;
-  int fillnull;
-} s21;
 
+#include "s21_sprintf.h"
+int s21_sprintf(char* buf, const char* format, ...);
+void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d);
+void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f);
+void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol);
+void flag_s(s21* sh21, char* string, char* buf, char* result);
+void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u);
+char* revers(char* str, int i);
+char* s21_int_to_string(long int number, long int floating);
+char* s21_add_sign(char* dest, char* src, int signed_conversion,
+                   int space_signed_conversion, long int number);
+char* s21_add_zero(char* dest, char* src, int floating);
+int s21_pow(int x, int y);
+int s21_round(double y);
+char* s21_float_to_string(long double number, int floating);
+char* s21_uint_to_string(unsigned long long number, long int floating);
+void s21_reset_struct(s21* sh21);
+void fill_result(char* buf, char* result, s21* sh21);
+void numbers(const char* line, s21* sh21);
+void insert_and_free(s21* sh21, char* temp, char* buf, char* result);
+char* s21_add_spaces(char* line, s21* sh21);
+
+// int main() {
+//   char buf[50];
+//   // char z[] = "rec";
+//   sprintf(buf, "%.06u %2s%6lf %4c %d %i ", 0, "ass", 123.4, 'w', 66666,
+//   888888); printf("%s \n", buf); s21_sprintf(buf, "%.06u %2s%6lf %4c %d %i ",
+//   0, "ass", 123.4, 'w', 66666,
+//               888888);
+//   printf("%s ", buf);
+//   return 0;
+// }
 int s21_sprintf(char* buf, const char* format, ...) {
   *buf = 0;
   va_list param;
@@ -37,16 +51,17 @@ int s21_sprintf(char* buf, const char* format, ...) {
     if (sh21.format == 0 && *line != '%') {
       count_char += 1;
       strncat(buf, line, 1);
-      continue;
-    }
-    if (sh21.format == 0 && *line == '%') {
+
+    } else if (sh21.format == 0 && *line == '%') {
       sh21.format = 1;
       sh21.pointer = (char*)line;
-      continue;
-    }
-    if (sh21.format) {
+
+    } else if (sh21.format) {
       if (*line == '%') {
-        strcat(buf, '%');
+        result = calloc(2, sizeof(char));
+        result[0] = '%';
+        strcat(buf, result);
+        free(result);
         s21_reset_struct(&sh21);
         count_char += 1;
       } else if (*line == '-') {
@@ -64,7 +79,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
       } else if (*line == '1' || *line == '2' || *line == '3' || *line == '4' ||
                  *line == '5' || *line == '6' || *line == '7' || *line == '8' ||
                  *line == '9' || *line == '0') {
-        digital(line, &sh21);
+        numbers(line, &sh21);
         while (*(line + 1) > 47 && *(line + 1) < 58) line++;
       } else if (*line == 'i' || *line == 'd') {
         if (sh21.h_flag)
@@ -86,13 +101,16 @@ int s21_sprintf(char* buf, const char* format, ...) {
       } else if (*line == 'u') {
         u = va_arg(param, uint64_t);
         flag_u(&sh21, temp, buf, result, u);
+      } else if (*line == 'n') {
+        int* count = va_arg(param, int*);
+        *count = count_char;
+        fill_result(buf, result, &sh21);
       }
     }
   }
   va_end(param);
-  return s21_strlen(buf);
+  return strlen(buf);
 }
-
 void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
   temp = s21_int_to_string(d, sh21->floating);
   result = calloc(strlen(temp) + 1, sizeof(char));
@@ -209,12 +227,13 @@ char* s21_add_sign(char* dest, char* src, int signed_conversion,
 }
 
 char* s21_add_zero(char* dest, char* src, int floating) {
-  if ((int)floating <= (int)strlen(src)) return dest;
-  size_t k = strlen(dest);
-  if (strlen(dest)) floating++;
-  dest = realloc(dest, (floating + 1) * sizeof(char));
-  for (; k < (floating - strlen(src)); k++) strcat(dest, "0");
-  dest[k] = '\0';
+  if ((int)floating > (int)strlen(src)) {
+    size_t k = strlen(dest);
+    if (strlen(dest)) floating++;
+    dest = realloc(dest, (floating + 1) * sizeof(char));
+    for (; k < (floating - strlen(src)); k++) strcat(dest, "0");
+    dest[k] = '\0';
+  }
   return dest;
 }
 
@@ -283,12 +302,18 @@ void fill_result(char* buf, char* result, s21* sh21) {
   free(result);
 }
 
-void digital(const char* line, s21* sh21) {
-  if ((int)sh21->floating == -1)
-    sh21->width = s21_atoi((char*)line);
-  else if ((int)sh21->floating == 0)
-    sh21->floating = s21_atoi((char*)line);
-  if (line[0] == '0') sh21->fillnull = 1;
+void numbers(const char* line, s21* sh21) {
+  int atoi = 0;
+  while (*line >= '0' && *line <= '9') {
+    atoi *= 10;
+    atoi += *line++;
+    atoi -= '0';
+  }
+  if (sh21->floating == -1)
+    sh21->width = atoi;
+  else if (sh21->floating == 0)
+    sh21->floating = atoi;
+  if (line[0] == '0') sh21->fillnull = 1;  // Влад, посмотри
 }
 
 void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
@@ -298,24 +323,28 @@ void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
   fill_result(buf, result, sh21);
 }
 
-char* s21_add_spaces(char* dest, s21* sh21) {
-  int str_len = strlen(dest);
-  if (str_len >= sh21->width) return dest;
-  char* temp = calloc(sh21->width + 1, sizeof(char));
-  int padding_len = sh21->width - str_len;
-  char* spc_ptr = calloc(padding_len + 1, sizeof(char));
-  sh21->fillnull > 0 ? memset(spc_ptr, '0', padding_len)
-                     : memset(spc_ptr, ' ', padding_len);
-  spc_ptr[padding_len] = 0;
-  if (sh21->fill_left == 1) {
-    strcat(temp, dest);
-    strcat(temp, spc_ptr);
-  } else {
-    strcat(temp, spc_ptr);
-    strcat(temp, dest);
+char* s21_add_spaces(char* line, s21* sh21) {
+  int str_len = strlen(line);
+  if (str_len < sh21->width) {
+    char* temp = calloc(sh21->width + 1, sizeof(char));
+    int padding_len = sh21->width - str_len;
+    char* spc_ptr = calloc(padding_len + 1, sizeof(char));
+    if (sh21->fillnull > 0) {  // Влад, посмотри
+      memset(spc_ptr, '0', padding_len);
+    } else {
+      memset(spc_ptr, ' ', padding_len);
+    }
+    spc_ptr[padding_len] = 0;  // Влад, посмотри
+    if (sh21->fill_left == 1) {
+      strcat(temp, line);
+      strcat(temp, spc_ptr);
+    } else {
+      strcat(temp, spc_ptr);
+      strcat(temp, line);
+    }
+    free(spc_ptr);
+    free(line);
+    line = temp;
   }
-  free(spc_ptr);
-  free(dest);
-  dest = temp;
-  return dest;
+  return line;
 }
