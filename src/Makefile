@@ -41,7 +41,7 @@ TEST_OBJECTS=$(addprefix $(BUILD_TEST_DIR)/, $(notdir $(TESTS:.c=.o)))
 				valgrind run external
 
 # Компилируем либо, тесты, и делаем репорт в котором запуск
-all : $(LIB) test gcov_report
+all : $(LIB) test #gcov_report
 
 ###############################################
 # ФОРМИРУЕМ И ЗАПУСКАЕМ ТЕСТЫ С ТЕСТ ЛИБОЙ

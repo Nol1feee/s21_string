@@ -1,4 +1,4 @@
-/*#ifndef SRC_S21_ERRORS_H_
+#ifndef SRC_S21_ERRORS_H_
 #define SRC_S21_ERRORS_H_
 
 #if defined(__linux__)
@@ -250,4 +250,3 @@ char *errors[] = {"Undefined error: 0",
 #endif
 
 #endif  // SRC_S21_ERRORS_H_
-*/
