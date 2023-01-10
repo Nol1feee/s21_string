@@ -4,5 +4,5 @@
 // которую указывает аргумент str.
 char *s21_strchr(const char *str, int c) {
   for (; *str != '\0' && *str != c; ++str);
-  return *str == c ? (char *)str : NULL;
+  return *str == c ? (char *)str : s21_NULL;
 }

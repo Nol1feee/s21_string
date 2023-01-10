@@ -1,40 +1,40 @@
 #include "s21_string.h"
 
-//фун-ия для strtok
-int enum_delim(char str, const char *delim) {
-  int flag = 0;
-  while (*delim && flag == 0) {
-    if (str == *delim) {
-      flag = 1;
+// фун-ия для strtok
+  int enum_delim(char str, const char *delima) {
+  int find = 0;
+  while (*delima != '\0' && find == 0) {
+    if (str == *delima) {
+      find = 1;
     }
-    delim++;
+    delima++;
   }
-return flag;
+  return find;
 }
-//делит строку на токены
-char *s21_strtok(char *str, const char *delim) {
-	char *res = NULL;
-	static char *buf = NULL;
-	if(str) {
-		buf = NULL;
-	} else {
-		str = buf;
-	}
-	res = str;
-	//переместить res = str, тк будет фейлить много тестов, но пока что я хз куда
-	while(*str) {
-		if(enum_delim(*str, delim)) {
-			break;
-		}	
-		str++;
-	}
-	if(*str) {
-		*str = '\0';
-		buf = str + 1;
-	} else {
-		res = NULL;
-		buf = NULL;
-	}
-	return res;
+
+char *s21_strtok(char *restrict str, const char *restrict delim) {
+  static char *buffer;
+  char *res = NULL;
+  if (str != NULL) {
+    buffer = NULL;
+  } else {
+    str = buffer;
+  }
+  while (enum_delim(*str, delim) && *str != '\0') {
+    str++;
+  }
+
+  if (*str != '\0')
+    res = str;
+  while (!enum_delim(*str, delim) && *str != '\0') {
+    str++;
+  }
+
+  if (*str != '\0') {
+    *str = '\0';
+    buffer = str + 1;
+  } else {
+    buffer = str;
+  }
+  return res;
 }
-//можно енам делим на стрпбрк заменить + стрток валится
