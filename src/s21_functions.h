@@ -20,4 +20,9 @@ char *s21_strerror(int errnum);
 char *s21_strncat(char *str_change, char *str_add, s21_size_t n);
 int s21_memcmp(void *str1, void *str2, size_t n);
 int s21_strcmp(char *str1, char *str2);
+<<<<<<< HEAD
 int s21_strncmp(char *str1, char *str2, size_t n);
+=======
+int s21_strncmp(char *str1, char *str2, size_t n);
+char *s21_strstr(char *haystack, char *needle);
+>>>>>>> serafim
