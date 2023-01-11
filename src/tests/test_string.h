@@ -19,5 +19,6 @@ Suite *strcmp_s21(void);
 Suite *strncmp_s21(void);
 Suite *strspn_s21(void);
 Suite *strcspn_s21(void);
+Suite *strstr_s21(void);
 
 #endif // SRC_TESTS_TEST_STRING_H_

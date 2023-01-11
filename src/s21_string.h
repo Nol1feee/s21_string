@@ -1,7 +1,7 @@
 #ifndef SRC_S21_STRING_H_
 #define SRC_S21_STRING_H_
 
-#define s21_size_t unsigned long int   
+#define s21_size_t unsigned long   
 #define s21_NULL (void*)0
 
 #include <stdio.h>
@@ -22,6 +22,6 @@ int s21_strcmp(char *str1, char *str2);
 int s21_strncmp(char *str1, char *str2, size_t n);
 s21_size_t s21_strspn(const char *string1, const char *string2);
 s21_size_t s21_strcspn(const char *str1, const char *str2);
-//strstr
+char *s21_strstr(char *haystack, char *needle);
 //функции Егора
 #endif  // SRC_S21_STRING_H_
