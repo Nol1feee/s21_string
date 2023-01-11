@@ -23,5 +23,11 @@ int s21_strncmp(char *str1, char *str2, size_t n);
 s21_size_t s21_strspn(const char *string1, const char *string2);
 s21_size_t s21_strcspn(const char *str1, const char *str2);
 char *s21_strstr(char *haystack, char *needle);
-//функции Егора
+void *s21_memcpy(void *dest, const void *src, size_t n);
+void *s21_memmove(void *dest, const void *src, size_t n);
+void *s21_memset(void *dest, int fill, size_t n);
+char *s21_strcpy(char *restrict dst, const char *restrict src);
+
+ char *s21_strncpy(char *restrict dst, const char *restrict src, size_t n);
+
 #endif  // SRC_S21_STRING_H_

@@ -2,6 +2,7 @@
 
 char *s21_strstr(char *haystack, char *needle) {
     char *str = haystack;
+    char *res = NULL;
 
     if (*needle == '\0')
         return str;
@@ -17,13 +18,14 @@ char *s21_strstr(char *haystack, char *needle) {
                     break;
                 p_1++; p_2++;
             }
-            if (*p_2 == '\0')
-                return str;
-            else {
+            if (*p_2 == '\0') {
+                res = str;
+                break;
+            }  else {
                 p_2 = needle;
             }
         }
     }
 
-    return s21_NULL;
+    return res;
 }

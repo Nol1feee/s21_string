@@ -20,5 +20,10 @@ Suite *strncmp_s21(void);
 Suite *strspn_s21(void);
 Suite *strcspn_s21(void);
 Suite *strstr_s21(void);
+Suite *memcpy_s21(void);
+Suite *memmove_s21(void);
+Suite *memset_s21(void);
+Suite *strcpy_s21(void)
+Suite *strncpy_s21(void);
 
 #endif // SRC_TESTS_TEST_STRING_H_

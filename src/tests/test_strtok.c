@@ -6,7 +6,7 @@ START_TEST(s21_strtok_one) {
     char delim[] = "k";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -16,7 +16,7 @@ START_TEST(s21_strtok_two) {
     char delim[] = "k";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -26,7 +26,7 @@ START_TEST(s21_strtok_three) {
     char delim[] = "q";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -36,7 +36,7 @@ START_TEST(s21_strtok_four) {
     char delim[] = "";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -46,7 +46,7 @@ START_TEST(s21_strtok_five) {
     char delim[] = " ";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -56,7 +56,7 @@ START_TEST(s21_strtok_six) {
     char delim[] = "?\0";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -66,7 +66,7 @@ START_TEST(s21_strtok_seven) {
     char delim[] = "\0";
     char *one = s21_strtok(temp_one, delim);
     char *two = strtok(temp_two, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -74,7 +74,7 @@ START_TEST(s21_strtok_eight) {
     char delim[] = "\0";
     char *one = s21_strtok(NULL, delim);
     char *two = strtok(NULL, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -82,7 +82,7 @@ START_TEST(s21_strtok_nine) {
     char delim[] = "kwk ";
     char *one = s21_strtok(NULL, delim);
     char *two = strtok(NULL, delim);
-    ck_assert_str_eq(one, two);
+    ck_assert_pstr_eq(one, two);
 }
 END_TEST
 
@@ -94,7 +94,7 @@ START_TEST(s21_strtok_ten) {
         char *tok = s21_strtok(one_str[i], del[i]);
         char *tok_two = strtok(two_str[i], del[i]);
         while(tok && tok_two) {
-            ck_assert_str_eq(tok, tok_two);
+            ck_assert_pstr_eq(tok, tok_two);
             tok = s21_strtok(NULL, del[i]);
             tok_two = strtok(NULL, del[i]);
         }
