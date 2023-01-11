@@ -14,7 +14,7 @@ typedef struct s21 {
   int floating;
   int h_flag;
   int l_flag;
-  char* pointer;
+//  char* pointer;
   int fillnull;  // Влад, посмотри
 } s21;
 

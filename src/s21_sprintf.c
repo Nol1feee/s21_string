@@ -32,6 +32,7 @@ char* s21_add_spaces(char* line, s21* sh21);
 //   return 0;
 // }
 int s21_sprintf(char* buf, const char* format, ...) {
+  // NULL? 
   *buf = 0;
   va_list param;
   va_start(param, format);
@@ -45,19 +46,20 @@ int s21_sprintf(char* buf, const char* format, ...) {
   s21 sh21;
   s21_reset_struct(&sh21);
   int count_char;
-  sh21.pointer = (char*)format;
+  //sh21.pointer = (char*)format;
   for (const char* line = format; *line; line++) {
-    if (*line == '\0') break;
+//    if (*line == '\0') break;
     if (sh21.format == 0 && *line != '%') {
-      count_char += 1;
+      count_char += 1; //для флага n
       strncat(buf, line, 1);
 
     } else if (sh21.format == 0 && *line == '%') {
       sh21.format = 1;
-      sh21.pointer = (char*)line;
+     // sh21.pointer = char*)line;
 
     } else if (sh21.format) {
       if (*line == '%') {
+        //strcat?
         result = calloc(2, sizeof(char));
         result[0] = '%';
         strcat(buf, result);
@@ -76,11 +78,11 @@ int s21_sprintf(char* buf, const char* format, ...) {
         sh21.h_flag = 1;
       } else if (*line == 'l') {
         sh21.l_flag = 1;
-      } else if (*line == '1' || *line == '2' || *line == '3' || *line == '4' ||
-                 *line == '5' || *line == '6' || *line == '7' || *line == '8' ||
-                 *line == '9' || *line == '0') {
+      } else if (((*line) >= '0') && ((*line) <= '9')) {
         numbers(line, &sh21);
-        while (*(line + 1) > 47 && *(line + 1) < 58) line++;
+        //пропускает цифры, которые были обработаны в numbers
+        while (*(line + 1) >= '0' && *(line + 1) <= '9')
+          line++;
       } else if (*line == 'i' || *line == 'd') {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);
@@ -292,7 +294,7 @@ void s21_reset_struct(s21* sh21) {
   sh21->floating = -1;
   sh21->h_flag = 0;
   sh21->l_flag = 0;
-  sh21->pointer = NULL;
+//  sh21->pointer = NULL;
   sh21->fillnull = 0;
 }
 
@@ -302,6 +304,7 @@ void fill_result(char* buf, char* result, s21* sh21) {
   free(result);
 }
 
+//блять! Перевод, сука, стринга в инт
 void numbers(const char* line, s21* sh21) {
   int atoi = 0;
   while (*line >= '0' && *line <= '9') {
