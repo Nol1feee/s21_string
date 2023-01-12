@@ -42,24 +42,24 @@ void *s21_insert(const char *src, const char *str, size_t start_index) {
   }
   return ptr;
 }
-char *s21_End(char *ptr, const char *trim_chars) {
-  size_t lenPtr = strlen(ptr);
-  size_t lenTrim = strlen(trim_chars);
-  for (size_t i = lenPtr - 1; i; i--) {
+char *s21_Right(char *line, const char *trim_chars) {
+  size_t len_line = strlen(line);
+  size_t len_trim_chars = strlen(trim_chars);
+  for (size_t i = len_line - 1; i; i--) {
     int count = 0;
-    for (size_t j = 0; j < lenTrim; j++) {
-      if (ptr[i] == trim_chars[j]) {
+    for (size_t j = 0; j < len_trim_chars; j++) {
+      if (line[i] == trim_chars[j]) {
         count++;
         break;
       }
     }
     if (count) {
-      ptr[i] = '\0';
+      line[i] = '\0';
     } else {
       break;
     }
   }
-  return ptr;
+  return line;
 }
 // удаляет с обеих сторон src trim_chars
 void *s21_trim(const char *src, const char *trim_chars) {
@@ -70,7 +70,7 @@ void *s21_trim(const char *src, const char *trim_chars) {
       src += strspn(src, trim_chars);
       strcpy(ptr, src);
       if (strlen(ptr) > 0) {
-        s21_End(ptr, trim_chars);
+        s21_Right(ptr, trim_chars);
       }
     }
   }
@@ -86,8 +86,8 @@ void main() {
   printf("%s\n", s1);
   s1 = s21_to_upper(s);
   printf("%s\n", s1);
-  char charsToTrim2[] = "1";
-  char s2[] = "*123xyz********c******c";
+  char charsToTrim2[] = "112";
+  char s2[] = "124*123xyz********c******c124";
   s1 = s21_trim(s2, charsToTrim2);
   printf("%s", s1);
 }
