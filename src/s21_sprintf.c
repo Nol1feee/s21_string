@@ -32,7 +32,7 @@ int main() {
   return 0;
 }
 int s21_sprintf(char* buf, const char* format, ...) {
-  // NULL?
+  // NULL? b
   *buf = 0;
   va_list param;
   va_start(param, format);
