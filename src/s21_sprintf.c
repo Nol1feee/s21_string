@@ -21,18 +21,18 @@ void numbers(const char* line, s21* sh21);
 void insert_and_free(s21* sh21, char* temp, char* buf, char* result);
 char* s21_add_spaces(char* line, s21* sh21);
 
-// int main() {
-//   char buf[50];
-//   // char z[] = "rec";
-//   sprintf(buf, "%.06u %2s%6lf %4c %d %i ", 0, "ass", 123.4, 'w', 66666,
-//   888888); printf("%s \n", buf); s21_sprintf(buf, "%.06u %2s%6lf %4c %d %i ",
-//   0, "ass", 123.4, 'w', 66666,
-//               888888);
-//   printf("%s ", buf);
-//   return 0;
-// }
+int main() {
+  char buf[50];
+  // char z[] = "rec";
+  sprintf(buf, "%u %5.7s%lf %%%c % d %i ", 1, "ass", 123.4, 'w', 66666, 888888);
+  printf("%s \n", buf);
+  s21_sprintf(buf, "%u %6.7s%lf %%%c % d %i ", 1, "ass", 123.4, 'w', 66666,
+              888888);
+  printf("%s ", buf);
+  return 0;
+}
 int s21_sprintf(char* buf, const char* format, ...) {
-  // NULL? 
+  // NULL?
   *buf = 0;
   va_list param;
   va_start(param, format);
@@ -46,20 +46,19 @@ int s21_sprintf(char* buf, const char* format, ...) {
   s21 sh21;
   s21_reset_struct(&sh21);
   int count_char;
-  //sh21.pointer = (char*)format;
+
   for (const char* line = format; *line; line++) {
-//    if (*line == '\0') break;
+    //    if (*line == '\0') break;
     if (sh21.format == 0 && *line != '%') {
-      count_char += 1; //для флага n
+      count_char += 1;  // для флага n
       strncat(buf, line, 1);
 
     } else if (sh21.format == 0 && *line == '%') {
       sh21.format = 1;
-     // sh21.pointer = char*)line;
 
     } else if (sh21.format) {
       if (*line == '%') {
-        //strcat?
+        // strcat?
         result = calloc(2, sizeof(char));
         result[0] = '%';
         strcat(buf, result);
@@ -80,9 +79,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
         sh21.l_flag = 1;
       } else if (((*line) >= '0') && ((*line) <= '9')) {
         numbers(line, &sh21);
-        //пропускает цифры, которые были обработаны в numbers
-        while (*(line + 1) >= '0' && *(line + 1) <= '9')
-          line++;
+        // пропускает цифры, которые были обработаны в numbers
+        while (*(line + 1) >= '0' && *(line + 1) <= '9') line++;
       } else if (*line == 'i' || *line == 'd') {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);
@@ -294,8 +292,8 @@ void s21_reset_struct(s21* sh21) {
   sh21->floating = -1;
   sh21->h_flag = 0;
   sh21->l_flag = 0;
-//  sh21->pointer = NULL;
-  sh21->fillnull = 0;
+  //  sh21->pointer = NULL;
+  // sh21->fillnull = 0;
 }
 
 void fill_result(char* buf, char* result, s21* sh21) {
@@ -304,19 +302,20 @@ void fill_result(char* buf, char* result, s21* sh21) {
   free(result);
 }
 
-//блять! Перевод, сука, стринга в инт
+// блять! Перевод, сука, стринга в инт
 void numbers(const char* line, s21* sh21) {
   int atoi = 0;
   while (*line >= '0' && *line <= '9') {
     atoi *= 10;
-    atoi += *line++;
+    atoi += *line;
+    line++;
     atoi -= '0';
   }
   if (sh21->floating == -1)
     sh21->width = atoi;
   else if (sh21->floating == 0)
     sh21->floating = atoi;
-  if (line[0] == '0') sh21->fillnull = 1;  // Влад, посмотри
+  // if (line[0] == '0') sh21->fillnull = 1;  // Влад, посмотри
 }
 
 void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
@@ -332,11 +331,11 @@ char* s21_add_spaces(char* line, s21* sh21) {
     char* temp = calloc(sh21->width + 1, sizeof(char));
     int padding_len = sh21->width - str_len;
     char* spc_ptr = calloc(padding_len + 1, sizeof(char));
-    if (sh21->fillnull > 0) {  // Влад, посмотри
-      memset(spc_ptr, '0', padding_len);
-    } else {
-      memset(spc_ptr, ' ', padding_len);
-    }
+    // if (sh21->fillnull > 0) {  // Влад, посмотри
+    //  memset(spc_ptr, '0', padding_len);
+    // } else {
+    memset(spc_ptr, ' ', padding_len);
+    // }
     spc_ptr[padding_len] = 0;  // Влад, посмотри
     if (sh21->fill_left == 1) {
       strcat(temp, line);

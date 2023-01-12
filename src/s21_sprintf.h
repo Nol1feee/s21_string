@@ -6,16 +6,19 @@
 #include <stdlib.h>
 #include <string.h>
 typedef struct s21 {
-  int format;
-  int fill_left;
-  int signed_conversion;
-  int space_signed_conversion;
-  int width;
-  int floating;
-  int h_flag;
-  int l_flag;
-//  char* pointer;
-  int fillnull;  // Влад, посмотри
+  int format;     // флаг для повторного символа %
+  int fill_left;  // выравнивание по левому краю
+  int signed_conversion;  // указываем знак для любых чтсел
+  int space_signed_conversion;  // если число положительное, и мы не указали,
+                                // что нам нужно явно указать знак,то у
+                                // положительных чисел на месте знака будет
+                                // пробел
+  int width;     // ширина
+  int floating;  // точность
+  int h_flag;    // шорт инт
+  int l_flag;    // лонг инт
+  //  char* pointer;
+  // int fillnull;  // Влад, посмотри
 } s21;
 
 int s21_sprintf(char* buf, const char* format, ...);
