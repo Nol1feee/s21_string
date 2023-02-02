@@ -9,7 +9,7 @@ int main() {
   char dst[20];
   char test_dst[20];
   sscanf(src, "%s", dst); 
-  s21_sscanf(src, "t1%s", test_dst); 
+  s21_sscanf(src, "t%s", test_dst); 
   //puts(dst);
   return 0;
 }
