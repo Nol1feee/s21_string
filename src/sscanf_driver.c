@@ -11,5 +11,6 @@ int main() {
   sscanf(src, "%s", dst); 
   s21_sscanf(src, "t%s", test_dst); 
   //puts(dst);
+  puts(test_dst);
   return 0;
 }
