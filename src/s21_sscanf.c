@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h> /* for strlen, strcpy (then delete)*/
+#include <stdbool.h>
 
 /* check white-space characters*/
 _Bool is_whitespace(char ch) {
@@ -19,19 +20,18 @@ char *get_specifier(char *str_buf, char *format_buf) {
   while (is_whitespace(*format_buf)) { /* skip all spaces*/
     format_buf++;
   }
-  while (format_buf != '%') { /* skip all regular characters*/
-    if (format_buf == str_buf) {
+  while (*format_buf != '%') { /* skip all regular characters*/
+    if (*format_buf == *str_buf) {
       format_buf++;
-      str_bur++;      
+      str_buf++;      
     } else {
-      //empty word?
+      fprintf(stderr, "format_buf: %c not equal to str_buf: %c\n", *format_buf, *str_buf);
+      break;
     }
   }
-  /* to get all symbols before the first whitespace
-  char *specifier = 
-  while (!is_white_space(*format)) {
-
-  }*/
+  /* stoped at % */
+  char *specifier = ++format_buf;
+  return specifier;
 }
 
 int s21_sscanf(const char *str, const char *format, ...) {
@@ -39,10 +39,14 @@ int s21_sscanf(const char *str, const char *format, ...) {
   char *format_buf = (char *)malloc(strlen(format) * sizeof(char));
   strcpy(str_buf, str);
   strcpy(format_buf, format);
-  //char *p_str = str_buf; /* a pointer to keep track of the position in the str*/
-  //char *p_format = format_buf; /* a pointer to keep track of the position in the format*/
-  while (str_buf && format_buf) {
-    char *specifier = get_specifier(str_buf, format_buf);
+  printf("str:%s\n", str_buf);
+  printf("format:%s\n", format_buf);
+  while (*str_buf && *format_buf) {
+    char *specifier = get_specifier(str_buf, format_buf); /* get the pointer to the start of specifier */
+    printf("specifier:%s\n", specifier);
+    //str_buf++;
+    format_buf++;
+    //break;
   }
   //puts(buffer);
   return 0;

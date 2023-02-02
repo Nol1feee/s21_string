@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Werror
+CFLAGS=-Wall -Wextra -Werror -g
 SRC=s21_sscanf.c sscanf_driver.c
 EXE=s21_sscanf
 
