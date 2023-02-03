@@ -68,6 +68,7 @@ static int get_width(char **format_buf) {
     width = width * 10 + (**format_buf - SHIFT);
     (*format_buf)++;
   }
+  (*format_buf)--;
   return width;
 }
 
@@ -129,7 +130,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
         break;
 
       default:
-        if (is_digit(**format_buf)) {
+        if (is_digit(**format_buf) && (**format_buf > '0')) {
           *width = get_width(format_buf);
         } else {
           fprintf(stderr, "Incorrect specifier\n");
@@ -142,27 +143,40 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
 }
 
 /* put string from source string to another agrument of sscanf*/
-static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch) {
-  char *tmp = *str_buf; /* save start of string*/
-  while (**str_buf && !is_whitespace(**str_buf)) {
-    (*str_buf)++; /* go to end of string */
+static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
+  while (is_whitespace(**str_buf)) { /* skip all white-spaces*/
+    (*str_buf)++;
   }
-  **str_buf = '\0'; /* cut string after white-space*/
-  (*str_buf)++; /* go to remain string */
+  char *tmp = *str_buf; /* save start of string*/
+  int length = 0;
+  if (width) {
+    while (**str_buf && !is_whitespace(**str_buf) && (length < width)) {
+      (*str_buf)++; /* go to end of string */
+      length++;
+    }
+  } else {
+    while (**str_buf && !is_whitespace(**str_buf)) {
+      (*str_buf)++; /* go to end of string */
+      length++;
+    }
+  }
+  //**str_buf = '\0'; /* cut string after white-space */
+  //(*str_buf)++; /* go to remain string */
   if (!ass_supress) {
-    char *dst_string = va_arg(*argp, char*); /* take argument address*/
+    char *dst_string = va_arg(*argp, char*); /* take argument address */
     if (outsider_ch) {
-      strcpy(dst_string, ""); /* put empty string into argument*/
+      strcpy(dst_string, "\0"); /* put empty string into argument */
     } else {
-      strcpy(dst_string, tmp); /* put string into argument*/
+      strncpy(dst_string, tmp, length); /* put string into argument */
+      strncpy(dst_string + length, "\0", 1); /* cut extra garbage */
     }
   }
 }
 
 /* scan processing*/
-static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch) {
+static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
   if (specs & spec_s) {
-    scan_string(str_buf, argp, ass_supress, outsider_ch);
+    scan_string(str_buf, argp, ass_supress, outsider_ch, width);
   }
 }
 
@@ -188,7 +202,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     if (specs & spec_s) {
       printf("ok\n");
     }
-    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch);
+    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width);
     //str_buf++;
     //format_buf++;
     //break;
