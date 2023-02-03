@@ -10,10 +10,10 @@ int main() {
   char dst2[20];
   char test_dst[20];
   char test_dst2[20];
-  sscanf(src, "2%s %s", dst, dst2); 
+  sscanf(src, "%s3 %s", dst, dst2); 
   printf("dst: %s\n",dst);
   printf("dst2: %s\n",dst2);
-  s21_sscanf(src, "2%s %s", test_dst, test_dst2); 
+  s21_sscanf(src, "%s3 %s", test_dst, test_dst2); 
   printf("test_dst: %s\n",test_dst);
   printf("test_dst2: %s\n",test_dst2);
   return 0;

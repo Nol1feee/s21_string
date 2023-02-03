@@ -36,7 +36,7 @@ static _Bool is_whitespace(char ch) {
   }
 }
 
-/* get specifier from format string */
+/* sets the format_buf pointer to the character after the % */
 static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
   while (is_whitespace(**format_buf)) { /* skip all spaces*/
     (*format_buf)++;
@@ -55,7 +55,7 @@ static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch)
 /* set the specs in an integer number according to enum */
 static int set_specs(char **format_buf, _Bool *ass_supress) {
   int specs = 0;
-  while ((**format_buf) && !is_whitespace(**format_buf)) {
+  while ((**format_buf) && !is_whitespace(**format_buf) && (!specs)) {
     switch (**format_buf) {
       case 'c': 
         specs |= spec_c;
@@ -165,7 +165,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     }
     scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch);
     //str_buf++;
-    format_buf++;
+    //format_buf++;
     //break;
   }
   va_end(argp);
