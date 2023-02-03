@@ -142,12 +142,12 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
   return specs;
 }
 
-/* put string from source string to another agrument of sscanf*/
+/* put string from source string to another agrument of sscanf */
 static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
-  while (is_whitespace(**str_buf)) { /* skip all white-spaces*/
+  while (is_whitespace(**str_buf)) { /* skip all white-spaces */
     (*str_buf)++;
   }
-  char *tmp = *str_buf; /* save start of string*/
+  char *tmp = *str_buf; /* save start of string */
   int length = 0;
   if (width) {
     while (**str_buf && !is_whitespace(**str_buf) && (length < width)) {
@@ -160,8 +160,37 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
       length++;
     }
   }
-  //**str_buf = '\0'; /* cut string after white-space */
-  //(*str_buf)++; /* go to remain string */
+  if (!ass_supress) {
+    char *dst_string = va_arg(*argp, char*); /* take argument address */
+    if (outsider_ch) {
+      strcpy(dst_string, "\0"); /* put empty string into argument */
+    } else {
+      strncpy(dst_string, tmp, length); /* put string into argument */
+      strncpy(dst_string + length, "\0", 1); /* cut extra garbage */
+    }
+  }
+}
+
+/* put number from source string to another agrument of sscanf */
+static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
+  while (is_whitespace(**str_buf)) { /* skip all white-spaces */
+    (*str_buf)++;
+  }
+  double res = 0;
+  int power10 = 0; /* for power of 10 */
+  if (is_digit(**str_buf)) {
+    res = **str_buf - SHIFT;
+  } else if (**str_buf == '.'){
+    power10++;
+  } else {
+    // hanlde error
+  }
+  int length = 1;
+  while (**str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || **str_buf == '.')) {
+    
+    (*str_buf)++; 
+    length++;
+  }
   if (!ass_supress) {
     char *dst_string = va_arg(*argp, char*); /* take argument address */
     if (outsider_ch) {
@@ -175,8 +204,11 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
 
 /* scan processing*/
 static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
-  if (specs & spec_s) {
+  if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
+  }
+  if ((specs & spec_e) || (specs & spec_E) || (specs & spec_f) || (specs & spec_g) || (specs & spec_G)) { /* scan decimal numbers with floating point or scientific notation */
+    scan_efg(str_buf, argp, ass_supress, outsideg_ch, width);
   }
 }
 
