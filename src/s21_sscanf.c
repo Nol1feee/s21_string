@@ -37,18 +37,16 @@ static _Bool is_whitespace(char ch) {
 }
 
 /* get specifier from format string */
-static void get_specifier(char **str_buf, char **format_buf) {
+static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
   while (is_whitespace(**format_buf)) { /* skip all spaces*/
     (*format_buf)++;
   }
   while (**format_buf != '%') { /* skip all regular characters*/
-    if (**format_buf == **str_buf) {
-      (*format_buf)++;
-      (*str_buf)++;      
-    } else {
-      fprintf(stderr, "format_buf: %c not equal to str_buf: %c\n", **format_buf, **str_buf);
-      break;
+    if (**format_buf != **str_buf) {
+      *outsider_ch = true;
     }
+    (*format_buf)++;
+    (*str_buf)++;  
   }
   /* stoped at % */
   ++(*format_buf);
@@ -121,23 +119,27 @@ static int set_specs(char **format_buf, _Bool *ass_supress) {
 }
 
 /* put string from source string to another agrument of sscanf*/
-static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress) {
+static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch) {
   char *tmp = *str_buf; /* save start of string*/
   while (**str_buf && !is_whitespace(**str_buf)) {
     (*str_buf)++; /* go to end of string */
   }
   **str_buf = '\0'; /* cut string after white-space*/
   (*str_buf)++; /* go to remain string */
-  if (!ass_supress) { /* didn't have * */
+  if (!ass_supress) {
     char *dst_string = va_arg(*argp, char*); /* take argument address*/
-    strcpy(dst_string, tmp); /* put string into argument*/
+    if (outsider_ch) {
+      strcpy(dst_string, ""); /* put empty string into argument*/
+    } else {
+      strcpy(dst_string, tmp); /* put string into argument*/
+    }
   }
 }
 
 /* scan processing*/
-static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress) {
+static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch) {
   if (specs & spec_s) {
-    scan_string(str_buf, argp, ass_supress);
+    scan_string(str_buf, argp, ass_supress, outsider_ch);
   }
 }
 
@@ -151,8 +153,9 @@ int s21_sscanf(const char *str, const char *format, ...) {
   printf("format:%s\n", format_buf);
   va_list argp;
   va_start(argp, format);
+  _Bool outsider_ch = false; /* for outsider characters in the format string*/
   while (*str_buf && *format_buf) {
-    get_specifier(&str_buf, &format_buf); /* set format_buf to the start of specifier*/
+    get_specifier(&str_buf, &format_buf, &outsider_ch); /* set format_buf to the start of specifier*/
     printf("str:%s\n", str_buf);
     printf("format:%s\n", format_buf);
     _Bool ass_supress = false; /* supress assignment (*) */
@@ -160,7 +163,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     if (specs & spec_s) {
       printf("ok\n");
     }
-    scan_proc(&str_buf, specs, &argp, ass_supress);
+    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch);
     //str_buf++;
     format_buf++;
     //break;
