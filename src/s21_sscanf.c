@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <string.h> /* for strlen, strcpy (then delete)*/
+#include <string.h> /* for strlen, strcpy (then delete) */
 #include <stdbool.h>
 #include <stdarg.h>
+
+#define SHIFT 48 /* code of 0 in ASCII */
 
 enum {
   spec_c = 1 << 0, 
@@ -27,7 +29,7 @@ enum {
 };
   
 
-/* check white-space characters*/
+/* check white-space characters */
 static _Bool is_whitespace(char ch) {
   if (ch == ' ' || ch == '\t' || ch == '\n') {
     return true;
@@ -52,8 +54,25 @@ static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch)
   ++(*format_buf);
 }
 
+/* check character if it's a digit*/
+static _Bool is_digit(char ch) {
+  _Bool res = ((ch >= '0') && (ch <= '9')) ? true : false;
+  return res;
+}
+
+/* width from string to number */
+static int get_width(char **format_buf) {
+  int width = **format_buf - SHIFT; /* get the first digit */
+  (*format_buf)++;
+  while (is_digit(**format_buf)) {
+    width = width * 10 + (**format_buf - SHIFT);
+    (*format_buf)++;
+  }
+  return width;
+}
+
 /* set the specs in an integer number according to enum */
-static int set_specs(char **format_buf, _Bool *ass_supress) {
+static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
   int specs = 0;
   while ((**format_buf) && !is_whitespace(**format_buf) && (!specs)) {
     switch (**format_buf) {
@@ -110,8 +129,12 @@ static int set_specs(char **format_buf, _Bool *ass_supress) {
         break;
 
       default:
-        fprintf(stderr, "Incorrect specifier\n");
-        /* to handle an error*/
+        if (is_digit(**format_buf)) {
+          *width = get_width(format_buf);
+        } else {
+          fprintf(stderr, "Incorrect specifier\n");
+          /* handle an error*/
+        }
     }
     (*format_buf)++;
   }
@@ -159,7 +182,9 @@ int s21_sscanf(const char *str, const char *format, ...) {
     printf("str:%s\n", str_buf);
     printf("format:%s\n", format_buf);
     _Bool ass_supress = false; /* supress assignment (*) */
-    int specs = set_specs(&format_buf, &ass_supress); /* fill the specs number */
+    int width = 0;
+    int specs = set_specs(&format_buf, &ass_supress, &width); /* fill the specs number */
+    printf("width = %d\n", width);
     if (specs & spec_s) {
       printf("ok\n");
     }
