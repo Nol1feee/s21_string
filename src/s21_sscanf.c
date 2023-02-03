@@ -55,7 +55,7 @@ static void get_specifier(char **str_buf, char **format_buf) {
 }
 
 /* set the specs in an integer number according to enum */
-static int set_specs(char **format_buf) {
+static int set_specs(char **format_buf, _Bool *ass_supress) {
   int specs = 0;
   while ((**format_buf) && !is_whitespace(**format_buf)) {
     switch (**format_buf) {
@@ -107,6 +107,9 @@ static int set_specs(char **format_buf) {
       case '%':
         specs |= spec_percent;
         break;
+      case '*':
+        *ass_supress = true;
+        break;
 
       default:
         fprintf(stderr, "Incorrect specifier\n");
@@ -118,24 +121,27 @@ static int set_specs(char **format_buf) {
 }
 
 /* put string from source string to another agrument of sscanf*/
-static void scan_string(char **str_buf, va_list *argp) {
-  char *dst_string = va_arg(*argp, char*); /* take argument address*/
+static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress) {
   char *tmp = *str_buf; /* save start of string*/
   while (**str_buf && !is_whitespace(**str_buf)) {
     (*str_buf)++; /* go to end of string */
   }
   **str_buf = '\0'; /* cut string after white-space*/
   (*str_buf)++; /* go to remain string */
-  strcpy(dst_string, tmp); /* put string into argument*/
-}
-
-/* scan processing*/
-static void scan_proc(char **str_buf, int specs, va_list *argp) {
-  if (specs & spec_s) {
-    scan_string(str_buf, argp);
+  if (!ass_supress) { /* didn't have * */
+    char *dst_string = va_arg(*argp, char*); /* take argument address*/
+    strcpy(dst_string, tmp); /* put string into argument*/
   }
 }
 
+/* scan processing*/
+static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress) {
+  if (specs & spec_s) {
+    scan_string(str_buf, argp, ass_supress);
+  }
+}
+
+/* main sscanf function */
 int s21_sscanf(const char *str, const char *format, ...) {
   char *str_buf = (char *)malloc(strlen(str) * sizeof(char));
   char *format_buf = (char *)malloc(strlen(format) * sizeof(char));
@@ -149,11 +155,12 @@ int s21_sscanf(const char *str, const char *format, ...) {
     get_specifier(&str_buf, &format_buf); /* set format_buf to the start of specifier*/
     printf("str:%s\n", str_buf);
     printf("format:%s\n", format_buf);
-    int specs = set_specs(&format_buf); /* fill the specs number */
+    _Bool ass_supress = false; /* supress assignment (*) */
+    int specs = set_specs(&format_buf, &ass_supress); /* fill the specs number */
     if (specs & spec_s) {
       printf("ok\n");
     }
-    scan_proc(&str_buf, specs, &argp);
+    scan_proc(&str_buf, specs, &argp, ass_supress);
     //str_buf++;
     format_buf++;
     //break;
