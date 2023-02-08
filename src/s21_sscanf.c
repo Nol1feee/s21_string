@@ -6,6 +6,7 @@
 #include <string.h> /* for strlen, strcpy (then delete) */
 #include <stdbool.h>
 #include <stdarg.h>
+#include <math.h> /* for pow*/
 
 #define SHIFT 48 /* code of 0 in ASCII */
 
@@ -193,7 +194,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     if (is_digit(**str_buf) && (!power10)) {
       res = res * 10 + (**str_buf - SHIFT);
     } else if (is_digit(**str_buf) && power10) {
-      res = res + (float)(**str_buf - SHIFT) / (10 * power10++);
+      res = res + (float)(**str_buf - SHIFT) / pow(10, power10++);
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
     } else {
