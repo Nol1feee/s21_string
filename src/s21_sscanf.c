@@ -190,7 +190,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     // hanlde error
   }
   int length = 1;
-  while ((length < width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.'))) {
+  while (((length < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.'))) {
     if (is_digit(**str_buf) && (!power10)) {
       res = res * 10 + (**str_buf - SHIFT);
     } else if (is_digit(**str_buf) && power10) {
