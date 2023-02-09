@@ -6,9 +6,11 @@
 #include <string.h> /* for strlen, strcpy (then delete) */
 #include <stdbool.h>
 #include <stdarg.h>
+#include <math.h> /* for pow*/
 
 #define SHIFT 48 /* code of 0 in ASCII */
 
+/* for specifiers */
 enum {
   spec_c = 1 << 0, 
   spec_d = 1 << 1,
@@ -27,15 +29,10 @@ enum {
   spec_n = 1 << 14,
   spec_percent = 1 << 15
 };
-  
 
 /* check white-space characters */
 static _Bool is_whitespace(char ch) {
-  if (ch == ' ' || ch == '\t' || ch == '\n') {
-    return true;
-  } else {
-    return false;
-  }
+  return (ch == ' ' || ch == '\t' || ch == '\n') ? true : false;
 }
 
 /* sets the format_buf pointer to the character after the % */
@@ -56,8 +53,7 @@ static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch)
 
 /* check character if it's a digit*/
 static _Bool is_digit(char ch) {
-  _Bool res = ((ch >= '0') && (ch <= '9')) ? true : false;
-  return res;
+  return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
 /* width from string to number */
@@ -72,8 +68,18 @@ static int get_width(char **format_buf) {
   return width;
 }
 
+/* check character if it's a length*/
+static _Bool is_correct_length(char **format_buf) {
+  _Bool res = false;
+  char next_ch = *((*format_buf) + 1);
+  if (((**format_buf == 'l') || (**format_buf == 'L')) && (next_ch = 'f')) {
+    res = true;
+  }
+  return res;
+}
+
 /* set the specs in an integer number according to enum */
-static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
+static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *length) {
   int specs = 0;
   while ((**format_buf) && !is_whitespace(**format_buf) && (!specs)) {
     switch (**format_buf) {
@@ -132,6 +138,8 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width) {
       default:
         if (is_digit(**format_buf) && (**format_buf > '0')) {
           *width = get_width(format_buf);
+        } else if (is_correct_length(format_buf)) {
+          *length = **format_buf;
         } else {
           fprintf(stderr, "Incorrect specifier\n");
           /* handle an error*/
@@ -148,16 +156,16 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
     (*str_buf)++;
   }
   char *tmp = *str_buf; /* save start of string */
-  int length = 0;
+  int count = 0; /* number of characters */
   if (width) {
-    while (**str_buf && !is_whitespace(**str_buf) && (length < width)) {
+    while (**str_buf && !is_whitespace(**str_buf) && (count < width)) {
       (*str_buf)++; /* go to end of string */
-      length++;
+      count++;
     }
   } else {
     while (**str_buf && !is_whitespace(**str_buf)) {
       (*str_buf)++; /* go to end of string */
-      length++;
+      count++;
     }
   }
   if (!ass_supress) {
@@ -165,50 +173,77 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
     if (outsider_ch) {
       strcpy(dst_string, "\0"); /* put empty string into argument */
     } else {
-      strncpy(dst_string, tmp, length); /* put string into argument */
-      strncpy(dst_string + length, "\0", 1); /* cut extra garbage */
+      strncpy(dst_string, tmp, count); /* put string into argument */
+      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+    }
+  }
+}
+
+/* check specs if it's a e/E/f/g/G */
+static _Bool is_efg(int specs) {
+  return ((specs & spec_e) || (specs & spec_E) || (specs & spec_f) || (specs & spec_g) || (specs & spec_G)) ? true : false;
+}
+
+/* puts floating point number into another vararg*/
+static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long double res) {
+  if (!ass_supress && !outsider_ch) {
+    if (is_efg(specs) && (length == 'L')) {
+      long double *dst_num = va_arg(*argp, long double*); /* take argument address */
+      *dst_num = res;
+    } else if (is_efg(specs) && (length == 'l')) {
+      double *dst_num = va_arg(*argp, double*);
+      *dst_num = res;
+    } else {
+      float *dst_num = va_arg(*argp, float*);
+      *dst_num = res;
     }
   }
 }
 
 /* put number from source string to another agrument of sscanf */
-static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
+static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   while (is_whitespace(**str_buf)) { /* skip all white-spaces */
     (*str_buf)++;
   }
-  double res = 0;
+  long double res = 0;
   int power10 = 0; /* for power of 10 */
+  char next_ch = *((*str_buf) + 1);
   if (is_digit(**str_buf)) {
     res = **str_buf - SHIFT;
-  } else if (**str_buf == '.'){
+    (*str_buf)++;
+  } else if ((**str_buf == '.') && (is_digit(next_ch))){
     power10++;
+    (*str_buf)++;
   } else {
     // hanlde error
   }
-  int length = 1;
-  while (**str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || **str_buf == '.')) {
-    
-    (*str_buf)++; 
-    length++;
-  }
-  if (!ass_supress) {
-    char *dst_string = va_arg(*argp, char*); /* take argument address */
-    if (outsider_ch) {
-      strcpy(dst_string, "\0"); /* put empty string into argument */
+  int count = 1; /* number of characters (digits or .) */
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.'))) {
+    if (is_digit(**str_buf) && (!power10)) {
+      res = res * 10 + (**str_buf - SHIFT);
+    } else if (is_digit(**str_buf) && power10) {
+      res = res + (long double)(**str_buf - SHIFT) / pow(10, power10++);
+    } else if ((**str_buf == '.') && (!power10)) {
+      power10++;
     } else {
-      strncpy(dst_string, tmp, length); /* put string into argument */
-      strncpy(dst_string + length, "\0", 1); /* cut extra garbage */
+      // handle error
+      break;
     }
+    (*str_buf)++; 
+    count++;
   }
+  
+  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+
 }
 
 /* scan processing*/
-static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
+static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
   }
-  if ((specs & spec_e) || (specs & spec_E) || (specs & spec_f) || (specs & spec_g) || (specs & spec_G)) { /* scan decimal numbers with floating point or scientific notation */
-    scan_efg(str_buf, argp, ass_supress, outsideg_ch, width);
+  if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
+    scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
   }
 }
 
@@ -228,19 +263,14 @@ int s21_sscanf(const char *str, const char *format, ...) {
     printf("str:%s\n", str_buf);
     printf("format:%s\n", format_buf);
     _Bool ass_supress = false; /* supress assignment (*) */
-    int width = 0;
-    int specs = set_specs(&format_buf, &ass_supress, &width); /* fill the specs number */
-    printf("width = %d\n", width);
-    if (specs & spec_s) {
+    int width = 0, length = 0;
+    int specs = set_specs(&format_buf, &ass_supress, &width, &length); /* fill the specs number */
+    printf("width = %d, length = %c = %d\n", width, length, length);
+    if (specs & spec_f) {
       printf("ok\n");
     }
-    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width);
-    //str_buf++;
-    //format_buf++;
-    //break;
+    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width, length);
   }
   va_end(argp);
-  //puts(buffer);
-  
   return 0;
 }
