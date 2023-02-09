@@ -200,6 +200,12 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
   }
 }
 
+/* */
+static long double get_exp(long double res, char **str_buf) {
+  //check 
+  return res;
+}
+
 /* put number from source string to another agrument of sscanf */
 static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   while (is_whitespace(**str_buf)) { /* skip all white-spaces */
@@ -221,6 +227,8 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   } else if ((**str_buf == '.') && (is_digit(next_ch))){
     power10++;
     (*str_buf)++;
+  } else if ((**str_buf == 'e') || (**str_buf == 'E')) {
+    res = get_exp(res, str_buf);
   } else {
     // hanlde error
   }
