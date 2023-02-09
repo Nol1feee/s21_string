@@ -205,11 +205,18 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   while (is_whitespace(**str_buf)) { /* skip all white-spaces */
     (*str_buf)++;
   }
+  int sign = 1;
+  if (**str_buf == '-') {
+    sign = -1;
+    (*str_buf)++;
+  } else if (**str_buf == '+') {
+    (*str_buf)++;
+  }
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
   if (is_digit(**str_buf)) {
-    res = **str_buf - SHIFT;
+    res = (**str_buf - SHIFT) * sign;
     (*str_buf)++;
   } else if ((**str_buf == '.') && (is_digit(next_ch))){
     power10++;
@@ -220,9 +227,9 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   int count = 1; /* number of characters (digits or .) */
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.'))) {
     if (is_digit(**str_buf) && (!power10)) {
-      res = res * 10 + (**str_buf - SHIFT);
+      res = res * 10 + (**str_buf - SHIFT) * sign;
     } else if (is_digit(**str_buf) && power10) {
-      res = res + (long double)(**str_buf - SHIFT) / pow(10, power10++);
+      res = res + ((long double)(**str_buf - SHIFT) / pow(10, power10++)) * sign;
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
     } else {
