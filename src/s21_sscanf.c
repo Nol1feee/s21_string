@@ -32,11 +32,7 @@ enum {
 
 /* check white-space characters */
 static _Bool is_whitespace(char ch) {
-  if (ch == ' ' || ch == '\t' || ch == '\n') {
-    return true;
-  } else {
-    return false;
-  }
+  return (ch == ' ' || ch == '\t' || ch == '\n') ? true : false;
 }
 
 /* sets the format_buf pointer to the character after the % */
@@ -57,8 +53,7 @@ static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch)
 
 /* check character if it's a digit*/
 static _Bool is_digit(char ch) {
-  _Bool res = ((ch >= '0') && (ch <= '9')) ? true : false;
-  return res;
+  return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
 /* width from string to number */
@@ -184,12 +179,33 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
   }
 }
 
+/* check specs if it's a e/E/f/g/G */
+static _Bool is_efg(int specs) {
+  return ((specs & spec_e) || (specs & spec_E) || (specs & spec_f) || (specs & spec_g) || (specs & spec_G)) ? true : false;
+}
+
+/* puts floating point number into another vararg*/
+static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long double res) {
+  if (!ass_supress && !outsider_ch) {
+    if (is_efg(specs) && (length == 'L')) {
+      long double *dst_num = va_arg(*argp, long double*); /* take argument address */
+      *dst_num = res;
+    } else if (is_efg(specs) && (length == 'l')) {
+      double *dst_num = va_arg(*argp, double*);
+      *dst_num = res;
+    } else {
+      float *dst_num = va_arg(*argp, float*);
+      *dst_num = res;
+    }
+  }
+}
+
 /* put number from source string to another agrument of sscanf */
 static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   while (is_whitespace(**str_buf)) { /* skip all white-spaces */
     (*str_buf)++;
   }
-  float res = 0;
+  long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
   if (is_digit(**str_buf)) {
@@ -206,7 +222,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     if (is_digit(**str_buf) && (!power10)) {
       res = res * 10 + (**str_buf - SHIFT);
     } else if (is_digit(**str_buf) && power10) {
-      res = res + (float)(**str_buf - SHIFT) / pow(10, power10++);
+      res = res + (long double)(**str_buf - SHIFT) / pow(10, power10++);
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
     } else {
@@ -216,18 +232,9 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     (*str_buf)++; 
     count++;
   }
-  if (!ass_supress && !outsider_ch) {
-    if ((specs & spec_f) && (length == 'L')) {
-      long double *dst_num = va_arg(*argp, long double*); /* take argument address */
-      *dst_num = res;
-    } else if ((specs & spec_f) && (length == 'l')) {
-      double *dst_num = va_arg(*argp, double*);
-      *dst_num = res;
-    } else {
-      float *dst_num = va_arg(*argp, float*);
-      *dst_num = res;
-    }
-  }
+  
+  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+
 }
 
 /* scan processing*/
@@ -235,7 +242,7 @@ static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supres
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
   }
-  if ((specs & spec_e) || (specs & spec_E) || (specs & spec_f) || (specs & spec_g) || (specs & spec_G)) { /* scan decimal numbers with floating point or scientific notation */
+  if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
   }
 }

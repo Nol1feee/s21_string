@@ -15,11 +15,11 @@ int main() {
   //float test_num2 = 0.0;
   const char *src = "11.1";
   puts("===sscanf===");
-  sscanf(src, "2%Lf", &num); 
+  sscanf(src, "%Lf", &num); 
   printf("num: %Lf\n", num);
   //printf("num2: %f\n", num2);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "2%Lf", &test_num); 
+  s21_sscanf(src, "%Lg", &test_num); 
   printf("test_num: %Lf\n", test_num);
   //printf("test_num2: %f\n", test_num2);
   return 0;
