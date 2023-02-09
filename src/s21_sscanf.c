@@ -216,7 +216,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     (*str_buf)++; 
     count++;
   }
-  if (!ass_supress) {
+  if (!ass_supress && !outsider_ch) {
     if ((specs & spec_f) && (length == 'L')) {
       long double *dst_num = va_arg(*argp, long double*); /* take argument address */
       *dst_num = res;
@@ -226,11 +226,6 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     } else {
       float *dst_num = va_arg(*argp, float*);
       *dst_num = res;
-    }
-    if (outsider_ch) {
-      // handle outsider_ch
-    } else {
-      //*dst_num = res;
     }
   }
 }
