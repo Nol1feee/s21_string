@@ -1,13 +1,18 @@
 
 #include "s21_sprintf.h"
+
 int s21_sprintf(char* buf, const char* format, ...);
 void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d);
+void flag_x(s21* sh21, char* temp, char* buf, char* result, long int d, int shift);
+void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d);
 void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f);
 void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol);
 void flag_s(s21* sh21, char* string, char* buf, char* result);
 void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u);
 char* revers(char* str, int i);
 char* s21_int_to_string(long int number, long int floating);
+char* s21_hexadecimal_to_string(long int number, long int floating, int shift);
+char* s21_octal_to_string(long int number, long int floating);
 char* s21_add_sign(char* dest, char* src, int signed_conversion,
                    int space_signed_conversion, long int number);
 char* s21_add_zero(char* dest, char* src, int floating);
@@ -24,9 +29,9 @@ char* s21_add_spaces(char* line, s21* sh21);
 int main() {
   char buf[50];
   // char z[] = "rec";
-  sprintf(buf, "%u %5.7s%lf %%%c % d %i ", 1, "ass", 123.4, 'w', 66666, 888888);
+  sprintf(buf, "%u %5.7s%lf %%%c %o %i ", 1, "ass", 123.4, 'w', 3, 888888);
   printf("%s \n", buf);
-  s21_sprintf(buf, "%u %6.7s%lf %%%c % d %i ", 1, "ass", 123.4, 'w', 66666,
+  s21_sprintf(buf, "%u %6.7s%lf %%%c %o %i ", 1, "ass", 123.4, 'w', -10,
               888888);
   printf("%s ", buf);
   return 0;
@@ -72,7 +77,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
       } else if (*line == ' ') {
         sh21.space_signed_conversion = 1;
       } else if (*line == '.') {
-        sh21.floating = 0;
+        sh21.floating = 0; 
       } else if (*line == 'h') {
         sh21.h_flag = 1;
       } else if (*line == 'l') {
@@ -89,6 +94,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
         else
           d = va_arg(param, int);
         flag_i_d(&sh21, temp, buf, result, d);
+      } else if (*line == 'x' || *line == 'X') {  // 16-ричное число инт
+        d = va_arg(param, uint64_t);
+        flag_x(&sh21, temp, buf, result, d, 'x' - *line);
+      } else if (*line == 'o') {  // 8-ричное число инт
+        d = va_arg(param, uint64_t);
+        flag_o(&sh21, temp, buf, result, d);
       } else if (*line == 'f') {
         f = va_arg(param, double);
         flag_f(&sh21, temp, buf, result, f);
@@ -116,6 +127,20 @@ void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
   result = calloc(strlen(temp) + 1, sizeof(char));
   result = s21_add_sign(result, temp, sh21->signed_conversion,
                         sh21->space_signed_conversion, d);
+  result = s21_add_zero(result, temp, sh21->floating);
+  insert_and_free(sh21, temp, buf, result);
+}
+
+void flag_x(s21* sh21, char* temp, char* buf, char* result, long int d, int shift) {
+  temp = s21_hexadecimal_to_string(d, sh21->floating, shift);
+  result = calloc(strlen(temp) + 1, sizeof(char));
+  result = s21_add_zero(result, temp, sh21->floating);
+  insert_and_free(sh21, temp, buf, result);
+}
+
+void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d) {
+  temp = s21_octal_to_string(d, sh21->floating);
+  result = calloc(strlen(temp) + 1, sizeof(char));
   result = s21_add_zero(result, temp, sh21->floating);
   insert_and_free(sh21, temp, buf, result);
 }
@@ -199,6 +224,43 @@ char* s21_int_to_string(long int number, long int floating) {
     while (number > 0) {
       str[i++ - 1] = (number % 10) + '0';
       number /= 10;
+    }
+  } else if (floating != 0) {
+    str[i - 1] = '0';
+  }
+  return revers(str, i);
+}
+
+char* s21_hexadecimal_to_string(long int number, long int floating, int shift) {
+  int i = 1;
+  char* str = calloc(32, sizeof(char));
+  if (number < 0) number *= -1;
+  if (number != 0) {
+    while (number > 0) {
+      int c = number % 16;
+      if (c >= 10) {
+          c -= 10;
+          c += 'a' - shift;
+      } else {
+          c += '0';
+      }
+      str[i++ - 1] = c;
+      number /= 16;
+    }
+  } else if (floating != 0) {
+    str[i - 1] = '0';
+  }
+  return revers(str, i);
+}
+
+char* s21_octal_to_string(long int number, long int floating) {
+  int i = 1;
+  char* str = calloc(32, sizeof(char));
+  if (number < 0) number *= -1;
+  if (number != 0) {
+    while (number > 0) {
+      str[i++ - 1] = (number % 8) + '0';
+      number /= 8;
     }
   } else if (floating != 0) {
     str[i - 1] = '0';
