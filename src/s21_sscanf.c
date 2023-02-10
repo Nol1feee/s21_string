@@ -287,12 +287,26 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 
 }
 
+/* check if the character is a hexadecimal symbol */
+static _Bool is_hex(char ch) {
+  return ((is_digit(ch)) || ((ch >= 'A') && (ch <= 'F')) || ((ch >= 'a') && (ch <= 'f'))) ? true : false;
+}
+
+/* check for a prefix and skipping it if it exists */
+static void prefix_check(char **str_buf) {
+  char next_ch = *((*str_buf) + 1);
+  char next_next_ch = *((*str_buf) + 2);
+  if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
+    (*str_buf) += 2;
+  }
+}
+
 /* put unsigned hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); 
-  long double res = 0;
-  int power10 = 0; /* for power of 10 */
+  int sign = sign_check(str_buf); /* get sign of check for double sign */
+  prefix_check(str_buf);
+  int res = 0;
   char next_ch = *((*str_buf) + 1);
   if (is_digit(**str_buf)) {
     res = (**str_buf - SHIFT) * sign;
