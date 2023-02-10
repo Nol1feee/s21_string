@@ -9,6 +9,8 @@
 #include <math.h> /* for pow*/
 
 #define SHIFT 48 /* code of 0 in ASCII */
+#define SHIFT_HEX 55 /* code of A - 10 in ASCII */
+#define SHIFT_hex 87 /* code of a - 10 in ASCII */
 
 /* for specifiers */
 enum {
@@ -35,11 +37,23 @@ static _Bool is_whitespace(char ch) {
   return (ch == ' ' || ch == '\t' || ch == '\n') ? true : false;
 }
 
+/* skip white-space chatacters */
+static void skip_whitespaces(char **string) {
+  while (is_whitespace(**string)) {
+    (*string)++;
+  }
+}
+
+/* skip the whole string */
+static void skip_all(char **string) {
+  while (**string) {
+    (*string)++;
+  }
+}
+
 /* sets the format_buf pointer to the character after the % */
 static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
-  while (is_whitespace(**format_buf)) { /* skip all spaces*/
-    (*format_buf)++;
-  }
+  skip_whitespaces(format_buf);
   while (**format_buf != '%') { /* skip all regular characters*/
     if (**format_buf != **str_buf) {
       *outsider_ch = true;
@@ -152,9 +166,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 
 /* put string from source string to another agrument of sscanf */
 static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
-  while (is_whitespace(**str_buf)) { /* skip all white-spaces */
-    (*str_buf)++;
-  }
+  skip_whitespaces(str_buf);
   char *tmp = *str_buf; /* save start of string */
   int count = 0; /* number of characters */
   if (width) {
@@ -200,34 +212,42 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
   }
 }
 
-/* multiplies  the res by a power of 10 from the exponent */
-static long double get_exp(long double res, char **str_buf) {
-  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
-  char next_ch = *((*str_buf) + 1); /* must be a digit */
-  int power10 = 0, sign = 1;
-  if (((**str_buf == '-') || (**str_buf == '+')) && is_digit(next_ch)) {
-    sign = (**str_buf == '-') ? -1 : 1;
-    (*str_buf)++; /* go to digit */
-    power10 = get_number(str_buf); /* str_buf on the last digit */
-  } else if (is_digit(**str_buf)) {
-    power10 = get_number(str_buf);
-  }
-  res = res * pow(10, power10 * sign);
-  return res;
+/* checks if the character if a sign or not */
+static _Bool is_sign(char ch) {
+  return ((ch == '-') || (ch == '+')) ? true : false;
 }
 
-/* put number from source string to another agrument of sscanf */
-static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  while (is_whitespace(**str_buf)) { /* skip all white-spaces */
-    (*str_buf)++;
-  }
+/* gets sign and checks that there is no double sign*/
+static int sign_check(char **str_buf) {
   int sign = 1;
-  if (**str_buf == '-') {
+  char next_ch = *((*str_buf) + 1);
+  if ((is_sign(**str_buf)) && (is_sign(next_ch))) {
+    sign = 0;
+    skip_all(str_buf);
+  } else if (**str_buf == '-') {
     sign = -1;
     (*str_buf)++;
   } else if (**str_buf == '+') {
     (*str_buf)++;
   }
+  return sign;
+}
+
+/* multiplies  the res by a power of 10 from the exponent */
+static long double get_exp(long double res, char **str_buf) {
+  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
+  int sign = sign_check(str_buf);
+  int power10 = get_number(str_buf);
+  res = res * pow(10, power10 * sign);
+  return res;
+}
+
+
+
+/* put floating-point number from source string to another agrument of sscanf */
+static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
@@ -237,9 +257,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   } else if ((**str_buf == '.') && (is_digit(next_ch))){
     power10++;
     (*str_buf)++;
-  } /*else if ((**str_buf == 'e') || (**str_buf == 'E')) {
-    res = get_exp(res, str_buf);
-  }*/ else {
+  } else {
     // hanlde error
   }
   int count = 1; /* number of characters (digits or .) */
@@ -264,13 +282,82 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 
 }
 
+/* check if the character is a hexadecimal symbol */
+static _Bool is_hex(char ch) {
+  return ((is_digit(ch)) || ((ch >= 'A') && (ch <= 'F')) || ((ch >= 'a') && (ch <= 'f'))) ? true : false;
+}
+
+/* check for a prefix and skipping it if it exists */
+static void prefix_check(char **str_buf) {
+  char next_ch = *((*str_buf) + 1);
+  char next_next_ch = *((*str_buf) + 2);
+  if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
+    (*str_buf) += 2;
+  }
+}
+
+/* puts integer number into another vararg*/
+static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, int res) {
+  if (!ass_supress && !outsider_ch) {
+    if (is_efg(specs) && (length == 'l')) {
+      long int *dst_num = va_arg(*argp, long int*); /* take argument address */
+      *dst_num = res;
+    } else if (is_efg(specs) && (length == 'h')) {
+      short int *dst_num = va_arg(*argp, short int*);
+      *dst_num = res;
+    } else {
+      int *dst_num = va_arg(*argp, int*);
+      *dst_num = res;
+    }
+  }
+}
+
+static int hex_to_num(char hex) {
+  int num = 0;
+  if (is_digit(hex)) {
+    num = hex - SHIFT;
+  } else if ((hex >= 'A') && (hex <= 'F')) {
+    num = hex - SHIFT_HEX;
+  } else {
+    num = hex - SHIFT_hex;
+  }
+  return num;
+}
+
+/* put unsigned hexadecimal integer from source string to another agrument of sscanf */
+static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); /* get sign of check for double sign */
+  prefix_check(str_buf);
+  int count = 0; /* number of hexadecimal characters */
+  char *hex_start = *str_buf;
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
+    (*str_buf)++; 
+    count++;
+  }
+  int res = 0;
+  char *hex_finish = --(*str_buf); // on last hex
+  int power16 = 0;
+  for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
+    res += hex_to_num(*hex_cur) * pow(16, power16++); 
+  }
+  res *= sign;
+  *str_buf = hex_finish + 1;
+  
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+
+}
+
 /* scan processing*/
 static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
-  }
+  } // TODO l length for %s
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
+  }
+  if ((specs & spec_x) || (specs & spec_X)) { /* scan unsigned hexadecimal integers */
+    scan_hex(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
   }
 }
 
