@@ -307,33 +307,14 @@ static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   int sign = sign_check(str_buf); /* get sign of check for double sign */
   prefix_check(str_buf);
   int res = 0;
-  char next_ch = *((*str_buf) + 1);
-  if (is_digit(**str_buf)) {
-    res = (**str_buf - SHIFT) * sign;
-    (*str_buf)++;
-  } else if ((**str_buf == '.') && (is_digit(next_ch))){
-    power10++;
-    (*str_buf)++;
-  } else {
-    // hanlde error
-  }
-  int count = 1; /* number of characters (digits or .) */
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
-    if (is_digit(**str_buf) && (!power10)) {
-      res = res * 10 + (**str_buf - SHIFT) * sign;
-    } else if (is_digit(**str_buf) && power10) {
-      res = res + ((long double)(**str_buf - SHIFT) / pow(10, power10++)) * sign;
-    } else if ((**str_buf == '.') && (!power10)) {
-      power10++;
-    } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
-      res = get_exp(res, str_buf);
-    } else {
-      // handle error
-      break;
-    }
+  //char next_ch = *((*str_buf) + 1);
+  int count = 0; /* number of hexadecimal characters */
+  char **hex_start = str_buf;
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
     (*str_buf)++; 
     count++;
   }
+  char **hex_finish = --(*str_buf); // on last hex
   
   fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
 
