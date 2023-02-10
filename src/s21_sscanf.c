@@ -56,16 +56,16 @@ static _Bool is_digit(char ch) {
   return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
-/* width from string to number */
-static int get_width(char **format_buf) {
-  int width = **format_buf - SHIFT; /* get the first digit */
+/* width from string to number (return pointer format_buf into the last digit) */
+static int get_number(char **format_buf) {
+  int number = **format_buf - SHIFT; /* get the first digit */
   (*format_buf)++;
   while (is_digit(**format_buf)) {
-    width = width * 10 + (**format_buf - SHIFT);
+    number = number * 10 + (**format_buf - SHIFT);
     (*format_buf)++;
   }
   (*format_buf)--;
-  return width;
+  return number;
 }
 
 /* check character if it's a length*/
@@ -137,7 +137,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 
       default:
         if (is_digit(**format_buf) && (**format_buf > '0')) {
-          *width = get_width(format_buf);
+          *width = get_number(format_buf); /* get width */
         } else if (is_correct_length(format_buf)) {
           *length = **format_buf;
         } else {
@@ -200,9 +200,19 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
   }
 }
 
-/* */
+/* multiplies  the res by a power of 10 from the exponent */
 static long double get_exp(long double res, char **str_buf) {
-  //check 
+  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
+  char next_ch = *((*str_buf) + 1); /* must be a digit */
+  int power10 = 0, sign = 1;
+  if (((**str_buf == '-') || (**str_buf == '+')) && is_digit(next_ch)) {
+    sign = (**str_buf == '-') ? -1 : 1;
+    (*str_buf)++; /* go to digit */
+    power10 = get_number(str_buf); /* str_buf on the last digit */
+  } else if (is_digit(**str_buf)) {
+    power10 = get_number(str_buf);
+  }
+  res = res * pow(10, power10 * sign);
   return res;
 }
 
@@ -227,19 +237,21 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   } else if ((**str_buf == '.') && (is_digit(next_ch))){
     power10++;
     (*str_buf)++;
-  } else if ((**str_buf == 'e') || (**str_buf == 'E')) {
+  } /*else if ((**str_buf == 'e') || (**str_buf == 'E')) {
     res = get_exp(res, str_buf);
-  } else {
+  }*/ else {
     // hanlde error
   }
   int count = 1; /* number of characters (digits or .) */
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.'))) {
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
     if (is_digit(**str_buf) && (!power10)) {
       res = res * 10 + (**str_buf - SHIFT) * sign;
     } else if (is_digit(**str_buf) && power10) {
       res = res + ((long double)(**str_buf - SHIFT) / pow(10, power10++)) * sign;
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
+    } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
+      res = get_exp(res, str_buf);
     } else {
       // handle error
       break;

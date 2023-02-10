@@ -13,7 +13,7 @@ int main() {
   //double  num2 = 0.0;
   long double test_num = 0.0;
   //float test_num2 = 0.0;
-  const char *src = "++2.32";
+  const char *src = "54.32E--1";
   puts("===sscanf===");
   sscanf(src, "%Lf", &num); 
   printf("num: %Lf\n", num);
