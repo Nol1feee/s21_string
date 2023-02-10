@@ -9,6 +9,8 @@
 #include <math.h> /* for pow*/
 
 #define SHIFT 48 /* code of 0 in ASCII */
+#define SHIFT_HEX 55 /* code of A - 10 in ASCII */
+#define SHIFT_hex 87 /* code of a - 10 in ASCII */
 
 /* for specifiers */
 enum {
@@ -234,17 +236,8 @@ static int sign_check(char **str_buf) {
 /* multiplies  the res by a power of 10 from the exponent */
 static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
-  //char next_ch = *((*str_buf) + 1); /* must be a digit */
-  int power10 = 0;
   int sign = sign_check(str_buf);
-  /*if (is_sign(**str_buf) && is_digit(next_ch)) {
-    sign = (**str_buf == '-') ? -1 : 1;
-    (*str_buf)++; // go to digit 
-    power10 = get_number(str_buf); // str_buf on the last digit 
-  } else if (is_digit(**str_buf)) {
-    power10 = get_number(str_buf);
-  } */
-  power10 = get_number(str_buf);
+  int power10 = get_number(str_buf);
   res = res * pow(10, power10 * sign);
   return res;
 }
@@ -319,6 +312,18 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
   }
 }
 
+static int hex_to_num(char hex) {
+  int num = 0;
+  if (is_digit(hex)) {
+    num = hex - SHIFT;
+  } else if ((hex >= 'A') && (hex <= 'F')) {
+    num = hex - SHIFT_HEX;
+  } else {
+    num = hex - SHIFT_hex;
+  }
+  return num;
+}
+
 /* put unsigned hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
@@ -334,7 +339,7 @@ static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   char *hex_finish = --(*str_buf); // on last hex
   int power16 = 0;
   for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
-    res += (*hex_cur) * pow(16, power16++); 
+    res += hex_to_num(*hex_cur) * pow(16, power16++); 
   }
   res *= sign;
   *str_buf = hex_finish + 1;
