@@ -2,25 +2,26 @@
 
 #include <stdio.h>
 
-int s21_sscanf(const char *str, const char *format, ...);
+//int s21_sscanf(const char *str, const char *format, ...);
 
 int main() {
-  //char dst[20];
+  char dst[20];
   //char dst2[20];
   //char test_dst[20];
   //char test_dst2[20];
-  long double num = 0.0;
+  double num = 0.0;
   //double  num2 = 0.0;
-  long double test_num = 0.0;
+  double test_num = 0.0;
   //float test_num2 = 0.0;
-  const char *src = "54.32E--1";
+  const char *src = "a --10.5";
   puts("===sscanf===");
-  sscanf(src, "%Lf", &num); 
-  printf("num: %Lf\n", num);
+  sscanf(src, "%s %lf", dst, &num); 
+  printf("num: %f\n", num);
+  printf("remain: %s\n", dst);
   //printf("num2: %f\n", num2);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "%Lf", &test_num); 
-  printf("test_num: %Lf\n", test_num);
+  //s21_sscanf(src, "%G", &test_num); 
+  printf("test_num: %f\n", test_num);
   //printf("test_num2: %f\n", test_num2);
   return 0;
 }
