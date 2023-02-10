@@ -42,6 +42,13 @@ static void skip_whitespaces(char **string) {
   }
 }
 
+/* skip the whole string */
+static void skip_all(char **string) {
+  while (**string) {
+    (*string)++;
+  }
+}
+
 /* sets the format_buf pointer to the character after the % */
 static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
   skip_whitespaces(format_buf);
@@ -227,7 +234,7 @@ static int sign_check(char **str_buf) {
 /* multiplies  the res by a power of 10 from the exponent */
 static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
-  char next_ch = *((*str_buf) + 1); /* must be a digit */
+  //char next_ch = *((*str_buf) + 1); /* must be a digit */
   int power10 = 0;
   int sign = sign_check(str_buf);
   /*if (is_sign(**str_buf) && is_digit(next_ch)) {
@@ -242,12 +249,7 @@ static long double get_exp(long double res, char **str_buf) {
   return res;
 }
 
-/* skip the whole string */
-static void skip_all(char **string) {
-  while (**string) {
-    (*string)++;
-  }
-}
+
 
 /* put floating-point number from source string to another agrument of sscanf */
 static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
@@ -301,22 +303,43 @@ static void prefix_check(char **str_buf) {
   }
 }
 
+/* puts integer number into another vararg*/
+static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, int res) {
+  if (!ass_supress && !outsider_ch) {
+    if (is_efg(specs) && (length == 'l')) {
+      long int *dst_num = va_arg(*argp, long int*); /* take argument address */
+      *dst_num = res;
+    } else if (is_efg(specs) && (length == 'h')) {
+      short int *dst_num = va_arg(*argp, short int*);
+      *dst_num = res;
+    } else {
+      int *dst_num = va_arg(*argp, int*);
+      *dst_num = res;
+    }
+  }
+}
+
 /* put unsigned hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
   int sign = sign_check(str_buf); /* get sign of check for double sign */
   prefix_check(str_buf);
-  int res = 0;
-  //char next_ch = *((*str_buf) + 1);
   int count = 0; /* number of hexadecimal characters */
-  char **hex_start = str_buf;
+  char *hex_start = *str_buf;
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
     (*str_buf)++; 
     count++;
   }
-  char **hex_finish = --(*str_buf); // on last hex
+  int res = 0;
+  char *hex_finish = --(*str_buf); // on last hex
+  int power16 = 0;
+  for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
+    res += (*hex_cur) * pow(16, power16++); 
+  }
+  res *= sign;
+  *str_buf = hex_finish + 1;
   
-  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
 
 }
 
@@ -324,7 +347,7 @@ static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
-  }
+  } // TODO l length for %s
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
   }
