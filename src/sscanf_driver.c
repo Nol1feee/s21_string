@@ -4,7 +4,7 @@
 
 //int s21_sscanf(const char *str, const char *format, ...);
 
-int main() {
+int main(void) {
   char dst[20];
   //char dst2[20];
   //char test_dst[20];

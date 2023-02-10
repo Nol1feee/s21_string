@@ -203,30 +203,12 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
   }
 }
 
-/* multiplies  the res by a power of 10 from the exponent */
-static long double get_exp(long double res, char **str_buf) {
-  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
-  char next_ch = *((*str_buf) + 1); /* must be a digit */
-  int power10 = 0, sign = 1;
-  if (((**str_buf == '-') || (**str_buf == '+')) && is_digit(next_ch)) {
-    sign = (**str_buf == '-') ? -1 : 1;
-    (*str_buf)++; /* go to digit */
-    power10 = get_number(str_buf); /* str_buf on the last digit */
-  } else if (is_digit(**str_buf)) {
-    power10 = get_number(str_buf);
-  }
-  res = res * pow(10, power10 * sign);
-  return res;
+/* checks if the character if a sign or not */
+static _Bool is_sign(char ch) {
+  return ((ch == '-') || (ch == '+')) ? true : false;
 }
 
-/* skip the whole string */
-static void skip_all(char **string) {
-  while (**string) {
-    (*string)++;
-  }
-}
-
-/* */
+/* gets sign and checks that there is no double sign*/
 static int sign_check(char **str_buf) {
   int sign = 1;
   char next_ch = *((*str_buf) + 1);
@@ -242,16 +224,35 @@ static int sign_check(char **str_buf) {
   return sign;
 }
 
+/* multiplies  the res by a power of 10 from the exponent */
+static long double get_exp(long double res, char **str_buf) {
+  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
+  char next_ch = *((*str_buf) + 1); /* must be a digit */
+  int power10 = 0;
+  int sign = sign_check(str_buf);
+  /*if (is_sign(**str_buf) && is_digit(next_ch)) {
+    sign = (**str_buf == '-') ? -1 : 1;
+    (*str_buf)++; // go to digit 
+    power10 = get_number(str_buf); // str_buf on the last digit 
+  } else if (is_digit(**str_buf)) {
+    power10 = get_number(str_buf);
+  } */
+  power10 = get_number(str_buf);
+  res = res * pow(10, power10 * sign);
+  return res;
+}
+
+/* skip the whole string */
+static void skip_all(char **string) {
+  while (**string) {
+    (*string)++;
+  }
+}
+
 /* put floating-point number from source string to another agrument of sscanf */
 static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
-  int sign = 1;
-  if (**str_buf == '-') {
-    sign = -1;
-    (*str_buf)++;
-  } else if (**str_buf == '+') {
-    (*str_buf)++;
-  }
+  int sign = sign_check(str_buf); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
@@ -289,13 +290,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 /* put unsigned hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
-  int sign = 1;
-  if (**str_buf == '-') { // TODO check "--1A3", "++1A3"
-    sign = -1;
-    (*str_buf)++;
-  } else if (**str_buf == '+') {
-    (*str_buf)++;
-  }
+  int sign = sign_check(str_buf); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
