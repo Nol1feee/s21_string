@@ -312,6 +312,7 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
   }
 }
 
+/* converts hex characters to numbers */
 static int hex_to_num(char hex) {
   int num = 0;
   if (is_digit(hex)) {
