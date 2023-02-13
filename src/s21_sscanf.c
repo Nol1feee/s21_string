@@ -287,12 +287,23 @@ static _Bool is_hex(char ch) {
   return ((is_digit(ch)) || ((ch >= 'A') && (ch <= 'F')) || ((ch >= 'a') && (ch <= 'f'))) ? true : false;
 }
 
+/* check if the character is a octal symbol */
+static _Bool is_oct(char ch) {
+  return ((ch >= '0') && (ch <= '7')) ? true : false;
+}
+
 /* check for a prefix and skipping it if it exists */
-static void prefix_check(char **str_buf) {
+static void prefix_check(char **str_buf, int specs) {
   char next_ch = *((*str_buf) + 1);
   char next_next_ch = *((*str_buf) + 2);
-  if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
+  if ((specs == spec_x) || (specs == spec_X)) { /* for hexadecimal */
+    if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
     (*str_buf) += 2;
+    }
+  } else if (specs == spec_o) { /* for octal */
+    if (**str_buf == '0') {
+    (*str_buf)++;
+    }
   }
 }
 
@@ -325,11 +336,11 @@ static int hex_to_num(char hex) {
   return num;
 }
 
-/* put unsigned hexadecimal integer from source string to another agrument of sscanf */
+/* put hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
   int sign = sign_check(str_buf); /* get sign of check for double sign */
-  prefix_check(str_buf);
+  prefix_check(str_buf, specs);
   int count = 0; /* number of hexadecimal characters */
   char *hex_start = *str_buf;
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
@@ -349,16 +360,43 @@ static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 
 }
 
+/* put octal integer from source string to another agrument of sscanf */
+static void scan_oct(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); /* get sign of check for double sign */
+  prefix_check(str_buf, specs);
+  int count = 0; /* number of octal characters */
+  char *oct_start = *str_buf;
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && is_oct(**str_buf)) { 
+    (*str_buf)++; 
+    count++;
+  }
+  int res = 0;
+  char *oct_finish = --(*str_buf); // on last oct
+  int power8 = 0;
+  for (char *oct_cur = oct_finish; oct_cur >= oct_start; oct_cur--) {
+    res += hex_to_num(*oct_cur) * pow(8, power8++); 
+  }
+  res *= sign;
+  *str_buf = oct_finish + 1;
+  
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+
+}
+
 /* scan processing*/
 static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
-  } // TODO l length for %s
+  } // TODO l length for %s ?
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
   }
-  if ((specs & spec_x) || (specs & spec_X)) { /* scan unsigned hexadecimal integers */
+  if ((specs & spec_x) || (specs & spec_X)) { /* scan hexadecimal integers */
     scan_hex(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
+  }
+  if (specs & spec_o) { /* scan octal integers */
+    scan_oct(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
   }
 }
 
@@ -381,7 +419,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     int width = 0, length = 0;
     int specs = set_specs(&format_buf, &ass_supress, &width, &length); /* fill the specs number */
     printf("width = %d, length = %c = %d\n", width, length, length);
-    if (specs & spec_f) {
+    if (specs & spec_o) {
       printf("ok\n");
     }
     scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width, length);

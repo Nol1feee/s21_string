@@ -13,14 +13,14 @@ int main(void) {
   //double  num2 = 0.0;
   int test_num = 0.0;
   //float test_num2 = 0.0;
-  const char *src = "0x3abc";
+  const char *src = "0277";
   puts("===sscanf===");
-  sscanf(src, "%x", &num); 
+  sscanf(src, "%o", &num); 
   printf("num: %d\n", num);
   printf("remain: %s\n", dst);
   //printf("num2: %f\n", num2);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "%x", &test_num); 
+  s21_sscanf(src, "%o", &test_num); 
   printf("test_num: %d\n", test_num);
   //printf("test_num2: %f\n", test_num2);
   return 0;
