@@ -326,8 +326,11 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
 /* puts pointer into another vararg*/
 static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length, int specs,*/ unsigned long res) {
   if (!ass_supress && !outsider_ch) {
-    unsigned long **dst_pointer = va_arg(*argp, unsigned long**);
-    *dst_pointer = &res;
+    void  **dst_pointer;
+    printf("va_arg: %p\n", va_arg(*argp, void**));
+    dst_pointer = va_arg(*argp, void**);
+    printf("dst_pointer: %p\n", dst_pointer);
+    printf("res: %lx\n", res); 
   }
 }
 
