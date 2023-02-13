@@ -296,7 +296,7 @@ static _Bool is_oct(char ch) {
 static void prefix_check(char **str_buf, int specs) {
   char next_ch = *((*str_buf) + 1);
   char next_next_ch = *((*str_buf) + 2);
-  if ((specs == spec_x) || (specs == spec_X)) { /* for hexadecimal */
+  if ((specs == spec_x) || (specs == spec_X) || (specs == spec_p)) { /* for hexadecimal */
     if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
     (*str_buf) += 2;
     }
@@ -320,6 +320,14 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
       int *dst_num = va_arg(*argp, int*);
       *dst_num = res;
     }
+  }
+}
+
+/* puts pointer into another vararg*/
+static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length, int specs,*/ unsigned long res) {
+  if (!ass_supress && !outsider_ch) {
+    unsigned long **dst_pointer = va_arg(*argp, unsigned long**);
+    *dst_pointer = &res;
   }
 }
 
@@ -384,6 +392,30 @@ static void scan_oct(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 
 }
 
+/* put pointer from source string to another agrument of sscanf */
+static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, /*int length,*/ int specs) {
+  skip_whitespaces(str_buf);
+  //int sign = sign_check(str_buf); /* get sign of check for double sign */
+  prefix_check(str_buf, specs);
+  int count = 0; /* number of hexadecimal characters */
+  char *hex_start = *str_buf;
+  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
+    (*str_buf)++; 
+    count++;
+  }
+  unsigned long res = 0;
+  char *hex_finish = --(*str_buf); // on last hex
+  int power16 = 0;
+  for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
+    res += hex_to_num(*hex_cur) * pow(16, power16++); 
+  }
+  //res *= sign;
+  *str_buf = hex_finish + 1;
+  
+  pointer_into_arg(argp, ass_supress, outsider_ch, res);
+
+}
+
 /* scan processing*/
 static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
@@ -397,6 +429,9 @@ static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supres
   }
   if (specs & spec_o) { /* scan octal integers */
     scan_oct(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
+  }
+  if (specs & spec_p) { /* scan pointer */
+    scan_pointer(str_buf, argp, ass_supress, outsider_ch, width, specs); 
   }
 }
 
@@ -419,7 +454,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     int width = 0, length = 0;
     int specs = set_specs(&format_buf, &ass_supress, &width, &length); /* fill the specs number */
     printf("width = %d, length = %c = %d\n", width, length, length);
-    if (specs & spec_o) {
+    if (specs & spec_p) {
       printf("ok\n");
     }
     scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width, length);
