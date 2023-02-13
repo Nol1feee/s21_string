@@ -331,7 +331,7 @@ static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch
     printf("dst_pointer: %p\n", dst_pointer);
     printf("res: %lx\n", res); 
     printf("res as p: %p\n", (void**)res); 
-    dst_pointer = (void*)res;
+    *dst_pointer = (void*)res;
   }
 }
 

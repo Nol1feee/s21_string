@@ -9,7 +9,7 @@ int main(void) {
   char test_dst[20];
   void *p = NULL;
   void *test_p = NULL;
-  void *src = "0x11abch 111";
+  void *src = "0x11aaah 111";
   puts("===sscanf===");
   sscanf(src, "%p %s", &p, dst); 
   printf("remain: %s\n", dst);
