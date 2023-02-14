@@ -8,10 +8,6 @@
 #include <stdarg.h>
 #include <math.h> /* for pow*/
 
-#define SHIFT 48 /* code of 0 in ASCII */
-#define SHIFT_HEX 55 /* code of A - 10 in ASCII */
-#define SHIFT_hex 87 /* code of a - 10 in ASCII */
-
 /* for specifiers */
 enum {
   spec_c = 1 << 0, 
@@ -34,9 +30,16 @@ enum {
 
 /* for systems */
 enum {
-  oct = 8,
-  dec = 10,
-  hex = 16
+  OCT = 8,
+  DEC = 10,
+  HEX = 16
+};
+
+/* for shifts */
+enum {
+  SHIFT = 48, /* code of 0 in ASCII */
+  SHIFT_HEX = 55, /* code of A - 10 in ASCII */
+  SHIFT_hex = 87 /* code of a - 10 in ASCII */
 };
 
 /* check white-space characters */
@@ -88,7 +91,7 @@ static int get_number(char **format_buf) {
   int number = **format_buf - SHIFT; /* get the first digit */
   (*format_buf)++;
   while (is_digit(**format_buf)) {
-    number = number * dec + (**format_buf - SHIFT);
+    number = number * DEC + (**format_buf - SHIFT);
     (*format_buf)++;
   }
   (*format_buf)--;
@@ -251,7 +254,7 @@ static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
   int sign = sign_check(str_buf);
   int power10 = get_number(str_buf);
-  res = res * pow(dec, power10 * sign);
+  res = res * pow(DEC, power10 * sign);
   return res;
 }
 
@@ -276,9 +279,9 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   int count = 1; /* number of characters (digits or .) */
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
     if (is_digit(**str_buf) && (!power10)) {
-      res = res * dec + (**str_buf - SHIFT) * sign;
+      res = res * DEC + (**str_buf - SHIFT) * sign;
     } else if (is_digit(**str_buf) && power10) {
-      res = res + ((long double)(**str_buf - SHIFT) / pow(dec, power10++)) * sign;
+      res = res + ((long double)(**str_buf - SHIFT) / pow(DEC, power10++)) * sign;
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
     } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
@@ -307,17 +310,17 @@ static _Bool is_oct(char ch) {
 
 /* check for a prefix and skipping it if it exists */
 static int prefix_check(char **str_buf, int specs) {
-  int prefix = dec; // for decimal
+  int prefix = DEC; // for decimal
   char next_ch = *((*str_buf) + 1);
   char next_next_ch = *((*str_buf) + 2);
   if ((specs & spec_x) || (specs & spec_X) || (specs & spec_p) || (specs & spec_i)) { /* for hexadecimal */
     if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
-      prefix = hex;
+      prefix = HEX;
       (*str_buf) += 2;
     }
   } else if ((specs & spec_o) || (specs & spec_i)) { /* for octal */
     if (**str_buf == '0') {
-      prefix = oct;
+      prefix = OCT;
       (*str_buf)++;
     }
   }
@@ -377,7 +380,7 @@ static long str_to_hex(char **str_buf, int width, int sign) {
   char *hex_finish = --(*str_buf); // on last hex
   int power16 = 0;
   for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
-    res += hex_to_num(*hex_cur) * pow(hex, power16++); 
+    res += hex_to_num(*hex_cur) * pow(HEX, power16++); 
   }
   res *= sign;
   *str_buf = hex_finish + 1;
@@ -406,7 +409,7 @@ static long str_to_oct(char **str_buf, int width, int sign) {
   char *oct_finish = --(*str_buf); // on last oct
   int power8 = 0;
   for (char *oct_cur = oct_finish; oct_cur >= oct_start; oct_cur--) {
-    res += hex_to_num(*oct_cur) * pow(oct, power8++); 
+    res += hex_to_num(*oct_cur) * pow(OCT, power8++); 
   }
   res *= sign;
   *str_buf = oct_finish + 1;
@@ -437,7 +440,7 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
   char *hex_finish = --(*str_buf); // on last hex
   int power16 = 0;
   for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
-    res += hex_to_num(*hex_cur) * pow(hex, power16++); 
+    res += hex_to_num(*hex_cur) * pow(HEX, power16++); 
   }
   //res *= sign;
   *str_buf = hex_finish + 1;
@@ -461,13 +464,13 @@ static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   int prefix = prefix_check(str_buf, specs);
   int res = 0;
   switch (prefix) {
-    case dec: 
+    case DEC: 
       // str_to_dec
       break;
-    case oct:
+    case OCT:
       //str_to_oct
       break;
-    case hex:
+    case HEX:
       //str_to_hex
       break;
   }
