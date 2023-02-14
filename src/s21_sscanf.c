@@ -87,15 +87,17 @@ static _Bool is_digit(char ch) {
 }
 
 /* width from string to number (return pointer format_buf into the last digit) */
-static int get_number(char **format_buf) {
-  int number = **format_buf - SHIFT; /* get the first digit */
-  (*format_buf)++;
-  while (is_digit(**format_buf)) {
-    number = number * DEC + (**format_buf - SHIFT);
-    (*format_buf)++;
+static long str_to_dec(char **string, int width, int sign) {
+  long res = **string - SHIFT; /* get the first digit */
+  int count = 1;
+  (*string)++;
+  while (is_digit(**string) && ((count < width) || (!width))) {
+    res = res * DEC + (**string - SHIFT);
+    (*string)++;
+    count++;
   }
-  (*format_buf)--;
-  return number;
+  (*string)--;
+  return res * sign;
 }
 
 /* check character if it's a length*/
@@ -167,7 +169,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 
       default:
         if (is_digit(**format_buf) && (**format_buf > '0')) {
-          *width = get_number(format_buf); /* get width */
+          *width = str_to_dec(format_buf, 0, 1); /* get width */
         } else if (is_correct_length(format_buf)) {
           *length = **format_buf;
         } else {
@@ -253,7 +255,7 @@ static int sign_check(char **str_buf) {
 static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
   int sign = sign_check(str_buf);
-  int power10 = get_number(str_buf);
+  int power10 = str_to_dec(str_buf, 0, 1);
   res = res * pow(DEC, power10 * sign);
   return res;
 }
@@ -318,8 +320,9 @@ static int prefix_check(char **str_buf, int specs) {
       prefix = HEX;
       (*str_buf) += 2;
     }
-  } else if ((specs & spec_o) || (specs & spec_i)) { /* for octal */
-    if (**str_buf == '0') {
+  }
+  if ((specs & spec_o) || (specs & spec_i)) { /* for octal */
+    if ((**str_buf == '0') && is_oct(next_ch)) {
       prefix = OCT;
       (*str_buf)++;
     }
@@ -459,19 +462,19 @@ static void count_chars(char **str_buf, const char* const *str_start, va_list *a
 static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
   int sign = sign_check(str_buf); /* get sign or check for double sign */
-  printf("--%d--", sign);
-  printf("--%d--", width);
+  //printf("--%d--", sign);
+  //printf("--%d--", width);
   int prefix = prefix_check(str_buf, specs);
-  int res = 0;
+  long res = 0;
   switch (prefix) {
     case DEC: 
-      // str_to_dec
+      res = str_to_dec(str_buf, width, sign);
       break;
     case OCT:
-      //str_to_oct
+      res = str_to_oct(str_buf, width, sign);
       break;
     case HEX:
-      //str_to_hex
+      res = str_to_hex(str_buf, width, sign);
       break;
   }
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);

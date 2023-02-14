@@ -11,14 +11,14 @@ int main(void) {
   int test_n, test_n_first = 0;
   //void *p = NULL;
   //void *test_p = NULL;
-  void *src = "0X55a 10a";
+  void *src = "55 10";
   puts("===sscanf===");
-  sscanf(src, " %x %x", &n_first, &n); 
+  sscanf(src, " %i %i", &n_first, &n); 
   printf("n_first: %d\n", n_first);
   printf("n: %d\n", n);
   //printf("remain: %s\n", dst);
   puts("===s21_sscanf===");
-  s21_sscanf(src, " %x %x", &test_n_first, &test_n); 
+  s21_sscanf(src, " %i %i", &test_n_first, &test_n); 
   printf("test_n_first: %d\n", test_n_first);
   printf("test_n: %d\n", test_n);
   //printf("test_remain: %s\n", test_dst);
