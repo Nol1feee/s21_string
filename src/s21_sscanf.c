@@ -38,10 +38,13 @@ static _Bool is_whitespace(char ch) {
 }
 
 /* skip white-space chatacters */
-static void skip_whitespaces(char **string) {
+static int skip_whitespaces(char **string) {
+  int count = 0;
   while (is_whitespace(**string)) {
     (*string)++;
+    count++;
   }
+  return count;
 }
 
 /* skip the whole string */
@@ -53,7 +56,10 @@ static void skip_all(char **string) {
 
 /* sets the format_buf pointer to the character after the % */
 static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
-  skip_whitespaces(format_buf);
+  int white_count = skip_whitespaces(format_buf);
+  if (white_count) {
+    skip_whitespaces(str_buf);
+  }
   while (**format_buf != '%') { /* skip all regular characters*/
     if (**format_buf != **str_buf) {
       *outsider_ch = true;
@@ -422,7 +428,7 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
 
 /* */
 static void count_chars(char **str_buf, const char* const *str_start, va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int width,*/ int length, int specs) {
-  int amount = *str_buf - (*str_start - 1);
+  int amount = *str_buf - *str_start;
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, amount);
 }
 

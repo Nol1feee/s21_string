@@ -11,15 +11,15 @@ int main(void) {
   int test_n, test_n_first = 0;
   void *p = NULL;
   void *test_p = NULL;
-  void *src = "   0x11aaa  h 111";
+  void *src = "   s0x11aaa  h 111";
   puts("===sscanf===");
-  sscanf(src, "   %n %p %s %n", &n_first, &p, dst, &n); 
+  sscanf(src, " s%n %p %s %n", &n_first, &p, dst, &n); 
   printf("read_first: %d\n", n_first);
   printf("read: %d\n", n);
   printf("p: %p\n", p);
   printf("remain: %s\n", dst);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "%n %p %s %n", &test_n_first, &test_p, test_dst, &test_n); 
+  s21_sscanf(src, " s%n %p %s %n", &test_n_first, &test_p, test_dst, &test_n); 
   printf("test_n_first: %d\n", test_n_first);
   printf("test_p: %p\n", test_p);
   printf("test_n: %d\n", test_n);
