@@ -420,8 +420,14 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
 
 }
 
+/* */
+static void count_chars(char **str_buf, const char* const *str_start, va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int width,*/ int length, int specs) {
+  int amount = *str_buf - (*str_start - 1);
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, amount);
+}
+
 /* scan processing*/
-static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
+static void scan_proc(char **str_buf, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str_buf, argp, ass_supress, outsider_ch, width);
   } // TODO l length for %s ?
@@ -436,6 +442,9 @@ static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supres
   }
   if (specs & spec_p) { /* scan pointer */
     scan_pointer(str_buf, argp, ass_supress, outsider_ch, width, specs); 
+  }
+  if (specs & spec_n) { /* count characters read before n */
+    count_chars(str_buf, str_start, argp, ass_supress, outsider_ch, width, specs); 
   }
 }
 
@@ -463,7 +472,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     if (specs & spec_p) {
       printf("ok\n");
     }
-    scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width, length);
+    scan_proc(&str_buf, &str_start, specs, &argp, ass_supress, outsider_ch, width, length);
     printf("specs = %d\n", specs);
   }
   va_end(argp);
