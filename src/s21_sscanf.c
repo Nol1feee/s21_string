@@ -441,8 +441,10 @@ static void scan_proc(char **str_buf, int specs, va_list *argp, _Bool ass_supres
 
 /* main sscanf function */
 int s21_sscanf(const char *str, const char *format, ...) {
-  char *str_buf = (char *)malloc(strlen(str) * sizeof(char));
-  char *format_buf = (char *)malloc(strlen(format) * sizeof(char));
+  char *str_buf = (char*)malloc(strlen(str) * sizeof(char));
+  char *format_buf = (char*)malloc(strlen(format) * sizeof(char));
+  const char * const str_start = str_buf; /* save start of string for %n and free() */
+  const char * const format_start = format_buf; /* save start of string for free() */
   strcpy(str_buf, str);
   strcpy(format_buf, format);
   printf("str:%s\n", str_buf);
@@ -462,7 +464,10 @@ int s21_sscanf(const char *str, const char *format, ...) {
       printf("ok\n");
     }
     scan_proc(&str_buf, specs, &argp, ass_supress, outsider_ch, width, length);
+    printf("specs = %d\n", specs);
   }
   va_end(argp);
+  free((void*)str_start);
+  free((void*)format_start);
   return 0;
 }
