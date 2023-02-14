@@ -32,6 +32,13 @@ enum {
   spec_percent = 1 << 15
 };
 
+/* for systems */
+enum {
+  oct = 8,
+  dec = 10,
+  hex = 16
+};
+
 /* check white-space characters */
 static _Bool is_whitespace(char ch) {
   return (ch == ' ' || ch == '\t' || ch == '\n') ? true : false;
@@ -81,7 +88,7 @@ static int get_number(char **format_buf) {
   int number = **format_buf - SHIFT; /* get the first digit */
   (*format_buf)++;
   while (is_digit(**format_buf)) {
-    number = number * 10 + (**format_buf - SHIFT);
+    number = number * dec + (**format_buf - SHIFT);
     (*format_buf)++;
   }
   (*format_buf)--;
@@ -244,7 +251,7 @@ static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
   int sign = sign_check(str_buf);
   int power10 = get_number(str_buf);
-  res = res * pow(10, power10 * sign);
+  res = res * pow(dec, power10 * sign);
   return res;
 }
 
@@ -269,9 +276,9 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
   int count = 1; /* number of characters (digits or .) */
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
     if (is_digit(**str_buf) && (!power10)) {
-      res = res * 10 + (**str_buf - SHIFT) * sign;
+      res = res * dec + (**str_buf - SHIFT) * sign;
     } else if (is_digit(**str_buf) && power10) {
-      res = res + ((long double)(**str_buf - SHIFT) / pow(10, power10++)) * sign;
+      res = res + ((long double)(**str_buf - SHIFT) / pow(dec, power10++)) * sign;
     } else if ((**str_buf == '.') && (!power10)) {
       power10++;
     } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
@@ -299,32 +306,36 @@ static _Bool is_oct(char ch) {
 }
 
 /* check for a prefix and skipping it if it exists */
-static void prefix_check(char **str_buf, int specs) {
+static int prefix_check(char **str_buf, int specs) {
+  int prefix = dec; // for decimal
   char next_ch = *((*str_buf) + 1);
   char next_next_ch = *((*str_buf) + 2);
-  if ((specs == spec_x) || (specs == spec_X) || (specs == spec_p)) { /* for hexadecimal */
-    if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
-    (*str_buf) += 2;
+  if ((specs & spec_x) || (specs & spec_X) || (specs & spec_p) || (specs & spec_i)) { /* for hexadecimal */
+    if ((**str_buf & '0') && ((next_ch & 'x') || (next_ch & 'X')) && is_hex(next_next_ch)) {
+      prefix = hex;
+      (*str_buf) += 2;
     }
-  } else if (specs == spec_o) { /* for octal */
+  } else if ((specs & spec_o) || (specs & spec_i)) { /* for octal */
     if (**str_buf == '0') {
-    (*str_buf)++;
+      prefix = oct;
+      (*str_buf)++;
     }
   }
+  return prefix;
 }
 
 /* puts integer number into another vararg*/
-static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, int res) {
+static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res) {
   if (!ass_supress && !outsider_ch) {
     if (is_efg(specs) && (length == 'l')) {
-      long int *dst_num = va_arg(*argp, long int*); /* take argument address */
+      long *dst_num = va_arg(*argp, long*); /* take argument address */
       *dst_num = res;
     } else if (is_efg(specs) && (length == 'h')) {
-      short int *dst_num = va_arg(*argp, short int*);
-      *dst_num = res;
+      short *dst_num = va_arg(*argp, short*);
+      *dst_num = (short)res;
     } else {
       int *dst_num = va_arg(*argp, int*);
-      *dst_num = res;
+      *dst_num = (int)res;
     }
   }
 }
@@ -357,7 +368,7 @@ static int hex_to_num(char hex) {
 /* put hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); /* get sign of check for double sign */
+  int sign = sign_check(str_buf); /* get sign or check for double sign */
   prefix_check(str_buf, specs);
   int count = 0; /* number of hexadecimal characters */
   char *hex_start = *str_buf;
@@ -378,34 +389,38 @@ static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 
 }
 
-/* put octal integer from source string to another agrument of sscanf */
-static void scan_oct(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); /* get sign of check for double sign */
-  prefix_check(str_buf, specs);
+/**/
+static long str_to_oct(char **str_buf, int width, int sign) {
   int count = 0; /* number of octal characters */
   char *oct_start = *str_buf;
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && is_oct(**str_buf)) { 
     (*str_buf)++; 
     count++;
   }
-  int res = 0;
+  long res = 0;
   char *oct_finish = --(*str_buf); // on last oct
   int power8 = 0;
   for (char *oct_cur = oct_finish; oct_cur >= oct_start; oct_cur--) {
-    res += hex_to_num(*oct_cur) * pow(8, power8++); 
+    res += hex_to_num(*oct_cur) * pow(oct, power8++); 
   }
   res *= sign;
   *str_buf = oct_finish + 1;
-  
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+  return res;
+}
 
+/* put octal integer from source string to another agrument of sscanf */
+static void scan_oct(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); /* get sign or check for double sign */
+  prefix_check(str_buf, specs);
+  long res = str_to_oct(str_buf, width, sign);
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
 }
 
 /* put pointer from source string to another agrument of sscanf */
 static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, /*int length,*/ int specs) {
   skip_whitespaces(str_buf);
-  //int sign = sign_check(str_buf); /* get sign of check for double sign */
+  //int sign = sign_check(str_buf); /* get sign or check for double sign */
   prefix_check(str_buf, specs);
   int count = 0; /* number of hexadecimal characters */
   char *hex_start = *str_buf;
@@ -417,7 +432,7 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
   char *hex_finish = --(*str_buf); // on last hex
   int power16 = 0;
   for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
-    res += hex_to_num(*hex_cur) * pow(16, power16++); 
+    res += hex_to_num(*hex_cur) * pow(hex, power16++); 
   }
   //res *= sign;
   *str_buf = hex_finish + 1;
@@ -430,6 +445,28 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
 static void count_chars(char **str_buf, const char* const *str_start, va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int width,*/ int length, int specs) {
   int amount = *str_buf - *str_start;
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, amount);
+}
+
+/* put signed decimal/octal/hexadecimal integer from source string to another agrument of sscanf */
+static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); /* get sign or check for double sign */
+  printf("--%d--", sign);
+  printf("--%d--", width);
+  int prefix = prefix_check(str_buf, specs);
+  int res = 0;
+  switch (prefix) {
+    case dec: 
+      // str_to_dec
+      break;
+    case oct:
+      //str_to_oct
+      break;
+    case hex:
+      //str_to_hex
+      break;
+  }
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
 }
 
 /* scan processing*/
@@ -451,6 +488,9 @@ static void scan_proc(char **str_buf, const char* const *str_start, int specs, v
   }
   if (specs & spec_n) { /* count characters read before n */
     count_chars(str_buf, str_start, argp, ass_supress, outsider_ch, width, specs); 
+  }
+  if (specs & spec_i) { /* scan signed integer: dec/oct/hex */
+    scan_doh(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
   }
 }
 
