@@ -5,23 +5,22 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
-  char dst[20];
-  //char dst2[20];
+  //char dst[20];
   //char test_dst[20];
-  //char test_dst2[20];
-  int num = 0.0;
-  //double  num2 = 0.0;
-  int test_num = 0.0;
-  //float test_num2 = 0.0;
-  const char *src = "0x3abc";
+  int n, n_first = 0;
+  int test_n, test_n_first = 0;
+  //void *p = NULL;
+  //void *test_p = NULL;
+  void *src = "55 10";
   puts("===sscanf===");
-  sscanf(src, "%x", &num); 
-  printf("num: %d\n", num);
-  printf("remain: %s\n", dst);
-  //printf("num2: %f\n", num2);
+  sscanf(src, " %i %i", &n_first, &n); 
+  printf("n_first: %d\n", n_first);
+  printf("n: %d\n", n);
+  //printf("remain: %s\n", dst);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "%x", &test_num); 
-  printf("test_num: %d\n", test_num);
-  //printf("test_num2: %f\n", test_num2);
+  s21_sscanf(src, " %i %i", &test_n_first, &test_n); 
+  printf("test_n_first: %d\n", test_n_first);
+  printf("test_n: %d\n", test_n);
+  //printf("test_remain: %s\n", test_dst);
   return 0;
 }
