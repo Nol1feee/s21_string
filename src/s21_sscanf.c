@@ -96,7 +96,7 @@ static long str_to_dec(char **string, int width, int sign) {
     (*string)++;
     count++;
   }
-  (*string)--;
+  //(*string)--;
   return res * sign;
 }
 
@@ -170,6 +170,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
       default:
         if (is_digit(**format_buf) && (**format_buf > '0')) {
           *width = str_to_dec(format_buf, 0, 1); /* get width */
+          (*format_buf)--;
         } else if (is_correct_length(format_buf)) {
           *length = **format_buf;
         } else {
@@ -256,6 +257,7 @@ static long double get_exp(long double res, char **str_buf) {
   (*str_buf)++; /* go to the next char, must be a '-' or '+' */
   int sign = sign_check(str_buf);
   int power10 = str_to_dec(str_buf, 0, 1);
+  (*str_buf)--;
   res = res * pow(DEC, power10 * sign);
   return res;
 }
