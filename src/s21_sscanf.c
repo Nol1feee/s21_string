@@ -1,13 +1,10 @@
 /*sscanf implementation*/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdio.h> /* testing printfs */
+#include <stdlib.h> /* malloc */
 #include <string.h> // TODO: change to s21_string.h
-#include <stdbool.h>
-#include <stdarg.h>
-#include <math.h> /* for pow*/
-#include <wchar.h> // TODO: change to s21_wchar.h
+#include <stdbool.h> /* _Bool */
+#include <math.h> /* pow*/
 
 /* for specifiers */
 enum {
@@ -184,38 +181,30 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 }
 
 /* puts string into another vararg*/
-static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int count, char *str_buf_start) {
+static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length,*/ int count, char *str_buf_start) {
     if (!ass_supress && !outsider_ch) {
-      if (length == 'l') {
-        wchar_t *dst_string = va_arg(*argp, wchar_t*); /* take argument address */
-        wcsncpy(dst_string, (wchar_t*)str_buf_start, count * 4); /* put string into argument */
-        wcsncpy(dst_string + count, (wchar_t*)"\0", 4); /* cut extra garbage */
-      } else {
-        char *dst_string = va_arg(*argp, char*); /* take argument address */
-        strncpy(dst_string, str_buf_start, count); /* put string into argument */
-        strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
-      }
+      char *dst_string = va_arg(*argp, char*); /* take argument address */
+      strncpy(dst_string, str_buf_start, count); /* put string into argument */
+      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
     }
 }
 
 /* */
-static int str_to_str(char **str_buf, int width, int length) {
+static int str_to_str(char **str_buf, int width/*, int length*/) {
   int count = 0; /* number of characters */
-  if (length != 'l') {
     while (**str_buf && !is_whitespace(**str_buf) && ((count < width) || !width)) {
       (*str_buf)++; /* go to end of string */
       count++;
     }
-  }
   return count;
 }
 
 /* put string from source string to another agrument of sscanf */
-static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
+static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width/*, int length*/) {
   skip_whitespaces(str_buf);
   char *str_buf_start = *str_buf; //save start of string 
-  int count = str_to_str(str_buf, width, length); // number of characters 
-  str_into_arg(argp, ass_supress, outsider_ch, length, count, str_buf_start);
+  int count = str_to_str(str_buf, width/*, length*/); // number of characters 
+  str_into_arg(argp, ass_supress, outsider_ch, /*length,*/ count, str_buf_start);
 }
 
 /* check specs if it's a e/E/f/g/G */
@@ -270,37 +259,32 @@ static long double get_exp(long double res, char **str_buf) {
   return res;
 }
 
-
-
-/* put floating-point number from source string to another agrument of sscanf */
-static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); 
-
-  // TODO: str_to_fpnum is a separate function
-
-  long double res = 0;
-  int power10 = 0; /* for power of 10 */
+/* */
+static void get_first_fpnum(char **str_buf, int sign, long double *res, int* power10) {
   char next_ch = *((*str_buf) + 1);
   if (is_digit(**str_buf)) {
-    res = (**str_buf - SHIFT) * sign;
+    *res = (**str_buf - SHIFT) * sign;
     (*str_buf)++;
   } else if ((**str_buf == '.') && (is_digit(next_ch))){
-    power10++;
+    (*power10)++;
     (*str_buf)++;
   } else {
     // TODO:hanlde error
   }
-  int count = 1; /* number of characters (digits or .) */
+}
+
+/* */
+static void str_to_fpnum(char **str_buf, int width, int sign, int *power10, long double *res) {
+  int count = 1; // number of characters (digits or .) 
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
-    if (is_digit(**str_buf) && (!power10)) {
-      res = res * DEC + (**str_buf - SHIFT) * sign;
-    } else if (is_digit(**str_buf) && power10) {
-      res = res + ((long double)(**str_buf - SHIFT) / pow(DEC, power10++)) * sign;
-    } else if ((**str_buf == '.') && (!power10)) {
-      power10++;
+    if (is_digit(**str_buf) && (!(*power10))) {
+      *res = (*res) * DEC + (**str_buf - SHIFT) * sign;
+    } else if (is_digit(**str_buf) && (*power10)) {
+      *res = (*res) + ((long double)(**str_buf - SHIFT) / pow(DEC, (*power10)++)) * sign;
+    } else if ((**str_buf == '.') && (!(*power10))) {
+      (*power10)++;
     } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
-      res = get_exp(res, str_buf);
+      *res = get_exp(*res, str_buf);
     } else {
       //TODO: handle error
       break;
@@ -308,9 +292,17 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     (*str_buf)++; 
     count++;
   }
-  
-  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+}
 
+/* put floating-point number from source string to another agrument of sscanf */
+static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
+  skip_whitespaces(str_buf);
+  int sign = sign_check(str_buf); 
+  long double res = 0;
+  int power10 = 0; /* for power of 10 */
+  get_first_fpnum(str_buf, sign, &res, &power10);
+  str_to_fpnum(str_buf, width, sign, &power10, &res);
+  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
 }
 
 /* check if the character is a hexadecimal symbol */
@@ -492,7 +484,7 @@ static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 /* scan processing*/
 static void scan_proc(char **str_buf, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
-    scan_string(str_buf, argp, ass_supress, outsider_ch, width, length);
+    scan_string(str_buf, argp, ass_supress, outsider_ch, width/*, length*/);
   } // TODO l length for %s ?
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
