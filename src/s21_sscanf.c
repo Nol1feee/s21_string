@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <string.h> /* for strlen, strcpy (then delete) */
+#include <string.h> // TODO: change to s21_string.h
 #include <stdbool.h>
 #include <stdarg.h>
 #include <math.h> /* for pow*/
@@ -86,7 +86,7 @@ static _Bool is_digit(char ch) {
   return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
-/* width from string to number (return pointer format_buf into the last digit) */
+/* converts from string to number */
 static long str_to_dec(char **string, int width, int sign) {
   long res = **string - SHIFT; /* get the first digit */
   int count = 1;
@@ -96,7 +96,6 @@ static long str_to_dec(char **string, int width, int sign) {
     (*string)++;
     count++;
   }
-  //(*string)--;
   return res * sign;
 }
 
@@ -175,7 +174,7 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
           *length = **format_buf;
         } else {
           fprintf(stderr, "Incorrect specifier\n");
-          /* handle an error*/
+          // TODO:handle an error
         }
     }
     (*format_buf)++;
@@ -183,10 +182,24 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
   return specs;
 }
 
+/* puts string into another vararg*/
+static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int count, char *str_buf_start) {
+  if (length != 'l') {
+    if (!ass_supress && !outsider_ch) {
+      char *dst_string = va_arg(*argp, char*); /* take argument address */
+      strncpy(dst_string, str_buf_start, count); /* put string into argument */
+      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+    }
+  }
+}
+
 /* put string from source string to another agrument of sscanf */
-static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width) {
+static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   skip_whitespaces(str_buf);
-  char *tmp = *str_buf; /* save start of string */
+
+  //TODO: str_to_str as a separate function
+
+  char *str_buf_start = *str_buf; /* save start of string */
   int count = 0; /* number of characters */
   if (width) {
     while (**str_buf && !is_whitespace(**str_buf) && (count < width)) {
@@ -199,15 +212,7 @@ static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool 
       count++;
     }
   }
-  if (!ass_supress) {
-    char *dst_string = va_arg(*argp, char*); /* take argument address */
-    if (outsider_ch) {
-      strcpy(dst_string, "\0"); /* put empty string into argument */
-    } else {
-      strncpy(dst_string, tmp, count); /* put string into argument */
-      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
-    }
-  }
+  str_into_arg(argp, ass_supress, outsider_ch, length, count, str_buf_start);
 }
 
 /* check specs if it's a e/E/f/g/G */
@@ -268,6 +273,9 @@ static long double get_exp(long double res, char **str_buf) {
 static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
   int sign = sign_check(str_buf); 
+
+  // TODO: str_to_fpnum is a separate function
+
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   char next_ch = *((*str_buf) + 1);
@@ -278,7 +286,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     power10++;
     (*str_buf)++;
   } else {
-    // hanlde error
+    // TODO:hanlde error
   }
   int count = 1; /* number of characters (digits or .) */
   while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
@@ -291,7 +299,7 @@ static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
     } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
       res = get_exp(res, str_buf);
     } else {
-      // handle error
+      //TODO: handle error
       break;
     }
     (*str_buf)++; 
@@ -447,11 +455,9 @@ static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool
   for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
     res += hex_to_num(*hex_cur) * pow(HEX, power16++); 
   }
-  //res *= sign;
   *str_buf = hex_finish + 1;
-  
+  // TODO: str_to_pointer into separate function
   pointer_into_arg(argp, ass_supress, outsider_ch, res);
-
 }
 
 /* */
@@ -464,8 +470,6 @@ static void count_chars(char **str_buf, const char* const *str_start, va_list *a
 static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
   skip_whitespaces(str_buf);
   int sign = sign_check(str_buf); /* get sign or check for double sign */
-  //printf("--%d--", sign);
-  //printf("--%d--", width);
   int prefix = prefix_check(str_buf, specs);
   long res = 0;
   switch (prefix) {
@@ -485,7 +489,7 @@ static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
 /* scan processing*/
 static void scan_proc(char **str_buf, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   if (specs & spec_s) { /* scan strings */
-    scan_string(str_buf, argp, ass_supress, outsider_ch, width);
+    scan_string(str_buf, argp, ass_supress, outsider_ch, width, length);
   } // TODO l length for %s ?
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
     scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
