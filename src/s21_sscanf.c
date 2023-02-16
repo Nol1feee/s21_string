@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <math.h> /* for pow*/
+#include <wchar.h> // TODO: change to s21_wchar.h
 
 /* for specifiers */
 enum {
@@ -184,34 +185,36 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 
 /* puts string into another vararg*/
 static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int count, char *str_buf_start) {
-  if (length != 'l') {
     if (!ass_supress && !outsider_ch) {
-      char *dst_string = va_arg(*argp, char*); /* take argument address */
-      strncpy(dst_string, str_buf_start, count); /* put string into argument */
-      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+      if (length == 'l') {
+        wchar_t *dst_string = va_arg(*argp, wchar_t*); /* take argument address */
+        wcsncpy(dst_string, (wchar_t*)str_buf_start, count * 4); /* put string into argument */
+        wcsncpy(dst_string + count, (wchar_t*)"\0", 4); /* cut extra garbage */
+      } else {
+        char *dst_string = va_arg(*argp, char*); /* take argument address */
+        strncpy(dst_string, str_buf_start, count); /* put string into argument */
+        strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+      }
+    }
+}
+
+/* */
+static int str_to_str(char **str_buf, int width, int length) {
+  int count = 0; /* number of characters */
+  if (length != 'l') {
+    while (**str_buf && !is_whitespace(**str_buf) && ((count < width) || !width)) {
+      (*str_buf)++; /* go to end of string */
+      count++;
     }
   }
+  return count;
 }
 
 /* put string from source string to another agrument of sscanf */
 static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
   skip_whitespaces(str_buf);
-
-  //TODO: str_to_str as a separate function
-
-  char *str_buf_start = *str_buf; /* save start of string */
-  int count = 0; /* number of characters */
-  if (width) {
-    while (**str_buf && !is_whitespace(**str_buf) && (count < width)) {
-      (*str_buf)++; /* go to end of string */
-      count++;
-    }
-  } else {
-    while (**str_buf && !is_whitespace(**str_buf)) {
-      (*str_buf)++; /* go to end of string */
-      count++;
-    }
-  }
+  char *str_buf_start = *str_buf; //save start of string 
+  int count = str_to_str(str_buf, width, length); // number of characters 
   str_into_arg(argp, ass_supress, outsider_ch, length, count, str_buf_start);
 }
 
