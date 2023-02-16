@@ -5,22 +5,25 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
-  //char dst[20];
-  //char test_dst[20];
-  int n, n_first = 0;
-  int test_n, test_n_first = 0;
-  //void *p = NULL;
-  //void *test_p = NULL;
-  void *src = "55 10";
+  char dst[20] = {'0'};
+  char test_dst[20] = {'0'};
+  char *src = "test";
   puts("===sscanf===");
-  sscanf(src, " %i %i", &n_first, &n); 
-  printf("n_first: %d\n", n_first);
-  printf("n: %d\n", n);
-  //printf("remain: %s\n", dst);
+  sscanf(src, "%s", dst); 
+  printf("dst: %s\n", dst);
   puts("===s21_sscanf===");
-  s21_sscanf(src, " %i %i", &test_n_first, &test_n); 
-  printf("test_n_first: %d\n", test_n_first);
-  printf("test_n: %d\n", test_n);
-  //printf("test_remain: %s\n", test_dst);
+  s21_sscanf(src, "%s", test_dst); 
+  printf("test_dst: %s\n", test_dst);
+  /*puts("===wchar_t tests===");
+  char *wtest = "षा1";
+  wchar_t pw[2];
+  int byte = mbtowc(pw, wtest, 4);
+  printf("byte: %d\n", byte);
+  wchar_t wd_test[8];
+  mbstowcs(wd_test, wtest, strlen(wtest));
+  printf("wd_test: %ls\n", wd_test);
+  printf("pw: %ls\n", pw);
+  printf("strlen: %lu\n", strlen(wtest));
+  printf("size of pw: %lu\n", sizeof(pw));*/
   return 0;
 }
