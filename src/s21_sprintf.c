@@ -3,22 +3,23 @@
 
 int s21_sprintf(char* buf, const char* format, ...);
 void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d);
-void flag_x(s21* sh21, char* temp, char* buf, char* result, long int d, int shift);
+void flag_x(s21* sh21, char* temp, char* buf, char* result, unsigned int d, int shift);
 void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d);
+void flag_p(s21* sh21, char* temp, char* buf, char* result, long int d);
 void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f);
 void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol);
 void flag_s(s21* sh21, char* string, char* buf, char* result);
 void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u);
 char* revers(char* str, int i);
 char* s21_int_to_string(long int number, long int floating);
-char* s21_hexadecimal_to_string(long int number, long int floating, int shift);
-char* s21_octal_to_string(long int number, long int floating);
+char* s21_hexadecimal_to_string(long int number, long int floating, int shift, int need_prefix);
+char* s21_octal_to_string(long int number, long int floating, int need_prefix);
 char* s21_add_sign(char* dest, char* src, int signed_conversion,
                    int space_signed_conversion, long int number);
 char* s21_add_zero(char* dest, char* src, int floating);
 int s21_pow(int x, int y);
 int s21_round(double y);
-char* s21_float_to_string(long double number, int floating);
+char* s21_float_to_string(long double number, int floating, int need_prefix);
 char* s21_uint_to_string(unsigned long long number, long int floating);
 void s21_reset_struct(s21* sh21);
 void fill_result(char* buf, char* result, s21* sh21);
@@ -29,10 +30,10 @@ char* s21_add_spaces(char* line, s21* sh21);
 int main() {
   char buf[50];
   // char z[] = "rec";
-  sprintf(buf, "%u %5.7s%lf %%%c %o %i ", 1, "ass", 123.4, 'w', 3, 888888);
+  int a = 5;
+  sprintf(buf, "%#.0c , %#X , %d", 'a', 110, -100);
   printf("%s \n", buf);
-  s21_sprintf(buf, "%u %6.7s%lf %%%c %o %i ", 1, "ass", 123.4, 'w', -10,
-              888888);
+  s21_sprintf(buf, "%#.0c , %#X , %d", 'a', 110, -100);
   printf("%s ", buf);
   return 0;
 }
@@ -82,6 +83,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
         sh21.h_flag = 1;
       } else if (*line == 'l') {
         sh21.l_flag = 1;
+      } else if (*line == '#') {
+        sh21.need_prefix = 1;
       } else if (((*line) >= '0') && ((*line) <= '9')) {
         numbers(line, &sh21);
         // пропускает цифры, которые были обработаны в numbers
@@ -90,14 +93,20 @@ int s21_sprintf(char* buf, const char* format, ...) {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);
         else if (sh21.l_flag)
-          d = va_arg(param, long int);
+          d = va_arg(param, long long int);
         else
           d = va_arg(param, int);
         flag_i_d(&sh21, temp, buf, result, d);
       } else if (*line == 'x' || *line == 'X') {  // 16-ричное число инт
         d = va_arg(param, uint64_t);
         flag_x(&sh21, temp, buf, result, d, 'x' - *line);
+      } else if (*line == 'p') {
+        d = va_arg(param, uint64_t);
+        flag_p(&sh21, temp, buf, result, d);
       } else if (*line == 'o') {  // 8-ричное число инт
+        d = (unsigned int) va_arg(param, uint64_t);
+        flag_o(&sh21, temp, buf, result, d);
+      } else if (*line == 'O') {
         d = va_arg(param, uint64_t);
         flag_o(&sh21, temp, buf, result, d);
       } else if (*line == 'f') {
@@ -131,22 +140,29 @@ void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
   insert_and_free(sh21, temp, buf, result);
 }
 
-void flag_x(s21* sh21, char* temp, char* buf, char* result, long int d, int shift) {
-  temp = s21_hexadecimal_to_string(d, sh21->floating, shift);
+void flag_x(s21* sh21, char* temp, char* buf, char* result, unsigned int d, int shift) {
+  temp = s21_hexadecimal_to_string(d, sh21->floating, shift, sh21->need_prefix);
   result = calloc(strlen(temp) + 1, sizeof(char));
   result = s21_add_zero(result, temp, sh21->floating);
   insert_and_free(sh21, temp, buf, result);
 }
 
 void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d) {
-  temp = s21_octal_to_string(d, sh21->floating);
+  temp = s21_octal_to_string(d, sh21->floating, sh21->need_prefix);
+  result = calloc(strlen(temp) + 1, sizeof(char));
+  result = s21_add_zero(result, temp, sh21->floating);
+  insert_and_free(sh21, temp, buf, result);
+}
+
+void flag_p(s21* sh21, char* temp, char* buf, char* result, long int d) {
+  temp = s21_hexadecimal_to_string(d, sh21->floating, 0, 1);
   result = calloc(strlen(temp) + 1, sizeof(char));
   result = s21_add_zero(result, temp, sh21->floating);
   insert_and_free(sh21, temp, buf, result);
 }
 
 void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f) {
-  temp = s21_float_to_string(f, sh21->floating);
+  temp = s21_float_to_string(f, sh21->floating, sh21->need_prefix);
   result = calloc(strlen(temp) + 1, sizeof(char));
 
   result = s21_add_sign(result, temp, sh21->signed_conversion,
@@ -231,8 +247,8 @@ char* s21_int_to_string(long int number, long int floating) {
   return revers(str, i);
 }
 
-char* s21_hexadecimal_to_string(long int number, long int floating, int shift) {
-  int i = 1;
+char* s21_hexadecimal_to_string(long int number, long int floating, int shift, int need_prefix) {
+  int i = 0;
   char* str = calloc(32, sizeof(char));
   if (number < 0) number *= -1;
   if (number != 0) {
@@ -244,27 +260,40 @@ char* s21_hexadecimal_to_string(long int number, long int floating, int shift) {
       } else {
           c += '0';
       }
-      str[i++ - 1] = c;
+      str[++i - 1] = c;
       number /= 16;
     }
+    if (need_prefix) {
+      str[i] = 'x' - shift;
+      str[i + 1] = '0';
+      i += 2;
+    }
   } else if (floating != 0) {
-    str[i - 1] = '0';
+    str[i] = '0';
+    i += 1;
   }
+  
   return revers(str, i);
 }
 
-char* s21_octal_to_string(long int number, long int floating) {
-  int i = 1;
+char* s21_octal_to_string(long int number, long int floating, int need_prefix) {
+  int i = 0;
   char* str = calloc(32, sizeof(char));
   if (number < 0) number *= -1;
   if (number != 0) {
     while (number > 0) {
-      str[i++ - 1] = (number % 8) + '0';
+      str[++i - 1] = (number % 8) + '0';
       number /= 8;
     }
+    if (need_prefix) {
+      str[i] = '0';
+      i += 1;
+    }
   } else if (floating != 0) {
-    str[i - 1] = '0';
+    str[i] = '0';
+    i += 1;
   }
+  
   return revers(str, i);
 }
 
@@ -307,7 +336,7 @@ int s21_pow(int x, int y) {
 
 int s21_round(double y) { return (int)(y + 0.5); }
 
-char* s21_float_to_string(long double number, int floating) {
+char* s21_float_to_string(long double number, int floating, int need_prefix) {
   if (number < 0) number *= -1;
   int int_part = number;
   char* str = s21_int_to_string(int_part, 1);
@@ -317,6 +346,9 @@ char* s21_float_to_string(long double number, int floating) {
       str[offset] = (((int)(number + 0.5) % 10) + '0');
     else
       str[offset] = (((int)number % 10) + '0');
+      if (need_prefix) {
+        str[offset + 1] = '.';
+      }
   } else {
     number -= int_part;
     int f_len = (floating != -1) ? floating : 6;
@@ -354,6 +386,7 @@ void s21_reset_struct(s21* sh21) {
   sh21->floating = -1;
   sh21->h_flag = 0;
   sh21->l_flag = 0;
+  sh21->need_prefix = 0;
   //  sh21->pointer = NULL;
   // sh21->fillnull = 0;
 }

@@ -17,6 +17,7 @@ typedef struct s21 {
   int floating;  // точность
   int h_flag;    // шорт инт
   int l_flag;    // лонг инт
+  int need_prefix; // нужно для не десятичной залупы
   //  char* pointer;
   // int fillnull;  // Влад, посмотри
 } s21;
@@ -34,7 +35,7 @@ char* s21_add_sign(char* dest, char* src, int signed_conversion,
 char* s21_add_zero(char* dest, char* src, int floating);
 int s21_pow(int x, int y);
 int s21_round(double y);
-char* s21_float_to_string(long double number, int floating);
+char* s21_float_to_string(long double number, int floating, int need_prefix);
 char* s21_uint_to_string(unsigned long long number, long int floating);
 void s21_reset_struct(s21* sh21);
 void fill_result(char* buf, char* result, s21* sh21);
