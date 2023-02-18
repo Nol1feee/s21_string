@@ -117,8 +117,8 @@ style:
 style-fix: 
 	@cp ../materials/linters/.clang-format ./
 	@echo =COPY DONE!=
-	@clang-format -i *.c *.h
-	@clang-format -i tests/*.c tests/*.h
+	@clang-format -style=Google -i *.c *.h
+	@clang-format -style=Google -i tests/*.c tests/*.h
 	@echo =CHECK COMPLETED=
 	@rm -rf .clang-format
 	@echo =REMOVE DONE!=

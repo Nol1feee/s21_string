@@ -1,7 +1,7 @@
 #include "s21_string.h"
 
 // фун-ия для strtok
-  int enum_delim(char str, const char *delima) {
+int enum_delim(char str, const char *delima) {
   int find = 0;
   while (*delima != '\0' && find == 0) {
     if (str == *delima) {
@@ -24,8 +24,7 @@ char *s21_strtok(char *restrict str, const char *restrict delim) {
     str++;
   }
 
-  if (*str != '\0')
-    res = str;
+  if (*str != '\0') res = str;
   while (!enum_delim(*str, delim) && *str != '\0') {
     str++;
   }
