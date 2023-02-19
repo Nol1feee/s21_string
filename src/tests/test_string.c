@@ -16,7 +16,9 @@ int main(void) {
                               insert_s21(),   to_lower_s21(),
                               to_upper_s21(), trim_s21(),
 
-                              sprintf_s21(),  NULL};
+                              sprintf_s21(), sscanf_s21(), 
+                              
+                              NULL};
   for (int i = 0; s21_string_test[i] != NULL; i++) {
     SRunner *runner = srunner_create(s21_string_test[i]);
 

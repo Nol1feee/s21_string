@@ -8,6 +8,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h> //sscanf
+#include <stdbool.h> //sscanf
+#include <string.h> //Егор..? удалиииии
 
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done
@@ -39,5 +42,6 @@ void *s21_to_lower(const char *str);
 void *s21_to_upper(const char *str);
 
 int s21_sprintf(char *buf, const char *format, ...);
+int s21_sscanf(const char *str, const char *format, ...);
 
 #endif  // SRC_S21_STRING_H_
