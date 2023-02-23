@@ -15,6 +15,7 @@ typedef struct s21 {
   int floating;  // точность
   int h_flag;    // шорт инт
   int l_flag;    // лонг инт
+  int L_flag;    // long double
   //  char* pointer;
   // int fillnull;  // Влад, посмотри
 } s21;

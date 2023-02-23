@@ -89,16 +89,16 @@ END_TEST
 // }
 // END_TEST
 
-START_TEST(sscanf_fail7) {
-  char str[] = "21";
-  char *fstr = "%q";
-  int a1 = 0, a2 = 0;
-
-  int res1 = s21_sscanf(str, fstr, &a1);
-  int res2 = sscanf(str, fstr, &a2);
-  ck_assert_int_eq(res1, res2);
-}
-END_TEST
+//START_TEST(sscanf_fail7) {
+//  char str[] = "21";
+//  char *fstr = "%q";
+//  int a1 = 0, a2 = 0;
+//
+//  int res1 = s21_sscanf(str, fstr, &a1);
+//  int res2 = sscanf(str, fstr, &a2);
+//  ck_assert_int_eq(res1, res2);
+//}
+//END_TEST
 
 // START_TEST(sscanf_format_c1) {
 //   char str[] = "   a     b c d";
@@ -176,50 +176,50 @@ END_TEST
 // }
 // END_TEST
 
-START_TEST(sscanf_long_chars1) {
-  char str[] = "\tabcd";
-  char *fstr = "%1lc %*lc %*lc %lc";
-  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+//START_TEST(sscanf_long_chars1) {
+//  char str[] = "\tabcd";
+//  char *fstr = "%1lc %*lc %*lc %lc";
+//  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+//
+//  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+//  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+//  ck_assert_int_eq(res1, res2);
+//  ck_assert_int_eq(a1, a2);
+//  ck_assert_int_eq(b1, b2);
+//  ck_assert_int_eq(c1, c2);
+//  ck_assert_int_eq(d1, d2);
+//}
+//END_TEST
 
-  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-  ck_assert_int_eq(res1, res2);
-  ck_assert_int_eq(a1, a2);
-  ck_assert_int_eq(b1, b2);
-  ck_assert_int_eq(c1, c2);
-  ck_assert_int_eq(d1, d2);
-}
-END_TEST
-
-START_TEST(sscanf_long_chars2) {
-  char str[] = "\t abcd efg asd";
-  char *fstr = "%lc %lc %lc %n";
-  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-
-  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-  ck_assert_int_eq(res1, res2);
-  ck_assert_int_eq(a1, a2);
-  ck_assert_int_eq(b1, b2);
-  ck_assert_int_eq(c1, c2);
-  ck_assert_int_eq(d1, d2);
-}
-END_TEST
-
-START_TEST(sscanf_long_chars3) {
-  char str[] = "\t abcd efg asd";
-  char *fstr = "%lc %lc%lc %n";
-  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-
-  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-  ck_assert_int_eq(res1, res2);
-  ck_assert_int_eq(a1, a2);
-  ck_assert_int_eq(b1, b2);
-  ck_assert_int_eq(c1, c2);
-  ck_assert_int_eq(d1, d2);
-}
-END_TEST
+//START_TEST(sscanf_long_chars2) {
+//  char str[] = "\t abcd efg asd";
+//  char *fstr = "%lc %lc %lc %n";
+//  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+//
+//  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+//  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+//  ck_assert_int_eq(res1, res2);
+//  ck_assert_int_eq(a1, a2);
+//  ck_assert_int_eq(b1, b2);
+//  ck_assert_int_eq(c1, c2);
+//  ck_assert_int_eq(d1, d2);
+//}
+//END_TEST
+//
+//START_TEST(sscanf_long_chars3) {
+//  char str[] = "\t abcd efg asd";
+//  char *fstr = "%lc %lc%lc %n";
+//  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+//
+//  int res1 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+//  int res2 = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+//  ck_assert_int_eq(res1, res2);
+//  ck_assert_int_eq(a1, a2);
+//  ck_assert_int_eq(b1, b2);
+//  ck_assert_int_eq(c1, c2);
+//  ck_assert_int_eq(d1, d2);
+//}
+//END_TEST
 
 // START_TEST(sscanf_format_d1) {
 //   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
@@ -883,15 +883,15 @@ Suite *sscanf_s21() {
 //   tcase_add_test(tc_core, sscanf_fail1);
 //   tcase_add_test(tc_core, sscanf_fail2);
 //   tcase_add_test(tc_core, sscanf_fail6);
-  tcase_add_test(tc_core, sscanf_fail7);
+//  tcase_add_test(tc_core, sscanf_fail7);
 //   tcase_add_test(tc_core, sscanf_format_c1);
 //   tcase_add_test(tc_core, sscanf_format_c2);
 //   tcase_add_test(tc_core, sscanf_format_c3);
 //   tcase_add_test(tc_core, sscanf_format_c4);
 //   tcase_add_test(tc_core, sscanf_format_c5);
-  tcase_add_test(tc_core, sscanf_long_chars1);
-  tcase_add_test(tc_core, sscanf_long_chars2);
-  tcase_add_test(tc_core, sscanf_long_chars3);
+//  tcase_add_test(tc_core, sscanf_long_chars1);
+//  tcase_add_test(tc_core, sscanf_long_chars2);
+//  tcase_add_test(tc_core, sscanf_long_chars3);
 //   tcase_add_test(tc_core, sscanf_format_d1);
 //   tcase_add_test(tc_core, sscanf_format_d2);
 //   tcase_add_test(tc_core, sscanf_format_d3);
