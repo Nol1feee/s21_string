@@ -1,6 +1,8 @@
 LIB = s21_string.a
 TEST_LIB = $(addprefix test_, $(LIB))
 
+WNO = -Wno-stringop-overflow -Wno-stringop-truncation
+
 #Компилятор
 CC = gcc
 GCOV = gcov
@@ -55,7 +57,7 @@ test: $(TEST_OBJECTS) $(TEST_LIB)
 #Компилируем все тесты, включая test который все соединяет воедино
 $(TEST_OBJECTS) : $(BUILD_TEST_DIR)/%.o : $(TEST_DIR)/%.c $(TEST_DIR)/test_string.h
 	@mkdir -p $(BUILD_TEST_DIR)
-	$(CC) $(FLAGS) $(IN_FLAGS) -c $< -o $@
+	$(CC) $(FLAGS) $(IN_FLAGS) -c $< -o $@ $(WNO)
 
 ###############################################
 # ФОРМИРОВАНИЕ ТЕСТОВОЙ ВЕРСИИ БИБЛИОТЕКИ
