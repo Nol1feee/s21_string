@@ -14,7 +14,7 @@ ifeq ($(shell uname -p), arm)
 endif
 
 #Стандартные флаги
-FLAGS = -Wall -Werror -Wextra -std=c11
+FLAGS = -Wall -Werror -Wextra -std=c11 -g
 #Флаги для меток для gcov
 GFLAGS = -fprofile-arcs -ftest-coverage
 #Подключение либ нужных
@@ -148,3 +148,10 @@ clean:
 rebuild : 
 	$(MAKE) clean
 	$(MAKE) all
+
+SRC=s21_sscanf.c sscanf_driver.c
+EXE=s21_sscanf
+
+sscanf : 
+	$(CC) $(FLAGS) $(SRC) -o $(EXE) -lm
+
