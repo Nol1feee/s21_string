@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+#include "s21_string.h"
+/*sscanf implementation*/
+
+=======
 /*sscanf implementation*/
 
 #include <stdio.h> /* testing printfs */
@@ -6,6 +11,7 @@
 #include <stdbool.h> /* _Bool */
 #include <math.h> /* pow*/
 
+>>>>>>> test
 /* for specifiers */
 enum {
   spec_c = 1 << 0, 
@@ -360,6 +366,11 @@ static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch
     printf("res: %lx\n", res); 
     printf("res as p: %p\n", (void**)res); 
     *dst_pointer = (void*)res;
+<<<<<<< HEAD
+    printf("!!!!!!!!test_pointer: %lu\n", (unsigned long)(*dst_pointer));
+    printf("!!!!!!!!test_pointer: %lx\n", (unsigned long)(*dst_pointer));
+=======
+>>>>>>> test
   }
 }
 

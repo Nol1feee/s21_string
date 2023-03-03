@@ -5,6 +5,19 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
+<<<<<<< HEAD
+  //char dst[20] = {'0'};
+  //char test_dst[20] = {'0'};
+  char *src = "0XABC";
+  int b = 5;
+  int * a = &b;
+  puts("===sscanf===");
+  sscanf(src, "%p", &a); 
+  printf("dst: %p\n", &a);
+  puts("===s21_sscanf===");
+  s21_sscanf(src, "%p", &a); 
+  printf("test_dst: %p\n", &a);
+=======
   char dst[20] = {'0'};
   char test_dst[20] = {'0'};
   char *src = "test";
@@ -14,6 +27,7 @@ int main(void) {
   puts("===s21_sscanf===");
   s21_sscanf(src, "%s", test_dst); 
   printf("test_dst: %s\n", test_dst);
+>>>>>>> test
   /*puts("===wchar_t tests===");
   char *wtest = "षा1";
   wchar_t pw[2];
