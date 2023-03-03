@@ -1,73 +1,37 @@
 
 #include "s21_sprintf.h"
 
-int s21_sprintf(char* buf, const char* format, ...);
-void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d);
-void flag_x(s21* sh21, char* temp, char* buf, char* result, unsigned int d, int shift);
-void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d);
-void flag_p(s21* sh21, char* temp, char* buf, char* result, long int d);
-void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f);
-void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol);
-void flag_s(s21* sh21, char* string, char* buf, char* result);
-void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u);
-char* revers(char* str, int i);
-char* s21_int_to_string(long int number, long int floating);
-char* s21_hexadecimal_to_string(long int number, long int floating, int shift, int need_prefix);
-char* s21_octal_to_string(long int number, long int floating, int need_prefix);
-char* s21_add_sign(char* dest, char* src, int signed_conversion,
-                   int space_signed_conversion, long int number);
-char* s21_add_zero(char* dest, char* src, int floating);
-int s21_pow(int x, int y);
-int s21_round(double y);
-char* s21_float_to_string(long double number, int floating, int need_prefix);
-char* s21_uint_to_string(unsigned long long number, long int floating);
-void s21_reset_struct(s21* sh21);
-void fill_result(char* buf, char* result, s21* sh21);
-void numbers(const char* line, s21* sh21);
-void insert_and_free(s21* sh21, char* temp, char* buf, char* result);
-char* s21_add_spaces(char* line, s21* sh21);
-
-int main() {
-  char buf[50];
-  // char z[] = "rec";
-  int a = 5;
-  sprintf(buf, "%#.0c , %#X , %d", 'a', 110, -100);
-  printf("%s \n", buf);
-  s21_sprintf(buf, "%#.0c , %#X , %d", 'a', 110, -100);
-  printf("%s ", buf);
-  return 0;
-}
 int s21_sprintf(char* buf, const char* format, ...) {
-  // NULL? b
-  *buf = 0;
-  va_list param;
-  va_start(param, format);
-  char* temp = NULL;
-  char* result = NULL;
-  long int d;
-  long double f;
-  wchar_t symbol;
-  char* string;
-  uint64_t u;
-  s21 sh21;
-  s21_reset_struct(&sh21);
-  int count_char;
+    // NULL? b
+    *buf = 0;
+    va_list param;
+    va_start(param, format);
+    char* temp = NULL;
+    char* result = NULL;
+    long int d;
+    long double f;
+    wchar_t symbol;
+    char* string;
+    uint64_t u;
+    s21 sh21;
+    s21_reset_struct(&sh21);
+    int count_char = 0;
 
-  for (const char* line = format; *line; line++) {
-    //    if (*line == '\0') break;
-    if (sh21.format == 0 && *line != '%') {
-      count_char += 1;  // для флага n
-      strncat(buf, line, 1);
+    for (const char* line = format; *line; line++) {
+        //    if (*line == '\0') break;
+        if (sh21.format == 0 && *line != '%') {
+            count_char += 1;  // для флага n
+            s21_strncat(buf, line, 1);
 
-    } else if (sh21.format == 0 && *line == '%') {
-      sh21.format = 1;
+        } else if (sh21.format == 0 && *line == '%') {
+            sh21.format = 1;
 
     } else if (sh21.format) {
       if (*line == '%') {
-        // strcat?
+        // s21_strcat?
         result = calloc(2, sizeof(char));
         result[0] = '%';
-        strcat(buf, result);
+        s21_strcat(buf, result);
         free(result);
         s21_reset_struct(&sh21);
         count_char += 1;
@@ -85,6 +49,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
         sh21.l_flag = 1;
       } else if (*line == '#') {
         sh21.need_prefix = 1;
+      } else if (*line == 'L') {
+        sh21.L_flag = 1;
       } else if (((*line) >= '0') && ((*line) <= '9')) {
         numbers(line, &sh21);
         // пропускает цифры, которые были обработаны в numbers
@@ -109,10 +75,17 @@ int s21_sprintf(char* buf, const char* format, ...) {
       } else if (*line == 'O') {
         d = va_arg(param, uint64_t);
         flag_o(&sh21, temp, buf, result, d);
-      } else if (*line == 'f') {
-        f = va_arg(param, double);
-        flag_f(&sh21, temp, buf, result, f);
       } else if (*line == 'c') {
+        d = va_arg(param, int);
+        flag_i_d(&sh21, temp, buf, result, d);
+      } else if (*line == 'f') {
+        if(sh21.L_flag) {
+          f = va_arg(param, long double);
+        } else {
+          f = va_arg(param, double);
+        }
+        flag_f(&sh21, temp, buf, result, f);
+      } else if (*line == 'line') {
         symbol = (char)va_arg(param, int);
         flag_c(&sh21, buf, result, symbol);
       } else if (*line == 's') {
@@ -121,7 +94,24 @@ int s21_sprintf(char* buf, const char* format, ...) {
       } else if (*line == 'u') {
         u = va_arg(param, uint64_t);
         flag_u(&sh21, temp, buf, result, u);
-      } else if (*line == 'n') {
+      }
+			else if (*line == 'g' || *line == 'G') {
+       if(sh21.L_flag == 1) {
+         f = va_arg(param, long double);
+       } else {
+         f = va_arg(param, double);
+         flag_g(&sh21, temp, buf, result, f, *line);
+       }
+     }
+        else if (*line == 'e' || *line == 'E') {
+       if(sh21.L_flag == 1) {
+         f = va_arg(param, long double);
+       } else {
+         f = va_arg(param, double);
+       flag_e(&sh21, temp, buf, result, f, *line);
+       }
+     }
+			else if (*line == 'n') {
         int* count = va_arg(param, int*);
         *count = count_char;
         fill_result(buf, result, &sh21);
@@ -387,6 +377,7 @@ void s21_reset_struct(s21* sh21) {
   sh21->h_flag = 0;
   sh21->l_flag = 0;
   sh21->need_prefix = 0;
+  sh21->L_flag = 0;
   //  sh21->pointer = NULL;
   // sh21->fillnull = 0;
 }
