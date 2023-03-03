@@ -15,7 +15,7 @@ typedef struct s21 {
   int floating;  // точность
   int h_flag;    // шорт инт
   int l_flag;    // лонг инт
-  //  char* pointer;
+  int L_flag;
   // int fillnull;  // Влад, посмотри
 } s21;
 
@@ -38,5 +38,11 @@ void fill_result(char* buf, char* result, s21* sh21);
 void numbers(const char* line, s21* sh21);
 void insert_and_free(s21* sh21, char* temp, char* buf, char* result);
 char* s21_add_spaces(char* line, s21* sh21);
+
+char* handler_flag_g(long double num, s21* s21, char line);
+void flag_g(s21 *sh21, char *temp, char *buf, char *result, long double f, char line);
+
+void flag_e(s21 *s21, char* temp, char* buf, char* result, long double f, char line);
+char* handler_flag_e(long double num, int floating, char line);
 
 #endif  // SRC_S21_SPRINTF_H_
