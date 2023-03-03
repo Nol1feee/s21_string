@@ -1,5 +1,9 @@
 Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+<<<<<<< HEAD
 Compiler: /Library/Developer/CommandLineTools/usr/bin/cc 
+=======
+Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc 
+>>>>>>> 9e2a956527c52d98bd19e428f9c94c2adb0d5107
 Build flags: 
 Id flags:  
 

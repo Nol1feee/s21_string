@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 LIB = s21_string.a
 TEST_LIB = $(addprefix test_, $(LIB))
+
+WNO = -Wno-stringop-overflow -Wno-stringop-truncation
 
 #Компилятор
 CC = gcc
@@ -12,7 +15,7 @@ ifeq ($(shell uname -p), arm)
 endif
 
 #Стандартные флаги
-FLAGS = -Wall -Werror -Wextra -std=c11
+FLAGS = -Wall -Werror -Wextra -std=c11 -g
 #Флаги для меток для gcov
 GFLAGS = -fprofile-arcs -ftest-coverage
 #Подключение либ нужных
@@ -55,7 +58,7 @@ test: $(TEST_OBJECTS) $(TEST_LIB)
 #Компилируем все тесты, включая test который все соединяет воедино
 $(TEST_OBJECTS) : $(BUILD_TEST_DIR)/%.o : $(TEST_DIR)/%.c $(TEST_DIR)/test_string.h
 	@mkdir -p $(BUILD_TEST_DIR)
-	$(CC) $(FLAGS) $(IN_FLAGS) -c $< -o $@
+	$(CC) $(FLAGS) $(IN_FLAGS) -c $< -o $@ $(WNO)
 
 ###############################################
 # ФОРМИРОВАНИЕ ТЕСТОВОЙ ВЕРСИИ БИБЛИОТЕКИ
@@ -146,3 +149,24 @@ clean:
 rebuild : 
 	$(MAKE) clean
 	$(MAKE) all
+
+SRC=s21_sscanf.c sscanf_driver.c
+EXE=s21_sscanf
+
+sscanf : 
+	$(CC) $(FLAGS) $(SRC) -o $(EXE) -lm
+
+=======
+CC=gcc
+CFLAGS=-Wall -Wextra -Werror -g -std=c11
+SRC=s21_sscanf.c sscanf_driver.c
+EXE=s21_sscanf
+
+.PHONY: all clean
+
+all: clean
+	$(CC) $(CFLAGS) $(SRC) -o $(EXE) -lm
+
+clean:
+	rm -rf $(EXE)
+>>>>>>> test
