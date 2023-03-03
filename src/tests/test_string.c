@@ -22,7 +22,7 @@ int main(void) {
   for (int i = 0; s21_string_test[i] != NULL; i++) {
     SRunner *runner = srunner_create(s21_string_test[i]);
 
-    srunner_set_fork_status(runner, CK_NOFORK);
+    //srunner_set_fork_status(runner, CK_NOFORK);
     srunner_run_all(runner, CK_NORMAL);
 
     failed += srunner_ntests_failed(runner);
