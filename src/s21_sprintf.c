@@ -85,7 +85,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
           f = va_arg(param, double);
         }
         flag_f(&sh21, temp, buf, result, f);
-      } else if (*line == 'line') {
+      } else if (*line == 'c') {
         symbol = (char)va_arg(param, int);
         flag_c(&sh21, buf, result, symbol);
       } else if (*line == 's') {
@@ -121,6 +121,73 @@ int s21_sprintf(char* buf, const char* format, ...) {
   va_end(param);
   return strlen(buf);
 }
+
+void flag_e(s21 *s21, char* temp, char* buf, char* result, long double f,
+             char line) {
+   temp = handler_flag_e(f, s21->floating, line, s21);
+   result = calloc(s21_strlen(temp) + 1, sizeof(char));
+
+   result = s21_add_sign(result, temp, s21->signed_conversion,
+                         s21->space_signed_conversion, f);
+   insert_and_free(s21, temp, buf, result);
+ }
+
+ char* handler_flag_e(long double num, int floating, char line, s21 *sh21) {
+   int point = (floating == -1) ? 6 : floating;
+   int count_e = 0;
+   //если нам = 0?
+     while ((int)num > 9) {
+       num /= 10;
+       count_e++;
+     }
+   char* str = s21_float_to_string(num, point, sh21->need_prefix);
+   if (count_e < 0 && line == 'e') s21_strcat(str, "e-");
+   if (count_e < 0 && line == 'E') s21_strcat(str, "E-");
+   if (count_e > 0 && line == 'e') s21_strcat(str, "e+");
+   if (count_e > 0 && line == 'E') s21_strcat(str, "E+");
+   if (count_e < 10) s21_strcat(str, "0");
+   char* clean = s21_int_to_string(count_e, floating);
+   s21_strcat(str, clean);
+   free(clean);
+   return str;
+ }
+
+ void flag_g(s21 *sh21, char *temp, char *buf, char *result, long double f, char line) {
+   temp = handler_flag_g(f, sh21, line);
+   result = calloc(s21_strlen(temp) + 1, sizeof(char));
+   result = s21_add_sign(result, temp, sh21->signed_conversion, 
+                         sh21->space_signed_conversion, f);
+   insert_and_free(sh21, temp, buf, result); 
+ }
+
+ char* handler_flag_g(long double num, s21* s21, char line) {
+   int point = (s21->floating != -1) ? s21->floating : 6;
+   int count_e = 0;
+   long double copy = num;
+   //если num 0?
+   while ((int)num > 9) {
+       num /= 10;
+       count_e++;
+     }
+   char* str = s21_float_to_string(num, point - 1, s21->need_prefix);
+     if(count_e > point) {
+       for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
+     if (count_e < 0 && line == 'g') s21_strcat(str, "e-");
+     if (count_e < 0 && line == 'G') s21_strcat(str, "E-");
+     if (count_e > 0 && line == 'g') s21_strcat(str, "e+");
+     if (count_e > 0 && line == 'G') s21_strcat(str, "E+");
+     if (count_e < 10) s21_strcat(str, "0");
+     char* clear = s21_int_to_string(count_e, s21->floating);
+     s21_strcat(str, clear);
+     free(clear);
+   } else {
+     str = s21_float_to_string(
+         copy, point - (1 + count_e), s21->need_prefix);
+       for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
+   }
+   return str;
+ }
+
 void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
   temp = s21_int_to_string(d, sh21->floating);
   result = calloc(strlen(temp) + 1, sizeof(char));
@@ -336,8 +403,8 @@ char* s21_float_to_string(long double number, int floating, int need_prefix) {
       str[offset] = (((int)(number + 0.5) % 10) + '0');
     else
       str[offset] = (((int)number % 10) + '0');
-      if (need_prefix) {
-        str[offset + 1] = '.';
+        if (need_prefix) {
+          str[offset + 1] = '.';
       }
   } else {
     number -= int_part;
