@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 LIB = s21_string.a
 TEST_LIB = $(addprefix test_, $(LIB))
 
@@ -155,3 +156,17 @@ EXE=s21_sscanf
 sscanf : 
 	$(CC) $(FLAGS) $(SRC) -o $(EXE) -lm
 
+=======
+CC=gcc
+CFLAGS=-Wall -Wextra -Werror -g -std=c11
+SRC=s21_sscanf.c sscanf_driver.c
+EXE=s21_sscanf
+
+.PHONY: all clean
+
+all: clean
+	$(CC) $(CFLAGS) $(SRC) -o $(EXE) -lm
+
+clean:
+	rm -rf $(EXE)
+>>>>>>> test
