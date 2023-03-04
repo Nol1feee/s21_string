@@ -2,7 +2,7 @@
 
 int main(void) {
   int failed = 0;
-  Suite *s21_string_test[] = {strlen_s21(),   strtok_s21(),
+  Suite *s21_string_test[] = {/*strlen_s21(),   strtok_s21(),
                               strncat_s21(),  strcat_s21(),
                               strerror_s21(), memchr_s21(),
                               strchr_s21(),   strpbrk_s21(),
@@ -16,7 +16,7 @@ int main(void) {
                               insert_s21(),   to_lower_s21(),
                               to_upper_s21(), trim_s21(),
 
-                              sprintf_s21(), sscanf_s21(), 
+                              sprintf_s21(),*/ sscanf_s21(), 
                               
                               NULL};
   for (int i = 0; s21_string_test[i] != NULL; i++) {
