@@ -118,8 +118,6 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
         break;
       case 'e':
         specs |= spec_e;
-        break;
-      case 'E':
         specs |= spec_E;
         break;
       case 'f':
@@ -179,8 +177,8 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
 static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length,*/ int count, char *str_buf_start, int *ret) {
     if (!ass_supress && !outsider_ch) {
       char *dst_string = va_arg(*argp, char*); /* take argument address */
-      strncpy(dst_string, str_buf_start, count); /* put string into argument */
-      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+      s21_strncpy(dst_string, str_buf_start, count); /* put string into argument */
+      s21_strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
       (*ret)++;
     }
 }
@@ -463,6 +461,7 @@ static void count_chars(char **str_buf, const char* const *str_start, va_list *a
 /* put signed decimal/octal/hexadecimal integer from source string to another agrument of sscanf */
 static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
   skip_whitespaces(str_buf);
+  if (**str_buf) {
   int sign = sign_check(str_buf); /* get sign or check for double sign */
   int prefix = prefix_check(str_buf, specs);
   long res = 0;
@@ -478,6 +477,9 @@ static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool out
       break;
   }
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
+  } else {
+    *ret = EOF;
+  }
 }
 
 /* scan processing*/
@@ -500,25 +502,28 @@ static void scan_proc(char **str_buf, const char* const *str_start, int specs, v
   if (specs & spec_n) { /* count characters read before n */
     count_chars(str_buf, str_start, argp, ass_supress, outsider_ch, width, specs, ret); 
   }
-  if (specs & spec_i) { /* scan signed integer: dec/oct/hex */
+  if ((specs & spec_i) || (specs & spec_d)) { /* scan signed integer: dec/oct/hex */
     scan_doh(str_buf, argp, ass_supress, outsider_ch, width, length, specs, ret); 
   }
 }
 
 /* main sscanf function */
 int s21_sscanf(const char *str, const char *format, ...) {
-  char *str_buf = (char*)malloc(strlen(str) * sizeof(char));
-  char *format_buf = (char*)malloc(strlen(format) * sizeof(char));
+  char *str_buf = (char*)malloc(s21_strlen(str) * sizeof(char));
+  char *format_buf = (char*)malloc(s21_strlen(format) * sizeof(char));
   const char * const str_start = str_buf; /* save start of string for %n and free() */
   const char * const format_start = format_buf; /* save start of string for free() */
-  strcpy(str_buf, str);
-  strcpy(format_buf, format);
+  s21_strcpy(str_buf, str);
+  s21_strcpy(format_buf, format);
   //printf("str:%s\n", str_buf);
   //printf("format:%s\n", format_buf);
   va_list argp;
   va_start(argp, format);
   _Bool outsider_ch = false; /* for outsider characters in the format string*/
   int ret = 0;
+  if (!(*str_buf) && *format_buf) {
+    ret = EOF;
+  }
   while (*str_buf && *format_buf) {
     get_specifier(&str_buf, &format_buf, &outsider_ch); /* set format_buf to the start of specifier*/
     printf("str:%s\n", str_buf);

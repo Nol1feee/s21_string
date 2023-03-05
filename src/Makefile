@@ -149,7 +149,7 @@ rebuild :
 	$(MAKE) clean
 	$(MAKE) all
 
-SRC=s21_sscanf.c sscanf_driver.c
+SRC=s21_strlen.c s21_strcpy.c s21_strncpy.c s21_sscanf.c sscanf_driver.c
 EXE=s21_sscanf
 
 sscanf : 
