@@ -81,14 +81,17 @@ static _Bool is_digit(char ch) {
 
 /* converts from string to number */
 static long str_to_dec(const char **string, int width, int sign) {
-  long res = **string - SHIFT; /* get the first digit */
-  int count = 1;
-  (*string)++;
-  while (is_digit(**string) && ((count < width) || (!width))) {
-    res = res * DEC + (**string - SHIFT);
+  long res = 0;
+  if (is_digit(**string)) {
+    res = **string - SHIFT; /* get the first digit */
+    int count = 1;
     (*string)++;
-    count++;
-  }
+    while (is_digit(**string) && ((count < width) || (!width))) {
+      res = res * DEC + (**string - SHIFT);
+      (*string)++;
+      count++;
+    }
+  }   
   return res * sign;
 }
 
