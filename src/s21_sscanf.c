@@ -1,4 +1,6 @@
 #include "s21_string.h"
+#define OK 0
+#define ER 1
 /*sscanf implementation*/
 
 /* for specifiers */
@@ -80,8 +82,9 @@ static _Bool is_digit(char ch) {
 }
 
 /* converts from string to number */
-static long str_to_dec(const char **string, int width, int sign) {
+static long str_to_dec(const char **string, int width, int sign, int *err) {
   long res = 0;
+  *err = ER;
   if (is_digit(**string)) {
     res = **string - SHIFT; /* get the first digit */
     int count = 1;
@@ -91,13 +94,14 @@ static long str_to_dec(const char **string, int width, int sign) {
       (*string)++;
       count++;
     }
+    *err = OK;
   }   
   return res * sign;
 }
 
 /* check character if it's a length*/
-static _Bool is_correct_length(const char **format) {
-  _Bool res = false;
+static bool is_correct_length(const char **format) {
+  bool res = false;
   char next_ch = *((*format) + 1);
   if (((**format == 'l') || (**format == 'L')) && (next_ch = 'f')) {
     res = true;
@@ -106,7 +110,7 @@ static _Bool is_correct_length(const char **format) {
 }
 
 /* set the specs in an integer number according to enum */
-static int set_specs(const char **format, _Bool *ass_supress, int *width, int *length) {
+static int set_specs(const char **format, _Bool *ass_supress, int *width, int *length, int *err) {
   int specs = 0;
   while ((**format) && !is_whitespace(**format) && (!specs)) {
     switch (**format) {
@@ -162,7 +166,7 @@ static int set_specs(const char **format, _Bool *ass_supress, int *width, int *l
 
       default:
         if (is_digit(**format) && (**format > '0')) {
-          *width = str_to_dec(format, 0, 1); /* get width */
+          *width = str_to_dec(format, 0, 1, err); /* get width */
           (*format)--;
         } else if (is_correct_length(format)) {
           *length = **format;
@@ -248,10 +252,10 @@ static int sign_check(const char **str) {
 }
 
 /* multiplies  the res by a power of 10 from the exponent */
-static long double get_exp(long double res, const char **str) {
+static long double get_exp(long double res, const char **str, int *err) {
   (*str)++; /* go to the next char, must be a '-' or '+' */
   int sign = sign_check(str);
-  int power10 = str_to_dec(str, 0, 1);
+  int power10 = str_to_dec(str, 0, 1, err);
   (*str)--;
   res = res * pow(DEC, power10 * sign);
   return res;
@@ -272,7 +276,7 @@ static void get_first_fpnum(const char **str, int sign, long double *res, int* p
 }
 
 /* */
-static void str_to_fpnum(const char **str, int width, int sign, int *power10, long double *res) {
+static void str_to_fpnum(const char **str, int width, int sign, int *power10, long double *res, int *err) {
   int count = 1; // number of characters (digits or .) 
   while (((count < width) || !width) && **str && !is_whitespace(**str) && (is_digit(**str) || (**str == '.') || (**str == 'e') || (**str == 'E'))) {
     if (is_digit(**str) && (!(*power10))) {
@@ -282,7 +286,7 @@ static void str_to_fpnum(const char **str, int width, int sign, int *power10, lo
     } else if ((**str == '.') && (!(*power10))) {
       (*power10)++;
     } else if ((**str == 'e') || (**str == 'E')) { 
-      *res = get_exp(*res, str);
+      *res = get_exp(*res, str, err);
     } else {
       //TODO: handle error
       break;
@@ -293,13 +297,13 @@ static void str_to_fpnum(const char **str, int width, int sign, int *power10, lo
 }
 
 /* put floating-point number from source string to another agrument of sscanf */
-static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
+static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
   int sign = sign_check(str); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   get_first_fpnum(str, sign, &res, &power10);
-  str_to_fpnum(str, width, sign, &power10, &res);
+  str_to_fpnum(str, width, sign, &power10, &res, err);
   fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
 }
 
@@ -462,7 +466,7 @@ static void count_chars(const char **str, const char* const *str_start, va_list 
 }
 
 /* put signed decimal/octal/hexadecimal integer from source string to another agrument of sscanf */
-static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret) {
+static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
   if (**str) {
   int sign = sign_check(str); /* get sign or check for double sign */
@@ -475,7 +479,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   long res = 0;
   switch (prefix) {
     case DEC: 
-      res = str_to_dec(str, width, sign);
+      res = str_to_dec(str, width, sign, err);
       break;
     case OCT:
       res = str_to_oct(str, width, sign);
@@ -484,19 +488,21 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
       res = str_to_hex(str, width, sign);
       break;
   }
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
+  if(!(*err)) {
+    inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
+  }
   } else {
     *ret = EOF;
   }
 }
 
 /* scan processing*/
-static void scan_proc(const char **str, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int *ret) {
+static void scan_proc(const char **str, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int *ret, int *err) {
   if (specs & spec_s) { /* scan strings */
     scan_string(str, argp, ass_supress, outsider_ch, width, ret);
   }
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
-    scan_efg(str, argp, ass_supress, outsider_ch, width, length, specs, ret);
+    scan_efg(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err);
   }
   if ((specs & spec_x) || (specs & spec_X)) { /* scan hexadecimal integers */
     scan_hex(str, argp, ass_supress, outsider_ch, width, length, specs, ret); 
@@ -511,7 +517,7 @@ static void scan_proc(const char **str, const char* const *str_start, int specs,
     count_chars(str, str_start, argp, ass_supress, outsider_ch, width, specs, ret); 
   }
   if ((specs & spec_i) || (specs & spec_d)) { /* scan signed integer: dec/oct/hex */
-    scan_doh(str, argp, ass_supress, outsider_ch, width, length, specs, ret); 
+    scan_doh(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err); 
   }
 }
 
@@ -530,9 +536,9 @@ int s21_sscanf(const char *str, const char *format, ...) {
     printf("str:%s\n", str);
     printf("format:%s\n", format);
     bool ass_supress = false; /* supress assignment (*) */
-    int width = 0, length = 0;
-    int specs = set_specs(&format, &ass_supress, &width, &length); /* fill the specs number */
-    scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret);
+    int width = 0, length = 0, err;
+    int specs = set_specs(&format, &ass_supress, &width, &length, &err); /* fill the specs number */
+    scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret, &err);
   }
   va_end(argp);
   return ret;
