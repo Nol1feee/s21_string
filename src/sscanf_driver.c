@@ -15,7 +15,7 @@ int main(void) {
   int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
   int b1 = 0, b2 = 0, b3 = 0, b4 = 0;
   const char *src = "5555621 0666 0x777 0X888";
-  const char *format = "%8i %10i %i %i";
+  const char *format = "%8i %10i %i %d";
   int res = 0, test_res = 0;
   puts("===sscanf===");
   res = sscanf(src, format, &a1, &a2, &a3, &a4); 

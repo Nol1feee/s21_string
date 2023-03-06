@@ -459,11 +459,16 @@ static void count_chars(const char **str, const char* const *str_start, va_list 
 }
 
 /* put signed decimal/octal/hexadecimal integer from source string to another agrument of sscanf */
-static void scan_doh(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
+static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret) {
   skip_whitespaces(str);
   if (**str) {
   int sign = sign_check(str); /* get sign or check for double sign */
-  int prefix = prefix_check(str, specs);
+  int prefix = 0;
+  if ((specs & spec_d) == spec_d) {
+    prefix = DEC;
+  } else {
+    prefix = prefix_check(str, specs);
+  }
   long res = 0;
   switch (prefix) {
     case DEC: 
@@ -512,7 +517,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
   const char * const str_start = str; /* save start of string for %n and free() */
   va_list argp;
   va_start(argp, format);
-  _Bool outsider_ch = false; /* for outsider characters in the format string*/
+  bool outsider_ch = false; /* for outsider characters in the format string*/
   int ret = 0;
   if (!(*str) && *format) {
     ret = EOF;
@@ -521,7 +526,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
     get_specifier(&str, &format, &outsider_ch); /* set format to the start of specifier*/
     printf("str:%s\n", str);
     printf("format:%s\n", format);
-    _Bool ass_supress = false; /* supress assignment (*) */
+    bool ass_supress = false; /* supress assignment (*) */
     int width = 0, length = 0;
     int specs = set_specs(&format, &ass_supress, &width, &length); /* fill the specs number */
     scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret);
