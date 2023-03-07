@@ -81,13 +81,40 @@ static _Bool is_digit(char ch) {
   return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
+/* checks if the character if a sign or not */
+static _Bool is_sign(char ch) {
+  return ((ch == '-') || (ch == '+')) ? true : false;
+}
+
+/* gets sign and checks that there is no double sign*/
+static int sign_check(const char **str, int *count) {
+  int sign = 1;
+  char next_ch = *((*str) + 1);
+  if ((is_sign(**str)) && (is_sign(next_ch))) {
+    sign = 0;
+    skip_all(str);
+  } else if (**str == '-') {
+    sign = -1;
+    (*str)++;
+    (*count)++;
+  } else if (**str == '+') {
+    (*str)++;
+    (*count)++;
+  }
+  return sign;
+}
+
+
+
 /* converts from string to number */
-static long str_to_dec(const char **string, int width, int sign, int *err) {
+static long str_to_dec(const char **string, int width, int *err) {
+  int count = 0;
+  int sign = sign_check(string, &count);
   long res = 0;
   *err = ER;
   if (is_digit(**string)) {
     res = **string - SHIFT; /* get the first digit */
-    int count = 1;
+    count++; // if was a sign, then count 1++, else 0++
     (*string)++;
     while (is_digit(**string) && ((count < width) || (!width))) {
       res = res * DEC + (**string - SHIFT);
@@ -103,7 +130,7 @@ static long str_to_dec(const char **string, int width, int sign, int *err) {
 static bool is_correct_length(const char **format) {
   bool res = false;
   char next_ch = *((*format) + 1);
-  if (((**format == 'l') || (**format == 'L')) && (next_ch = 'f')) {
+  if ((((**format == 'l') || (**format == 'L')) && (next_ch = 'f')) || (**format == 'h')) {
     res = true;
   }
   return res;
@@ -166,7 +193,7 @@ static int set_specs(const char **format, _Bool *ass_supress, int *width, int *l
 
       default:
         if (is_digit(**format) && (**format > '0')) {
-          *width = str_to_dec(format, 0, 1, err); /* get width */
+          *width = str_to_dec(format, 0, err); /* get width (str, width, err)*/
           (*format)--;
         } else if (is_correct_length(format)) {
           *length = **format;
@@ -230,34 +257,16 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
   }
 }
 
-/* checks if the character if a sign or not */
-static _Bool is_sign(char ch) {
-  return ((ch == '-') || (ch == '+')) ? true : false;
-}
 
-/* gets sign and checks that there is no double sign*/
-static int sign_check(const char **str) {
-  int sign = 1;
-  char next_ch = *((*str) + 1);
-  if ((is_sign(**str)) && (is_sign(next_ch))) {
-    sign = 0;
-    skip_all(str);
-  } else if (**str == '-') {
-    sign = -1;
-    (*str)++;
-  } else if (**str == '+') {
-    (*str)++;
-  }
-  return sign;
-}
 
 /* multiplies  the res by a power of 10 from the exponent */
 static long double get_exp(long double res, const char **str, int *err) {
   (*str)++; /* go to the next char, must be a '-' or '+' */
-  int sign = sign_check(str);
-  int power10 = str_to_dec(str, 0, 1, err);
+  //int sign, count = 0;
+  //int sign = sign_check(str, &count);
+  int power10 = str_to_dec(str, 0, err); //str, width, sign, count, err
   (*str)--;
-  res = res * pow(DEC, power10 * sign);
+  res = res * pow(DEC, power10);
   return res;
 }
 
@@ -299,7 +308,8 @@ static void str_to_fpnum(const char **str, int width, int sign, int *power10, lo
 /* put floating-point number from source string to another agrument of sscanf */
 static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
-  int sign = sign_check(str); 
+  int count = 0; // TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
   get_first_fpnum(str, sign, &res, &power10);
@@ -402,7 +412,8 @@ static long str_to_hex(const char **str, int width, int sign) {
 /* put hexadecimal integer from source string to another agrument of sscanf */
 static void scan_hex(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
   skip_whitespaces(str);
-  int sign = sign_check(str); /* get sign or check for double sign */
+  int count = 0;// TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
   prefix_check(str, specs); /* skip 0x/0X prefix */
   long res = str_to_hex(str, width, sign); /* convert from string to hex int*/;
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
@@ -431,7 +442,8 @@ static long str_to_oct(const char **str, int width, int sign) {
 /* put octal integer from source string to another agrument of sscanf */
 static void scan_oct(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
   skip_whitespaces(str);
-  int sign = sign_check(str); /* get sign or check for double sign */
+  int count = 0;// TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
   prefix_check(str, specs); /* skip 0 prefix */
   long res = str_to_oct(str, width, sign); /* convert from string to octal int*/
   inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret); /* write down into another arg*/
@@ -469,7 +481,8 @@ static void count_chars(const char **str, const char* const *str_start, va_list 
 static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
   if (**str) {
-  int sign = sign_check(str); /* get sign or check for double sign */
+  int count = 0;//TODO: insert sign_check into str_to_oct/hex 
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
   int prefix = 0;
   if ((specs & spec_d) == spec_d) {
     prefix = DEC;
@@ -479,7 +492,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   long res = 0;
   switch (prefix) {
     case DEC: 
-      res = str_to_dec(str, width, sign, err);
+      res = str_to_dec(str, width, err);
       break;
     case OCT:
       res = str_to_oct(str, width, sign);

@@ -12,10 +12,10 @@ int main(void) {
   //char test_inter[20] = {'0'};
   //char test_dst3[20] = {'0'};
   //int num = 0, test_num = 0;
-  int a1 = 0, a2 = 0, a3 = 555, a4 = 555;
-  int b1 = 0, b2 = 0, b3 = 555, b4 = 555;
-  const char *src = "5555621 0669 0x777 0x888";
-  const char *format = "%8d %10d %d %d%s";
+  int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
+  int b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+  const char *src = "-0xFFFFF -0x0666 0x 0xABCDEF";
+  const char *format = "%hi%*i%2i %i";
   int res = 0, test_res = 0;
   puts("===sscanf===");
   res = sscanf(src, format, &a1, &a2, &a3, &a4, rem); 
