@@ -5,15 +5,15 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
-  char rem[20] = {'0'};
+  char rem[100] = {'0'};
   //char inter[20] = {'0'};
   //char dst3[20] = {'0'};
-  char test_rem[20] = {'0'};
+  char test_rem[100] = {'0'};
   //char test_inter[20] = {'0'};
   //char test_dst3[20] = {'0'};
   //int num = 0, test_num = 0;
-  int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
-  int b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+  int a1 = 0, a2 = 0, a3 = 555, a4 = 555;
+  int b1 = 0, b2 = 0, b3 = 555, b4 = 555;
   const char *src = "5555621 0669 0x777 0x888";
   const char *format = "%8d %10d %d %d%s";
   int res = 0, test_res = 0;

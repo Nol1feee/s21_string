@@ -490,7 +490,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   }
   if(!(*err)) {
     inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
-  }
+  }  
   } else {
     *ret = EOF;
   }
@@ -527,16 +527,16 @@ int s21_sscanf(const char *str, const char *format, ...) {
   va_list argp;
   va_start(argp, format);
   bool outsider_ch = false; /* for outsider characters in the format string*/
-  int ret = 0;
+  int ret = 0, err = OK;
   if (!(*str) && *format) {
     ret = EOF;
   }
-  while (*str && *format) {
+  while (*str && *format &&(!err)) {
     get_specifier(&str, &format, &outsider_ch); /* set format to the start of specifier*/
     printf("str:%s\n", str);
     printf("format:%s\n", format);
     bool ass_supress = false; /* supress assignment (*) */
-    int width = 0, length = 0, err;
+    int width = 0, length = 0;
     int specs = set_specs(&format, &ass_supress, &width, &length, &err); /* fill the specs number */
     scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret, &err);
   }
