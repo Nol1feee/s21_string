@@ -1,12 +1,14 @@
 #include "s21_sprintf.h"
-
+#define BUFF_SIZE 100
 int main() {
-    char my[100] = {0};
-    s21_sprintf(my, "%s", "kekekekk");
-    printf("my = %s\n", my);
+  char str1[BUFF_SIZE];
+  char str2[BUFF_SIZE];
 
-    char orig[100] = {0};
-    sprintf(orig, "%c", 'c');
-		printf("orig = %s\n", orig);
-    return 0;
+  char *format = "%03d";
+  int val = 69;
+  s21_sprintf(str1, format, val);
+  printf("%s\n", str1);
+  sprintf(str2, format, val);
+  printf("%s\n", str2);
+  return 0;
 }

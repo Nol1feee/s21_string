@@ -18,7 +18,8 @@
 //   return ptr;
 // }
 
-// void *s21_to_lower(const char *str) { return s21_case_change(str, 65, 90, 32); }
+// void *s21_to_lower(const char *str) { return s21_case_change(str, 65, 90,
+// 32); }
 
 // // переводит str в верхний регистр
 // void *s21_to_upper(const char *str) {
@@ -79,8 +80,8 @@
 
 // void main() {
 //   char s[] =
-//       "govno zalupa penis xer davlka xui blyadina. GOLOVKA SHLYUXA JOPA CHLEN "
-//       "EBLAN PETUX MUDILA  ";
+//       "govno zalupa penis xer davlka xui blyadina. GOLOVKA SHLYUXA JOPA CHLEN
+//       " "EBLAN PETUX MUDILA  ";
 //   char *s1;
 //   s1 = s21_to_lower(s);
 //   printf("%s\n", s1);

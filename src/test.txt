@@ -1,96 +1,356 @@
-Running suite(s): strlen
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): strtok
-100%: Checks: 8, Failures: 0, Errors: 0
-Running suite(s): strncat
-100%: Checks: 6, Failures: 0, Errors: 0
-Running suite(s): strcat
-100%: Checks: 6, Failures: 0, Errors: 0
-Running suite(s): strerror
-100%: Checks: 5, Failures: 0, Errors: 0
-Running suite(s): memchr
-100%: Checks: 8, Failures: 0, Errors: 0
-Running suite(s): strchr
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): strpbrk
-100%: Checks: 8, Failures: 0, Errors: 0
-Running suite(s): strrchr
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): memcmp
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): strcmp
-85%: Checks: 7, Failures: 1, Errors: 0
-tests/test_strcmp.c:27:F:Core:s21_strcmp_four:0: Assertion 'strcmp(temp_one, temp_two) == s21_strcmp(temp_one, temp_two)' failed: strcmp(temp_one, temp_two) == 0, s21_strcmp(temp_one, temp_two) == -1
-Running suite(s): strncmp
-92%: Checks: 13, Failures: 1, Errors: 0
-tests/test_strncmp.c:38:F:Core:s21_strncmp_five:0: Assertion 'strncmp(temp_one, temp_two, 50) == s21_strncmp(temp_one, temp_two, 50)' failed: strncmp(temp_one, temp_two, 50) == 0, s21_strncmp(temp_one, temp_two, 50) == 32
-Running suite(s): strspn
-100%: Checks: 8, Failures: 0, Errors: 0
-Running suite(s): strspn
-100%: Checks: 1, Failures: 0, Errors: 0
-Running suite(s): strstr
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): memcpy
-100%: Checks: 9, Failures: 0, Errors: 0
-Running suite(s): memmove
-100%: Checks: 10, Failures: 0, Errors: 0
-Running suite(s): memset
-100%: Checks: 8, Failures: 0, Errors: 0
-Running suite(s): strcpy
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): strncpy
-100%: Checks: 7, Failures: 0, Errors: 0
-Running suite(s): insert
-100%: Checks: 6, Failures: 0, Errors: 0
-Running suite(s): to_lower
-100%: Checks: 1, Failures: 0, Errors: 0
-Running suite(s): to_upper
-100%: Checks: 1, Failures: 0, Errors: 0
-Running suite(s): trim
-100%: Checks: 1, Failures: 0, Errors: 0
-Running suite(s): sprintf
-58%: Checks: 106, Failures: 41, Errors: 3
-tests/test_sprintf.c:9:F:Core:test_s21_sprintf_f1:0: Assertion 'strf1 == strf2' failed: strf1 == "+5.147483647   /0.000/+7.770000000", strf2 == "+5.5500000000  /  7.770/+999.900000000"
-tests/test_sprintf.c:66:F:Core:test_s21_sprintf_x:0: Assertion 'str1 == str2' failed: str1 == "eb/4d2                      /     0xd80/0x3039    /   0x3641a/0000000000000000000000000000010b50/0x8707    /a/00000000xf/                 d7c/       0x8/05b9c/000000000000000000000000a", str2 == "eb/4d2                      /     0xd80/0x3039    /   0x3641a/0000000000000000000000000000010b50/0x8707    /000000000000d7c/0x0000005b9c/          00000085ce/    0x8236/     0000f/0000000000000000c2e0e8d9a"
-tests/test_sprintf.c:1245:F:Core:test_s21_sprintf_o:0: Assertion 'str1 == str2' failed: str1 == "0000030071               /14604     /0125002                       /0000175526/           0527/                   001246/0000000352/1165307474630316", str2 == "0000030071               /14604     /0125002                       /0000000012/0175526/                       17/0000000002/527"
-tests/test_sprintf.c:1230:F:Core:test_s21_sprintf_X:0: Assertion 'str1 == str2' failed: str1 == "EB/4D2       /            D80/0X3039         /             0X3641A/000000010B50                  /0X8707      /000000000000D7C/0X000000000005B9C/           00000085CE/      0X8236/  000000ea/  000101CDF8FC", str2 == "EB/4D2       /            D80/0X3039         /             0X3641A/000000010B50                  /0X8707      /A/0000000000000XF/                  D7C/         0X8/00005b9c/  00000000000A"
-tests/test_sprintf.c:1263:F:Core:test_s21_sprintf_p:0: Assertion 'strs1 == strs2' failed: strs1 == "0x1009bd488/         0x16f4733f4/0x123f324b     /   0x69988/0x16f4733f4    /0x3cac7ffefffffff6/0x123f324b/0x1009bd488", strs2 == "0x1009bd488/         0x16f4733f4/0x123f324b     /   0x69988/0x16f4733f4    /0x123f324b/0x1009bd488/   0x69988"
-tests/test_sprintf.c:19:F:Core:test_s21_sprintf_c:0: Assertion 'strc1 == strc2' failed: strc1 == "        97/101       /                      102/82                            /                       81/10/80/76", strc2 == "         a/e         /                        f/R                             /                        Q/         P/ L/                   x"
-tests/test_sprintf.c:37:E:Core:test_s21_sprintf_s:0: (after this point) Received signal 11 (Segmentation fault: 11)
-tests/test_sprintf.c:34:F:Core:test_s21_sprintf_u:0: Assertion 'stru1 == stru2' failed: stru1 == "4321/          34567/2342                /     12346/0000234542     /                  10/234523/0000000010/000000000005        /               2345", stru2 == "4321/          34567/2342                /0000012346/0000234542     /          0000234523/     02345/          0000002432/123325242342        /                115"
-tests/test_sprintf.c:1267:E:Core:test_s21_sprintf_n:0: (after this point) Received signal 11 (Segmentation fault: 11)
-tests/test_sprintf.c:138:F:Core:sprintf_padding_int:0: Assertion 'str1 == str2' failed: str1 == "          69", str2 == "000000000069"
-tests/test_sprintf.c:148:F:Core:sprintf_star_width_int:0: Assertion 's21_sprintf(str1, format, 5, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val)' failed: s21_sprintf(str1, format, 5, val) == 1, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val) == 5
-tests/test_sprintf.c:161:F:Core:sprintf_star_precision_int:0: Assertion 's21_sprintf(str1, format, 5, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val)' failed: s21_sprintf(str1, format, 5, val) == 1, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val) == 5
-tests/test_sprintf.c:174:F:Core:sprintf_many_flags_many_ints:0: Assertion 's21_sprintf(str1, format, 5, val, -10431, 13, 5311, 0, -581813581) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val, -10431, 13, 5311, 0, -581813581)' failed: s21_sprintf(str1, format, 5, val, -10431, 13, 5311, 0, -581813581) == 30, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val, -10431, 13, 5311, 0, -581813581) == 51
-tests/test_sprintf.c:215:F:Core:sprintf_flags_another_long_int:0: Assertion 'str1 == str2' failed: str1 == "4294967301", str2 == "8581385185"
-tests/test_sprintf.c:431:F:Core:sprintf_octal_long:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 11, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 14
-tests/test_sprintf.c:443:F:Core:sprintf_octal_many:0: Assertion 's21_sprintf(str1, format, val, 14, 1441, 14414, 9681) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, (unsigned)14, (unsigned short)1441, (unsigned)14414, (unsigned)9681)' failed: s21_sprintf(str1, format, val, 14, 1441, 14414, 9681) == 35, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, (unsigned)14, (unsigned short)1441, (unsigned)14414, (unsigned)9681) == 38
-tests/test_sprintf.c:531:F:Core:sprintf_hex_many_flags:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 10, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 12
-tests/test_sprintf.c:579:F:Core:sprintf_hex_long:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 10, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 14
-tests/test_sprintf.c:615:F:Core:sprintf_one_char:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 2, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 1
-tests/test_sprintf.c:626:F:Core:sprintf_one_precision:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 5, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 1
-tests/test_sprintf.c:640:F:Core:sprintf_one_flags:0: Assertion 'str1 == str2' failed: str1 == " 99  ", str2 == "c    "
-tests/test_sprintf.c:652:F:Core:sprintf_one_width:0: Assertion 'str1 == str2' failed: str1 == "             99", str2 == "              c"
-tests/test_sprintf.c:662:F:Core:sprintf_one_many:0: Assertion 's21_sprintf(str1, format, val, 'c', 'a', 'b', 'b') == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, 'c', 'a', 'b', 'b')' failed: s21_sprintf(str1, format, val, 'c', 'a', 'b', 'b') == 26, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, 'c', 'a', 'b', 'b') == 22
-tests/test_sprintf.c:677:F:Core:sprintf_one_many_flags:0: Assertion 'str1 == str2' failed: str1 == "099  ", str2 == "c    "
-tests/test_sprintf.c:801:F:Core:sprintf_null_ptr:0: Assertion 's21_sprintf(str1, format, ptr) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, ptr)' failed: s21_sprintf(str1, format, ptr) == 1, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, ptr) == 3
-tests/test_sprintf.c:818:E:Core:sprintf_n_specifier:0: (after this point) Received signal 11 (Segmentation fault: 11)
-tests/test_sprintf.c:879:F:Core:sprintf_float_precision_huge:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 12, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 18
-tests/test_sprintf.c:890:F:Core:sprintf_float_precision_huge_negative:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 13, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 19
-tests/test_sprintf.c:901:F:Core:sprintf_float_huge:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 17, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 18
-tests/test_sprintf.c:928:F:Core:sprintf_float_many:0: Assertion 's21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5)' failed: s21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == 58, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5) == 59
-tests/test_sprintf.c:940:F:Core:sprintf_e_precision:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 23
-tests/test_sprintf.c:951:F:Core:sprintf_e_precision_zero:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 5
-tests/test_sprintf.c:962:F:Core:sprintf_e_precision_empty:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 5
-tests/test_sprintf.c:972:F:Core:sprintf_e_precision_huge:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 21
-tests/test_sprintf.c:983:F:Core:sprintf_e_precision_huge_negative:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 22
-tests/test_sprintf.c:994:F:Core:sprintf_e_huge:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 12
-tests/test_sprintf.c:1032:F:Core:sprintf_e_many:0: Assertion 's21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5)' failed: s21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == 21, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5) == 64
-tests/test_sprintf.c:1018:F:Core:sprintf_e_width:0: Assertion 'str1 == str2' failed: str1 == "     0.00000000", str2 == "   0.000000e+00"
-tests/test_sprintf.c:1007:F:Core:sprintf_e_flags:0: Assertion 'str1 == str2' failed: str1 == "     0.00000000", str2 == "0000.000000E+00"
-tests/test_sprintf.c:1044:F:Core:sprintf_E_int:0: Assertion 's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed: s21_sprintf(str1, format, val) == 0, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val) == 23
-tests/test_sprintf.c:1075:F:Core:sprintf_test_one_char:0: Assertion 'str1 == str2' failed: str1 == "9", str2 == "	"
-tests/test_sprintf.c:1083:F:Core:sprintf_test_many_char:0: Assertion 's21_sprintf(str1, "%c%c%c%c%c", '\t', '\n', '0', 'S', 's') == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), "%c%c%c%c%c", '\t', '\n', '0', 'S', 's')' failed: s21_sprintf(str1, "%c%c%c%c%c", '\t', '\n', '0', 'S', 's') == 10, __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), "%c%c%c%c%c", '\t', '\n', '0', 'S', 's') == 5
-tests/test_sprintf.c:1202:F:Core:sprintf_test_one_char_with_alignment_left:0: Assertion 'str1 == str2' failed: str1 == "       9", str2 == "       	"
-tests/test_sprintf.c:1213:F:Core:sprintf_test_one_char_with_alignment_right:0: Assertion 'str1 == str2' failed: str1 == "9       ", str2 == "	       "
+Running suite(s)
+    : strlen 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : strtok 100 % : Checks : 8,
+Failures : 0, Errors : 0 Running suite(s)
+    : strncat 100 % : Checks : 6,
+Failures : 0, Errors : 0 Running suite(s)
+    : strcat 100 % : Checks : 6,
+Failures : 0, Errors : 0 Running suite(s)
+    : strerror 100 % : Checks : 5,
+Failures : 0, Errors : 0 Running suite(s)
+    : memchr 100 % : Checks : 8,
+Failures : 0, Errors : 0 Running suite(s)
+    : strchr 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : strpbrk 100 % : Checks : 8,
+Failures : 0, Errors : 0 Running suite(s)
+    : strrchr 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : memcmp 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : strcmp 85 % : Checks : 7,
+Failures : 1, Errors : 0 tests / test_strcmp.c : 27 : F : Core
+    : s21_strcmp_four : 0
+    : Assertion
+      'strcmp(temp_one, temp_two) == s21_strcmp(temp_one, temp_two)' failed
+    : strcmp(temp_one, temp_two) ==
+                  0,
+s21_strcmp(temp_one, temp_two) == -1 Running suite(s)
+    : strncmp 92 %
+    : Checks : 13,
+Failures : 1, Errors : 0 tests / test_strncmp.c : 38 : F : Core
+    : s21_strncmp_five : 0
+    : Assertion
+      'strncmp(temp_one, temp_two, 50) == s21_strncmp(temp_one, temp_two, 50)' failed
+    : strncmp(temp_one, temp_two, 50) ==
+                  0,
+s21_strncmp(temp_one, temp_two, 50) == 32 Running suite(s)
+    : strspn 100 % : Checks : 8,
+Failures : 0, Errors : 0 Running suite(s)
+    : strspn 100 % : Checks : 1,
+Failures : 0, Errors : 0 Running suite(s)
+    : strstr 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : memcpy 100 % : Checks : 9,
+Failures : 0, Errors : 0 Running suite(s)
+    : memmove 100 % : Checks : 10,
+Failures : 0, Errors : 0 Running suite(s)
+    : memset 100 % : Checks : 8,
+Failures : 0, Errors : 0 Running suite(s)
+    : strcpy 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : strncpy 100 % : Checks : 7,
+Failures : 0, Errors : 0 Running suite(s)
+    : insert 100 % : Checks : 6,
+Failures : 0, Errors : 0 Running suite(s)
+    : to_lower 100 % : Checks : 1,
+Failures : 0, Errors : 0 Running suite(s)
+    : to_upper 100 % : Checks : 1,
+Failures : 0, Errors : 0 Running suite(s)
+    : trim 100 % : Checks : 1,
+Failures : 0, Errors : 0 Running suite(s)
+    : sprintf 58 % : Checks : 106,
+Failures : 41, Errors : 3 tests / test_sprintf.c : 9 : F : Core
+    : test_s21_sprintf_f1 : 0 : Assertion 'strf1 == strf2' failed
+    : strf1 == "+5.147483647   /0.000/+7.770000000",
+strf2 ==
+    "+5.5500000000  /  7.770/+999.900000000" tests / test_sprintf.c : 66 : F
+    : Core : test_s21_sprintf_x : 0 : Assertion 'str1 == str2' failed : str1
+    ==
+    "eb/4d2                      /     0xd80/0x3039    /   "
+    "0x3641a/0000000000000000000000000000010b50/0x8707    /a/00000000xf/       "
+    "          d7c/       0x8/05b9c/000000000000000000000000a",
+str2 ==
+    "eb/4d2                      /     0xd80/0x3039    /   "
+    "0x3641a/0000000000000000000000000000010b50/0x8707    "
+    "/000000000000d7c/0x0000005b9c/          00000085ce/    0x8236/     "
+    "0000f/0000000000000000c2e0e8d9a" tests
+        / test_sprintf.c : 1245 : F : Core : test_s21_sprintf_o : 0
+    : Assertion 'str1 == str2' failed : str1
+    ==
+    "0000030071               /14604     /0125002                       "
+    "/0000175526/           0527/                   "
+    "001246/0000000352/1165307474630316",
+str2 ==
+    "0000030071               /14604     /0125002                       "
+    "/0000000012/0175526/                       17/0000000002/527" tests
+        / test_sprintf.c : 1230 : F : Core : test_s21_sprintf_X : 0
+    : Assertion 'str1 == str2' failed : str1
+    ==
+    "EB/4D2       /            D80/0X3039         /             "
+    "0X3641A/000000010B50                  /0X8707      "
+    "/000000000000D7C/0X000000000005B9C/           00000085CE/      0X8236/  "
+    "000000ea/  000101CDF8FC",
+str2 ==
+    "EB/4D2       /            D80/0X3039         /             "
+    "0X3641A/000000010B50                  /0X8707      /A/0000000000000XF/    "
+    "              D7C/         0X8/00005b9c/  00000000000A" tests
+        / test_sprintf.c : 1263 : F : Core : test_s21_sprintf_p : 0
+    : Assertion 'strs1 == strs2' failed : strs1
+    ==
+    "0x1009bd488/         0x16f4733f4/0x123f324b     /   0x69988/0x16f4733f4   "
+    " /0x3cac7ffefffffff6/0x123f324b/0x1009bd488",
+strs2 ==
+    "0x1009bd488/         0x16f4733f4/0x123f324b     /   0x69988/0x16f4733f4   "
+    " /0x123f324b/0x1009bd488/   0x69988" tests
+        / test_sprintf.c : 19 : F : Core : test_s21_sprintf_c : 0
+    : Assertion 'strc1 == strc2' failed : strc1
+    ==
+    "        97/101       /                      102/82                        "
+    "    /                       81/10/80/76",
+strc2 ==
+    "         a/e         /                        f/R                         "
+    "    /                        Q/         P/ L/                   x" tests
+        /
+        test_sprintf.c : 37 : E : Core : test_s21_sprintf_s : 0
+    : (after this point)Received signal 11(Segmentation fault : 11)tests
+        /
+        test_sprintf.c : 34 : F : Core : test_s21_sprintf_u : 0
+    : Assertion 'stru1 == stru2' failed : stru1
+    ==
+    "4321/          34567/2342                /     12346/0000234542     /     "
+    "             10/234523/0000000010/000000000005        /               "
+    "2345",
+stru2 ==
+    "4321/          34567/2342                /0000012346/0000234542     /     "
+    "     0000234523/     02345/          0000002432/123325242342        /     "
+    "           115" tests
+        /
+        test_sprintf.c : 1267 : E : Core : test_s21_sprintf_n : 0
+    : (after this point)Received signal 11(Segmentation fault : 11)tests
+        /
+        test_sprintf.c : 138 : F : Core : sprintf_padding_int : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "          69",
+str2 ==
+    "000000000069" tests / test_sprintf.c : 148 : F : Core
+    : sprintf_star_width_int : 0
+    : Assertion
+      's21_sprintf(str1, format, 5, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val)' failed
+    : s21_sprintf(str1, format, 5, val) ==
+    1,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, 5, val) ==
+    5 tests / test_sprintf.c : 161 : F : Core : sprintf_star_precision_int : 0
+    : Assertion
+      's21_sprintf(str1, format, 5, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val)' failed
+    : s21_sprintf(str1, format, 5, val) ==
+    1,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, 5, val) ==
+    5 tests / test_sprintf.c : 174 : F : Core : sprintf_many_flags_many_ints : 0
+    : Assertion
+      's21_sprintf(str1, format, 5, val, -10431, 13, 5311, 0, -581813581) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, 5, val, -10431, 13, 5311, 0, -581813581)' failed
+    : s21_sprintf(str1, format, 5, val, -10431, 13, 5311, 0, -581813581) ==
+    30,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, 5, val, -10431, 13, 5311, 0, -581813581) ==
+    51 tests / test_sprintf.c : 215 : F : Core
+    : sprintf_flags_another_long_int : 0 : Assertion 'str1 == str2' failed
+    : str1
+    == "4294967301",
+str2 ==
+    "8581385185" tests / test_sprintf.c : 431 : F : Core
+    : sprintf_octal_long : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    11,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    14 tests / test_sprintf.c : 443 : F : Core : sprintf_octal_many : 0
+    : Assertion
+      's21_sprintf(str1, format, val, 14, 1441, 14414, 9681) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, (unsigned)14, (unsigned short)1441, (unsigned)14414, (unsigned)9681)' failed
+    : s21_sprintf(str1, format, val, 14, 1441, 14414, 9681) ==
+    35,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val, (unsigned)14, (unsigned short)1441,
+                        (unsigned)14414, (unsigned)9681) ==
+    38 tests / test_sprintf.c : 531 : F : Core : sprintf_hex_many_flags : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    10,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    12 tests / test_sprintf.c : 579 : F : Core : sprintf_hex_long : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    10,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    14 tests / test_sprintf.c : 615 : F : Core : sprintf_one_char : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    2,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    1 tests / test_sprintf.c : 626 : F : Core : sprintf_one_precision : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    5,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    1 tests / test_sprintf.c : 640 : F : Core : sprintf_one_flags : 0
+    : Assertion 'str1 == str2' failed : str1
+    == " 99  ",
+str2 ==
+    "c    " tests / test_sprintf.c : 652 : F : Core : sprintf_one_width : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "             99",
+str2 ==
+    "              c" tests / test_sprintf.c : 662 : F : Core
+    : sprintf_one_many : 0
+    : Assertion 's21_sprintf(str1, format, val, ' c ', ' a ', ' b ', ' b
+      ') == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, ' c
+      ', ' a ', ' b ', ' b ')' failed
+    : s21_sprintf(str1, format, val, 'c', 'a', 'b', 'b') ==
+    26,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val, 'c', 'a', 'b', 'b') ==
+    22 tests / test_sprintf.c : 677 : F : Core : sprintf_one_many_flags : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "099  ",
+str2 ==
+    "c    " tests / test_sprintf.c : 801 : F : Core : sprintf_null_ptr : 0
+    : Assertion
+      's21_sprintf(str1, format, ptr) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, ptr)' failed
+    : s21_sprintf(str1, format, ptr) ==
+    1,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, ptr) ==
+    3 tests /
+        test_sprintf.c : 818 : E : Core : sprintf_n_specifier : 0
+    : (after this point)Received signal 11(Segmentation fault : 11)tests
+        /
+        test_sprintf.c : 879 : F : Core : sprintf_float_precision_huge : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    12,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    18 tests / test_sprintf.c : 890 : F : Core
+    : sprintf_float_precision_huge_negative : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    13,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    19 tests / test_sprintf.c : 901 : F : Core : sprintf_float_huge : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    17,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    18 tests / test_sprintf.c : 928 : F : Core : sprintf_float_many : 0
+    : Assertion
+      's21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5)' failed
+    : s21_sprintf(str1, format, val, val1, val2, val3, val4, val5) ==
+    58,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val, val1, val2, val3, val4, val5) ==
+    59 tests / test_sprintf.c : 940 : F : Core : sprintf_e_precision : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    23 tests / test_sprintf.c : 951 : F : Core : sprintf_e_precision_zero : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    5 tests / test_sprintf.c : 962 : F : Core : sprintf_e_precision_empty : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    5 tests / test_sprintf.c : 972 : F : Core : sprintf_e_precision_huge : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    21 tests / test_sprintf.c : 983 : F : Core
+    : sprintf_e_precision_huge_negative : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    22 tests / test_sprintf.c : 994 : F : Core : sprintf_e_huge : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    12 tests / test_sprintf.c : 1032 : F : Core : sprintf_e_many : 0
+    : Assertion
+      's21_sprintf(str1, format, val, val1, val2, val3, val4, val5) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val, val1, val2, val3, val4, val5)' failed
+    : s21_sprintf(str1, format, val, val1, val2, val3, val4, val5) ==
+    21,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val, val1, val2, val3, val4, val5) ==
+    64 tests / test_sprintf.c : 1018 : F : Core : sprintf_e_width : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "     0.00000000",
+str2 ==
+    "   0.000000e+00" tests / test_sprintf.c : 1007 : F : Core
+    : sprintf_e_flags : 0 : Assertion 'str1 == str2' failed : str1
+    == "     0.00000000",
+str2 ==
+    "0000.000000E+00" tests / test_sprintf.c : 1044 : F : Core
+    : sprintf_E_int : 0
+    : Assertion
+      's21_sprintf(str1, format, val) == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), format, val)' failed
+    : s21_sprintf(str1, format, val) ==
+    0,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        format, val) ==
+    23 tests / test_sprintf.c : 1075 : F : Core : sprintf_test_one_char : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "9",
+str2 ==
+    "	" tests / test_sprintf.c : 1083 : F : Core : sprintf_test_many_char : 0
+    : Assertion 's21_sprintf(str1, "%c%c%c%c%c", '\t ', '\n ', ' 0 ', ' S ', ' s
+      ') == __builtin___sprintf_chk (str2, 0, __builtin_object_size (str2, 2 > 1 ? 1 : 0), "%c%c%c%c%c", '\t
+      ', '\n ', ' 0 ', ' S ', ' s ')' failed
+    : s21_sprintf(str1, "%c%c%c%c%c", '\t', '\n', '0', 'S', 's') ==
+    10,
+__builtin___sprintf_chk(str2, 0, __builtin_object_size(str2, 2 > 1 ? 1 : 0),
+                        "%c%c%c%c%c", '\t', '\n', '0', 'S', 's') ==
+    5 tests / test_sprintf.c : 1202 : F : Core
+    : sprintf_test_one_char_with_alignment_left : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "       9",
+str2 ==
+    "       	" tests / test_sprintf.c : 1213 : F : Core
+    : sprintf_test_one_char_with_alignment_right : 0
+    : Assertion 'str1 == str2' failed : str1
+    == "9       ",
+str2 == "	       "
