@@ -59,7 +59,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);
         else if (sh21.l_flag)
-          d = va_arg(param, long long int);
+          d = va_arg(param, long int);
         else
           d = va_arg(param, int);
         flag_i_d(&sh21, temp, buf, result, d);
@@ -135,16 +135,23 @@ void flag_e(s21 *s21, char* temp, char* buf, char* result, long double f,
  char* handler_flag_e(long double num, int floating, char line, s21 *sh21) {
    int point = (floating == -1) ? 6 : floating;
    int count_e = 0;
-   //если нам = 0?
-     while ((int)num > 9) {
-       num /= 10;
-       count_e++;
-     }
+	 if((int)num == 0) {
+			 while((int)num == 0) {
+					 num *= 10;
+					 count_e--;
+			 }
+	 } else {
+				 while ((int)num > 9) {
+					 num /= 10;
+					 count_e++;
+				}
+	 }
    char* str = s21_float_to_string(num, point, sh21->need_prefix);
    if (count_e < 0 && line == 'e') s21_strcat(str, "e-");
    if (count_e < 0 && line == 'E') s21_strcat(str, "E-");
    if (count_e > 0 && line == 'e') s21_strcat(str, "e+");
    if (count_e > 0 && line == 'E') s21_strcat(str, "E+");
+	 if (count_e < 0) count_e *= -1;
    if (count_e < 10) s21_strcat(str, "0");
    char* clean = s21_int_to_string(count_e, floating);
    s21_strcat(str, clean);
@@ -164,13 +171,22 @@ void flag_e(s21 *s21, char* temp, char* buf, char* result, long double f,
    int point = (s21->floating != -1) ? s21->floating : 6;
    int count_e = 0;
    long double copy = num;
-   //если num 0?
-   while ((int)num > 9) {
-       num /= 10;
-       count_e++;
-     }
+	 if ((int)num == 0) {
+			while((int)num == 0) {
+					num *= 10;
+					count_e--;
+			}
+	 } else {
+			 while ((int)num > 9) {
+					 num /= 10;
+					 count_e++;
+			 }
+	 }
    char* str = s21_float_to_string(num, point - 1, s21->need_prefix);
-     if(count_e > point) {
+     if((count_e > 0) ? (count_e) : (count_e * -1) > point) {
+		 if (!s21->need_prefix) {
+				 for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
+		 }
        for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
      if (count_e < 0 && line == 'g') s21_strcat(str, "e-");
      if (count_e < 0 && line == 'G') s21_strcat(str, "E-");
@@ -182,7 +198,7 @@ void flag_e(s21 *s21, char* temp, char* buf, char* result, long double f,
      free(clear);
    } else {
      str = s21_float_to_string(
-         copy, point - (1 + count_e), s21->need_prefix);
+         copy, point - (count_e < 0 ? (1 + count_e * -1) : 1 + count_e), s21->need_prefix);
        for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
    }
    return str;
@@ -260,8 +276,8 @@ void flag_s(s21* sh21, char* string, char* buf, char* result) {
     s_ptr = &result[padding_len];
     p_ptr = &result[0];
   }
-  memset(p_ptr, ' ', padding_len);
-  memcpy(s_ptr, string, input_len);
+  s21_memset(p_ptr, ' ', padding_len);
+  s21_memcpy(s_ptr, string, input_len);
   fill_result(buf, result, sh21);
 }
 
