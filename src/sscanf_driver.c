@@ -5,39 +5,29 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
-<<<<<<< HEAD
-  //char dst[20] = {'0'};
-  //char test_dst[20] = {'0'};
-  char *src = "0XABC";
-  int b = 5;
-  int * a = &b;
+  char rem[100] = {'0'};
+  //char inter[20] = {'0'};
+  //char dst3[20] = {'0'};
+  char test_rem[100] = {'0'};
+  //char test_inter[20] = {'0'};
+  //char test_dst3[20] = {'0'};
+  //int num = 0, test_num = 0;
+  int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
+  int b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+  const char *src = "-0xFFFFF -0x0666 0x 0xABCDEF";
+  const char *format = "%hi%*i%2i %i";
+  int res = 0, test_res = 0;
   puts("===sscanf===");
-  sscanf(src, "%p", &a); 
-  printf("dst: %p\n", &a);
+  res = sscanf(src, format, &a1, &a2, &a3, &a4, rem); 
+  printf("a1 - a2: %d %d %d %d\n", a1, a2, a3, a4);
+  printf("rem: %s\n", rem);
+  //printf("inter: %s\n", inter);
+  printf("res: %d\n", res);
   puts("===s21_sscanf===");
-  s21_sscanf(src, "%p", &a); 
-  printf("test_dst: %p\n", &a);
-=======
-  char dst[20] = {'0'};
-  char test_dst[20] = {'0'};
-  char *src = "test";
-  puts("===sscanf===");
-  sscanf(src, "%s", dst); 
-  printf("dst: %s\n", dst);
-  puts("===s21_sscanf===");
-  s21_sscanf(src, "%s", test_dst); 
-  printf("test_dst: %s\n", test_dst);
->>>>>>> test
-  /*puts("===wchar_t tests===");
-  char *wtest = "षा1";
-  wchar_t pw[2];
-  int byte = mbtowc(pw, wtest, 4);
-  printf("byte: %d\n", byte);
-  wchar_t wd_test[8];
-  mbstowcs(wd_test, wtest, strlen(wtest));
-  printf("wd_test: %ls\n", wd_test);
-  printf("pw: %ls\n", pw);
-  printf("strlen: %lu\n", strlen(wtest));
-  printf("size of pw: %lu\n", sizeof(pw));*/
+  test_res = s21_sscanf(src, format, &b1, &b2, &b3, &b4, test_rem); 
+  printf("b1 - b2: %d %d %d %d\n", b1, b2, b3, b4);
+  printf("test_rem: %s\n", test_rem);
+  //printf("test_inter: %s\n", test_inter);
+  printf("test_res: %d\n", test_res);
   return 0;
 }

@@ -1,17 +1,8 @@
-<<<<<<< HEAD
 #include "s21_string.h"
+#define OK 0
+#define ER 1
 /*sscanf implementation*/
 
-=======
-/*sscanf implementation*/
-
-#include <stdio.h> /* testing printfs */
-#include <stdlib.h> /* malloc */
-#include <string.h> // TODO: change to s21_string.h
-#include <stdbool.h> /* _Bool */
-#include <math.h> /* pow*/
-
->>>>>>> test
 /* for specifiers */
 enum {
   spec_c = 1 << 0, 
@@ -52,7 +43,7 @@ static _Bool is_whitespace(char ch) {
 }
 
 /* skip white-space chatacters */
-static int skip_whitespaces(char **string) {
+static int skip_whitespaces(const char **string) {
   int count = 0;
   while (is_whitespace(**string)) {
     (*string)++;
@@ -62,27 +53,27 @@ static int skip_whitespaces(char **string) {
 }
 
 /* skip the whole string */
-static void skip_all(char **string) {
+static void skip_all(const char **string) {
   while (**string) {
     (*string)++;
   }
 }
 
-/* sets the format_buf pointer to the character after the % */
-static void get_specifier(char **str_buf, char **format_buf, _Bool *outsider_ch) {
-  int white_count = skip_whitespaces(format_buf);
+/* sets the format pointer to the character after the % */
+static void get_specifier(const char **str, const char **format, _Bool *outsider_ch) {
+  int white_count = skip_whitespaces(format);
   if (white_count) {
-    skip_whitespaces(str_buf);
+    skip_whitespaces(str);
   }
-  while (**format_buf != '%') { /* skip all regular characters*/
-    if (**format_buf != **str_buf) {
+  while (**format != '%') { /* skip all regular characters*/
+    if (**format != **str) {
       *outsider_ch = true;
     }
-    (*format_buf)++;
-    (*str_buf)++;  
+    (*format)++;
+    (*str)++;  
   }
   /* stoped at % */
-  ++(*format_buf);
+  ++(*format);
 }
 
 /* check character if it's a digit*/
@@ -90,34 +81,66 @@ static _Bool is_digit(char ch) {
   return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
-/* converts from string to number */
-static long str_to_dec(char **string, int width, int sign) {
-  long res = **string - SHIFT; /* get the first digit */
-  int count = 1;
-  (*string)++;
-  while (is_digit(**string) && ((count < width) || (!width))) {
-    res = res * DEC + (**string - SHIFT);
-    (*string)++;
-    count++;
+/* checks if the character if a sign or not */
+static _Bool is_sign(char ch) {
+  return ((ch == '-') || (ch == '+')) ? true : false;
+}
+
+/* gets sign and checks that there is no double sign*/
+static int sign_check(const char **str, int *count) {
+  int sign = 1;
+  char next_ch = *((*str) + 1);
+  if ((is_sign(**str)) && (is_sign(next_ch))) {
+    sign = 0;
+    skip_all(str);
+  } else if (**str == '-') {
+    sign = -1;
+    (*str)++;
+    (*count)++;
+  } else if (**str == '+') {
+    (*str)++;
+    (*count)++;
   }
+  return sign;
+}
+
+
+
+/* converts from string to number */
+static long str_to_dec(const char **string, int width, int *err) {
+  int count = 0;
+  int sign = sign_check(string, &count);
+  long res = 0;
+  *err = ER;
+  if (is_digit(**string)) {
+    res = **string - SHIFT; /* get the first digit */
+    count++; // if was a sign, then count 1++, else 0++
+    (*string)++;
+    while (is_digit(**string) && ((count < width) || (!width))) {
+      res = res * DEC + (**string - SHIFT);
+      (*string)++;
+      count++;
+    }
+    *err = OK;
+  }   
   return res * sign;
 }
 
 /* check character if it's a length*/
-static _Bool is_correct_length(char **format_buf) {
-  _Bool res = false;
-  char next_ch = *((*format_buf) + 1);
-  if (((**format_buf == 'l') || (**format_buf == 'L')) && (next_ch = 'f')) {
+static bool is_correct_length(const char **format) {
+  bool res = false;
+  char next_ch = *((*format) + 1);
+  if ((((**format == 'l') || (**format == 'L')) && (next_ch = 'f')) || (**format == 'h')) {
     res = true;
   }
   return res;
 }
 
 /* set the specs in an integer number according to enum */
-static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *length) {
+static int set_specs(const char **format, _Bool *ass_supress, int *width, int *length, int *err) {
   int specs = 0;
-  while ((**format_buf) && !is_whitespace(**format_buf) && (!specs)) {
-    switch (**format_buf) {
+  while ((**format) && !is_whitespace(**format) && (!specs)) {
+    switch (**format) {
       case 'c': 
         specs |= spec_c;
         break;
@@ -129,8 +152,6 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
         break;
       case 'e':
         specs |= spec_e;
-        break;
-      case 'E':
         specs |= spec_E;
         break;
       case 'f':
@@ -171,46 +192,47 @@ static int set_specs(char **format_buf, _Bool *ass_supress, int *width, int *len
         break;
 
       default:
-        if (is_digit(**format_buf) && (**format_buf > '0')) {
-          *width = str_to_dec(format_buf, 0, 1); /* get width */
-          (*format_buf)--;
-        } else if (is_correct_length(format_buf)) {
-          *length = **format_buf;
+        if (is_digit(**format) && (**format > '0')) {
+          *width = str_to_dec(format, 0, err); /* get width (str, width, err)*/
+          (*format)--;
+        } else if (is_correct_length(format)) {
+          *length = **format;
         } else {
           fprintf(stderr, "Incorrect specifier\n");
           // TODO:handle an error
         }
     }
-    (*format_buf)++;
+    (*format)++;
   }
   return specs;
 }
 
 /* puts string into another vararg*/
-static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length,*/ int count, char *str_buf_start) {
+static void str_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length,*/ int count, const char *str_start, int *ret) {
     if (!ass_supress && !outsider_ch) {
       char *dst_string = va_arg(*argp, char*); /* take argument address */
-      strncpy(dst_string, str_buf_start, count); /* put string into argument */
-      strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+      s21_strncpy(dst_string, str_start, count); /* put string into argument */
+      s21_strncpy(dst_string + count, "\0", 1); /* cut extra garbage */
+      (*ret)++;
     }
 }
 
 /* */
-static int str_to_str(char **str_buf, int width/*, int length*/) {
+static int str_to_str(const char **str, int width/*, int length*/) {
   int count = 0; /* number of characters */
-    while (**str_buf && !is_whitespace(**str_buf) && ((count < width) || !width)) {
-      (*str_buf)++; /* go to end of string */
+    while (**str && !is_whitespace(**str) && ((count < width) || !width)) {
+      (*str)++; /* go to end of string */
       count++;
     }
   return count;
 }
 
 /* put string from source string to another agrument of sscanf */
-static void scan_string(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width/*, int length*/) {
-  skip_whitespaces(str_buf);
-  char *str_buf_start = *str_buf; //save start of string 
-  int count = str_to_str(str_buf, width/*, length*/); // number of characters 
-  str_into_arg(argp, ass_supress, outsider_ch, /*length,*/ count, str_buf_start);
+static void scan_string(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int *ret) {
+  skip_whitespaces(str);
+  const char *str_start = *str; //save start of string 
+  int count = str_to_str(str, width); // number of characters 
+  str_into_arg(argp, ass_supress, outsider_ch,  count, str_start, ret);
 }
 
 /* check specs if it's a e/E/f/g/G */
@@ -219,7 +241,7 @@ static _Bool is_efg(int specs) {
 }
 
 /* puts floating point number into another vararg*/
-static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long double res) {
+static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long double res, int *ret) {
   if (!ass_supress && !outsider_ch) {
     if (is_efg(specs) && (length == 'L')) {
       long double *dst_num = va_arg(*argp, long double*); /* take argument address */
@@ -231,84 +253,68 @@ static void fpnum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, 
       float *dst_num = va_arg(*argp, float*);
       *dst_num = res;
     }
+    (*ret)++;
   }
 }
 
-/* checks if the character if a sign or not */
-static _Bool is_sign(char ch) {
-  return ((ch == '-') || (ch == '+')) ? true : false;
-}
 
-/* gets sign and checks that there is no double sign*/
-static int sign_check(char **str_buf) {
-  int sign = 1;
-  char next_ch = *((*str_buf) + 1);
-  if ((is_sign(**str_buf)) && (is_sign(next_ch))) {
-    sign = 0;
-    skip_all(str_buf);
-  } else if (**str_buf == '-') {
-    sign = -1;
-    (*str_buf)++;
-  } else if (**str_buf == '+') {
-    (*str_buf)++;
-  }
-  return sign;
-}
 
 /* multiplies  the res by a power of 10 from the exponent */
-static long double get_exp(long double res, char **str_buf) {
-  (*str_buf)++; /* go to the next char, must be a '-' or '+' */
-  int sign = sign_check(str_buf);
-  int power10 = str_to_dec(str_buf, 0, 1);
-  (*str_buf)--;
-  res = res * pow(DEC, power10 * sign);
+static long double get_exp(long double res, const char **str, int *err) {
+  (*str)++; /* go to the next char, must be a '-' or '+' */
+  //int sign, count = 0;
+  //int sign = sign_check(str, &count);
+  int power10 = str_to_dec(str, 0, err); //str, width, sign, count, err
+  (*str)--;
+  res = res * pow(DEC, power10);
   return res;
 }
 
 /* */
-static void get_first_fpnum(char **str_buf, int sign, long double *res, int* power10) {
-  char next_ch = *((*str_buf) + 1);
-  if (is_digit(**str_buf)) {
-    *res = (**str_buf - SHIFT) * sign;
-    (*str_buf)++;
-  } else if ((**str_buf == '.') && (is_digit(next_ch))){
+static void get_first_fpnum(const char **str, int sign, long double *res, int* power10) {
+  char next_ch = *((*str) + 1);
+  if (is_digit(**str)) {
+    *res = (**str - SHIFT) * sign;
+    (*str)++;
+  } else if ((**str == '.') && (is_digit(next_ch))){
     (*power10)++;
-    (*str_buf)++;
+    (*str)++;
   } else {
     // TODO:hanlde error
   }
 }
 
 /* */
-static void str_to_fpnum(char **str_buf, int width, int sign, int *power10, long double *res) {
+static void str_to_fpnum(const char **str, int width, int sign, int *power10, long double *res, int *err) {
   int count = 1; // number of characters (digits or .) 
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || (**str_buf == '.') || (**str_buf == 'e') || (**str_buf == 'E'))) {
-    if (is_digit(**str_buf) && (!(*power10))) {
-      *res = (*res) * DEC + (**str_buf - SHIFT) * sign;
-    } else if (is_digit(**str_buf) && (*power10)) {
-      *res = (*res) + ((long double)(**str_buf - SHIFT) / pow(DEC, (*power10)++)) * sign;
-    } else if ((**str_buf == '.') && (!(*power10))) {
+  while (((count < width) || !width) && **str && !is_whitespace(**str) && (is_digit(**str) || (**str == '.') || (**str == 'e') || (**str == 'E'))) {
+    if (is_digit(**str) && (!(*power10))) {
+      *res = (*res) * DEC + (**str - SHIFT) * sign;
+    } else if (is_digit(**str) && (*power10)) {
+      *res = (*res) + ((long double)(**str - SHIFT) / pow(DEC, (*power10)++)) * sign;
+    } else if ((**str == '.') && (!(*power10))) {
       (*power10)++;
-    } else if ((**str_buf == 'e') || (**str_buf == 'E')) { 
-      *res = get_exp(*res, str_buf);
+    } else if ((**str == 'e') || (**str == 'E')) { 
+      *res = get_exp(*res, str, err);
     } else {
       //TODO: handle error
       break;
     }
-    (*str_buf)++; 
+    (*str)++; 
     count++;
   }
 }
 
 /* put floating-point number from source string to another agrument of sscanf */
-static void scan_efg(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); 
+static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
+  skip_whitespaces(str);
+  int count = 0; // TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
-  get_first_fpnum(str_buf, sign, &res, &power10);
-  str_to_fpnum(str_buf, width, sign, &power10, &res);
-  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+  get_first_fpnum(str, sign, &res, &power10);
+  str_to_fpnum(str, width, sign, &power10, &res, err);
+  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
 }
 
 /* check if the character is a hexadecimal symbol */
@@ -322,27 +328,27 @@ static _Bool is_oct(char ch) {
 }
 
 /* check for a prefix and skipping it if it exists */
-static int prefix_check(char **str_buf, int specs) {
+static int prefix_check(const char **str, int specs) {
   int prefix = DEC; // for decimal
-  char next_ch = *((*str_buf) + 1);
-  char next_next_ch = *((*str_buf) + 2);
+  char next_ch = *((*str) + 1);
+  char next_next_ch = *((*str) + 2);
   if ((specs & spec_x) || (specs & spec_X) || (specs & spec_p) || (specs & spec_i)) { /* for hexadecimal */
-    if ((**str_buf == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
+    if ((**str == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
       prefix = HEX;
-      (*str_buf) += 2;
+      (*str) += 2;
     }
   }
   if ((specs & spec_o) || (specs & spec_i)) { /* for octal */
-    if ((**str_buf == '0') && is_oct(next_ch)) {
+    if ((**str == '0') && is_oct(next_ch)) {
       prefix = OCT;
-      (*str_buf)++;
+      (*str)++;
     }
   }
   return prefix;
 }
 
 /* puts integer number into another vararg*/
-static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res) {
+static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
     if (is_efg(specs) && (length == 'l')) {
       long *dst_num = va_arg(*argp, long*); /* take argument address */
@@ -354,23 +360,20 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
       int *dst_num = va_arg(*argp, int*);
       *dst_num = (int)res;
     }
+    (*ret)++;
   }
 }
 
 /* puts pointer into another vararg*/
-static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int length, int specs,*/ unsigned long res) {
+static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, unsigned long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
     void **dst_pointer;
     dst_pointer = va_arg(*argp, void**);
-    printf("dst_pointer: %p\n", dst_pointer);
+    /*printf("dst_pointer: %p\n", dst_pointer);
     printf("res: %lx\n", res); 
-    printf("res as p: %p\n", (void**)res); 
+    printf("res as p: %p\n", (void**)res);*/ 
     *dst_pointer = (void*)res;
-<<<<<<< HEAD
-    printf("!!!!!!!!test_pointer: %lu\n", (unsigned long)(*dst_pointer));
-    printf("!!!!!!!!test_pointer: %lx\n", (unsigned long)(*dst_pointer));
-=======
->>>>>>> test
+    (*ret)++;
   }
 }
 
@@ -388,164 +391,168 @@ static short hex_to_num(char hex) {
 }
 
 /* convert from string to hexadecimal integer */
-static long str_to_hex(char **str_buf, int width, int sign) {
+static long str_to_hex(const char **str, int width, int sign) {
   int count = 0; // number of hexadecimal characters 
-  char *hex_start = *str_buf;
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && is_hex(**str_buf)) { 
-    (*str_buf)++; 
+  const char *hex_start = *str;
+  while (((count < width) || !width) && **str && !is_whitespace(**str) && is_hex(**str)) { 
+    (*str)++; 
     count++;
   }
   long res = 0;
-  char *hex_finish = --(*str_buf); // on last hex
+  const char *hex_finish = --(*str); // on last hex
   int power16 = 0;
-  for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
+  for (const char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
     res += hex_to_num(*hex_cur) * pow(HEX, power16++); 
   }
   res *= sign;
-  *str_buf = hex_finish + 1;
+  *str = hex_finish + 1;
   return res;
 }
 
 /* put hexadecimal integer from source string to another agrument of sscanf */
-static void scan_hex(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); /* get sign or check for double sign */
-  prefix_check(str_buf, specs); /* skip 0x/0X prefix */
-  long res = str_to_hex(str_buf, width, sign); /* convert from string to hex int*/;
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+static void scan_hex(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
+  skip_whitespaces(str);
+  int count = 0;// TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
+  prefix_check(str, specs); /* skip 0x/0X prefix */
+  long res = str_to_hex(str, width, sign); /* convert from string to hex int*/;
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
 
 }
 
 /* convert from string to octal integer */
-static long str_to_oct(char **str_buf, int width, int sign) {
+static long str_to_oct(const char **str, int width, int sign) {
   int count = 0; /* number of octal characters */
-  char *oct_start = *str_buf;
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && is_oct(**str_buf)) { 
-    (*str_buf)++; 
+  const char *oct_start = *str;
+  while (((count < width) || !width) && **str && !is_whitespace(**str) && is_oct(**str)) { 
+    (*str)++; 
     count++;
   }
   long res = 0;
-  char *oct_finish = --(*str_buf); // on last oct
+  const char *oct_finish = --(*str); // on last oct
   int power8 = 0;
-  for (char *oct_cur = oct_finish; oct_cur >= oct_start; oct_cur--) {
+  for (const char *oct_cur = oct_finish; oct_cur >= oct_start; oct_cur--) {
     res += hex_to_num(*oct_cur) * pow(OCT, power8++); 
   }
   res *= sign;
-  *str_buf = oct_finish + 1;
+  *str = oct_finish + 1;
   return res;
 }
 
 /* put octal integer from source string to another agrument of sscanf */
-static void scan_oct(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); /* get sign or check for double sign */
-  prefix_check(str_buf, specs); /* skip 0 prefix */
-  long res = str_to_oct(str_buf, width, sign); /* convert from string to octal int*/
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res); /* write down into another arg*/
+static void scan_oct(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret) {
+  skip_whitespaces(str);
+  int count = 0;// TODO: finish sign handle as +1 character into count (for width)
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
+  prefix_check(str, specs); /* skip 0 prefix */
+  long res = str_to_oct(str, width, sign); /* convert from string to octal int*/
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret); /* write down into another arg*/
 }
 
 /* put pointer from source string to another agrument of sscanf */
-static void scan_pointer(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, /*int length,*/ int specs) {
-  skip_whitespaces(str_buf);
-  //int sign = sign_check(str_buf); /* get sign or check for double sign */
-  prefix_check(str_buf, specs);
+static void scan_pointer(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int specs, int *ret) {
+  skip_whitespaces(str);
+  //int sign = sign_check(str); /* get sign or check for double sign */
+  prefix_check(str, specs);
   int count = 0; /* number of hexadecimal characters */
-  char *hex_start = *str_buf;
-  while (((count < width) || !width) && **str_buf && !is_whitespace(**str_buf) && (is_digit(**str_buf) || is_hex(**str_buf))) { 
-    (*str_buf)++; 
+  const char *hex_start = *str;
+  while (((count < width) || !width) && **str && !is_whitespace(**str) && (is_digit(**str) || is_hex(**str))) { 
+    (*str)++; 
     count++;
   }
   unsigned long res = 0;
-  char *hex_finish = --(*str_buf); // on last hex
+  const char *hex_finish = --(*str); // on last hex
   int power16 = 0;
-  for (char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
+  for (const char *hex_cur = hex_finish; hex_cur >= hex_start; hex_cur--) {
     res += hex_to_num(*hex_cur) * pow(HEX, power16++); 
   }
-  *str_buf = hex_finish + 1;
+  *str = hex_finish + 1;
   // TODO: str_to_pointer into separate function
-  pointer_into_arg(argp, ass_supress, outsider_ch, res);
+  pointer_into_arg(argp, ass_supress, outsider_ch, res, ret);
 }
 
 /* */
-static void count_chars(char **str_buf, const char* const *str_start, va_list *argp, _Bool ass_supress, _Bool outsider_ch, /*int width,*/ int length, int specs) {
-  int amount = *str_buf - *str_start;
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, amount);
+static void count_chars(const char **str, const char* const *str_start, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, int *ret) {
+  int amount = *str - *str_start;
+  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, amount, ret);
 }
 
 /* put signed decimal/octal/hexadecimal integer from source string to another agrument of sscanf */
-static void scan_doh(char **str_buf, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs) {
-  skip_whitespaces(str_buf);
-  int sign = sign_check(str_buf); /* get sign or check for double sign */
-  int prefix = prefix_check(str_buf, specs);
+static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
+  skip_whitespaces(str);
+  if (**str) {
+  int count = 0;//TODO: insert sign_check into str_to_oct/hex 
+  int sign = sign_check(str, &count); /* get sign or check for double sign */
+  int prefix = 0;
+  if ((specs & spec_d) == spec_d) {
+    prefix = DEC;
+  } else {
+    prefix = prefix_check(str, specs);
+  }
   long res = 0;
   switch (prefix) {
     case DEC: 
-      res = str_to_dec(str_buf, width, sign);
+      res = str_to_dec(str, width, err);
       break;
     case OCT:
-      res = str_to_oct(str_buf, width, sign);
+      res = str_to_oct(str, width, sign);
       break;
     case HEX:
-      res = str_to_hex(str_buf, width, sign);
+      res = str_to_hex(str, width, sign);
       break;
   }
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res);
+  if(!(*err)) {
+    inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
+  }  
+  } else {
+    *ret = EOF;
+  }
 }
 
 /* scan processing*/
-static void scan_proc(char **str_buf, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length) {
+static void scan_proc(const char **str, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int *ret, int *err) {
   if (specs & spec_s) { /* scan strings */
-    scan_string(str_buf, argp, ass_supress, outsider_ch, width/*, length*/);
-  } // TODO l length for %s ?
+    scan_string(str, argp, ass_supress, outsider_ch, width, ret);
+  }
   if (is_efg(specs)) { /* scan decimal numbers with floating point or scientific notation */
-    scan_efg(str_buf, argp, ass_supress, outsider_ch, width, length, specs);
+    scan_efg(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err);
   }
   if ((specs & spec_x) || (specs & spec_X)) { /* scan hexadecimal integers */
-    scan_hex(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
+    scan_hex(str, argp, ass_supress, outsider_ch, width, length, specs, ret); 
   }
   if (specs & spec_o) { /* scan octal integers */
-    scan_oct(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
+    scan_oct(str, argp, ass_supress, outsider_ch, width, length, specs, ret); 
   }
   if (specs & spec_p) { /* scan pointer */
-    scan_pointer(str_buf, argp, ass_supress, outsider_ch, width, specs); 
+    scan_pointer(str, argp, ass_supress, outsider_ch, width, specs, ret); 
   }
   if (specs & spec_n) { /* count characters read before n */
-    count_chars(str_buf, str_start, argp, ass_supress, outsider_ch, width, specs); 
+    count_chars(str, str_start, argp, ass_supress, outsider_ch, width, specs, ret); 
   }
-  if (specs & spec_i) { /* scan signed integer: dec/oct/hex */
-    scan_doh(str_buf, argp, ass_supress, outsider_ch, width, length, specs); 
+  if ((specs & spec_i) || (specs & spec_d)) { /* scan signed integer: dec/oct/hex */
+    scan_doh(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err); 
   }
 }
 
 /* main sscanf function */
 int s21_sscanf(const char *str, const char *format, ...) {
-  char *str_buf = (char*)malloc(strlen(str) * sizeof(char));
-  char *format_buf = (char*)malloc(strlen(format) * sizeof(char));
-  const char * const str_start = str_buf; /* save start of string for %n and free() */
-  const char * const format_start = format_buf; /* save start of string for free() */
-  strcpy(str_buf, str);
-  strcpy(format_buf, format);
-  printf("str:%s\n", str_buf);
-  printf("format:%s\n", format_buf);
+  const char * const str_start = str; /* save start of string for %n and free() */
   va_list argp;
   va_start(argp, format);
-  _Bool outsider_ch = false; /* for outsider characters in the format string*/
-  while (*str_buf && *format_buf) {
-    get_specifier(&str_buf, &format_buf, &outsider_ch); /* set format_buf to the start of specifier*/
-    printf("str:%s\n", str_buf);
-    printf("format:%s\n", format_buf);
-    _Bool ass_supress = false; /* supress assignment (*) */
+  bool outsider_ch = false; /* for outsider characters in the format string*/
+  int ret = 0, err = OK;
+  if (!(*str) && *format) {
+    ret = EOF;
+  }
+  while (*str && *format &&(!err)) {
+    get_specifier(&str, &format, &outsider_ch); /* set format to the start of specifier*/
+    printf("str:%s\n", str);
+    printf("format:%s\n", format);
+    bool ass_supress = false; /* supress assignment (*) */
     int width = 0, length = 0;
-    int specs = set_specs(&format_buf, &ass_supress, &width, &length); /* fill the specs number */
-    printf("width = %d, length = %c = %d\n", width, length, length);
-    if (specs & spec_p) {
-      printf("ok\n");
-    }
-    scan_proc(&str_buf, &str_start, specs, &argp, ass_supress, outsider_ch, width, length);
-    printf("specs = %d\n", specs);
+    int specs = set_specs(&format, &ass_supress, &width, &length, &err); /* fill the specs number */
+    scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret, &err);
   }
   va_end(argp);
-  free((void*)str_start);
-  free((void*)format_start);
-  return 0;
+  return ret;
 }
