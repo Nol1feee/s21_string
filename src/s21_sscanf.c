@@ -271,14 +271,19 @@ static long double get_exp(long double res, const char **str, int *err) {
 }
 
 /* */
-static void get_first_fpnum(const char **str, int sign, long double *res, int* power10, int *err) {
+static void get_first_fpnum(const char **str, int sign, int *count, long double *res, int* power10, int *err, int *inf_nan) {
   char next_ch = *((*str) + 1);
   if (is_digit(**str)) {
     *res = (**str - SHIFT) * sign;
     (*str)++;
+    (*count)++;
   } else if ((**str == '.') && (is_digit(next_ch))){
     (*power10)++;
     (*str)++;
+    (*count)++;
+  } else if (/* is_inf_nan*/) {
+    //check for inf and nan
+    //(*inf_nan) = INF; or (*inf_nan) = NAN;
   } else {
     // TODO:hanlde error
     *err = ER;
@@ -286,8 +291,8 @@ static void get_first_fpnum(const char **str, int sign, long double *res, int* p
 }
 
 /* */
-static void str_to_fpnum(const char **str, int width, int sign, int *power10, long double *res, int *err) {
-  int count = 1; // number of characters (digits or .) 
+static void str_to_fpnum(const char **str, int width, int sign, int count, int *power10, long double *res, int *err) {
+  //int count = 1; // number of characters (digits or .) 
   while (((count < width) || !width) && **str && !is_whitespace(**str) && (is_digit(**str) || (**str == '.') || (**str == 'e') || (**str == 'E'))) {
     if (is_digit(**str) && (!(*power10))) {
       *res = (*res) * DEC + (**str - SHIFT) * sign;
@@ -310,13 +315,17 @@ static void str_to_fpnum(const char **str, int width, int sign, int *power10, lo
 /* put floating-point number from source string to another agrument of sscanf */
 static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
-  int count = 0; // TODO: finish sign handle as +1 character into count (for width)
+  int count = 0, inf_nan = 0; // TODO: finish sign handle as +1 character into count (for width)
   int sign = sign_check(str, &count); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
-  get_first_fpnum(str, sign, &res, &power10, err);
-  if (!(*err)) {
-    str_to_fpnum(str, width, sign, &power10, &res, err);
+  get_first_fpnum(str, sign, &count, &res, &power10, err, &inf_nan);
+  if (!(*err) && !inf_nan) {
+    str_to_fpnum(str, width, sign, count, &power10, &res, err);
+  } else if (inf_nan = INF) {
+    //handle inf
+  } else if (inf_nan = NAN) {
+    //handle NAN
   }
   fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret, err);
 }
