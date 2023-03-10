@@ -334,7 +334,7 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
   char next_ch = *((*str) + 1);
   char next_next_ch = *((*str) + 2);
   if ((specs & spec_x) || (specs & spec_X) || (specs & spec_p) || (specs & spec_i)) { /* for hexadecimal */
-    if ((**str == '0') && ((next_ch == 'x') || (next_ch == 'X')) && is_hex(next_next_ch)) {
+    if ((**str == '0') && ((next_ch == 'x') || (next_ch == 'X')) && (is_hex(next_next_ch) || is_whitespace(next_next_ch) || !next_next_ch)) {
       prefix = HEX;
       (*str) += 2;
     }
@@ -396,7 +396,7 @@ static long str_to_hex(const char **str, int width, int sign, int count, int *er
   //int sign = sign_check(str, &count);
   *err = ER;
   long res = 0;
-  if (is_hex(**str)) {
+  if (is_hex(**str) || is_whitespace(**str) || !(**str)) {
   const char *hex_start = *str;
   while (((count < width) || !width) && **str && !is_whitespace(**str) && is_hex(**str)) { 
     (*str)++; 
