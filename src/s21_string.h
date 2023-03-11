@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <math.h> //sscanf
 #include <stdbool.h> //sscanf
-#include <string.h> //Егор..? удалиииии
+//#include <string.h> //Егор..? удалиииии
 
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done
