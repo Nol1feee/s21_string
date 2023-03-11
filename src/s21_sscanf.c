@@ -32,9 +32,10 @@ enum {
 
 /* for shifts */
 enum {
-  SHIFT = 48, /* code of 0 in ASCII */
+  SHIFT_zero = 48, /* code of 0 in ASCII */
   SHIFT_HEX = 55, /* code of A - 10 in ASCII */
-  SHIFT_hex = 87 /* code of a - 10 in ASCII */
+  SHIFT_hex = 87, /* code of a - 10 in ASCII */
+  SHIFT_case = 32 /* difference between A(65) and a(97)*/
 };
 
 /* check white-space characters */
@@ -113,11 +114,11 @@ static long str_to_dec(const char **string, int width, int sign, int count, int 
   long res = 0;
   *err = ER;
   if (is_digit(**string)) {
-    res = **string - SHIFT; /* get the first digit */
+    res = **string - SHIFT_zero; /* get the first digit */
     count++; // if was a sign, then count 1++, else 0++
     (*string)++;
     while (is_digit(**string) && ((count < width) || (!width))) {
-      res = res * DEC + (**string - SHIFT);
+      res = res * DEC + (**string - SHIFT_zero);
       (*string)++;
       count++;
     }
@@ -272,21 +273,36 @@ static long double get_exp(long double res, const char **str, int *err) {
   return res;
 }
 
+/* sample must be only in lower case!!! */
+static bool match_up(const char **str, const char *sample, int *jump) {
+  bool match = true;
+  int i = 0;
+  for (i = 0; i < (int)s21_strlen(sample); i++) {
+    if (((*((*str) + i)) != sample[i]) && ((*((*str) + i)) != (sample[i] - SHIFT_case))) {
+      match = false;
+      break;
+    }
+  }
+  *jump = i;
+  //(*str) += i; // put on the next ch after the last match
+  return match;
+}
+
 /* check if the 'i' character is inf and get value if yes */
 static long double get_inf(const char **str, int *err) {
-  char next_ch = *((*str) + 1);
-  char next_next_ch = *((*str) + 2);
   long double res = 0;
-  if ((next_ch == 'n' || next_ch == 'N') && (next_next_ch == 'f' || next_next_ch == 'F')) {
+  int jump = 0; // by how much will we shift the str
+  if (match_up(str, "infinity ", &jump) || match_up(str, "inf ", &jump)) {
     res = INFINITY;
-    (*str) += 3; // go to the next character after inf
+    (*str) += jump; // put on the next ch after the last match
+    printf("=== %s ===\n", *str);
   } else { 
     *err = ER;
   }
   return res;
 }
 
-/* check if the 'i' character is nan and get value if yes */
+/* check if the 'n' character is nan and get value if yes */
 static long double get_nan(const char **str, int *err) {
   char next_ch = *((*str) + 1);
   char next_next_ch = *((*str) + 2);
@@ -304,7 +320,7 @@ static long double get_nan(const char **str, int *err) {
 static void get_first_fpnum(const char **str, int sign, int *count, long double *res, int* power10, int *err) {
   char next_ch = *((*str) + 1);
   if (is_digit(**str)) {
-    *res = (**str - SHIFT) * sign;
+    *res = (**str - SHIFT_zero) * sign;
     (*str)++;
     (*count)++;
   } else if ((**str == '.') && (is_digit(next_ch))){
@@ -326,9 +342,9 @@ static void str_to_fpnum(const char **str, int width, int sign, int count, int *
   //int count = 1; // number of characters (digits or .) 
   while (((count < width) || !width) && **str && !is_whitespace(**str) && (is_digit(**str) || (**str == '.') || (**str == 'e') || (**str == 'E'))) {
     if (is_digit(**str) && (!(*power10))) {
-      *res = (*res) * DEC + (**str - SHIFT) * sign;
+      *res = (*res) * DEC + (**str - SHIFT_zero) * sign;
     } else if (is_digit(**str) && (*power10)) {
-      *res = (*res) + ((long double)(**str - SHIFT) / pow(DEC, (*power10)++)) * sign;
+      *res = (*res) + ((long double)(**str - SHIFT_zero) / pow(DEC, (*power10)++)) * sign;
     } else if ((**str == '.') && (!(*power10))) {
       (*power10)++;
     } else if ((**str == 'e') || (**str == 'E')) { 
@@ -424,7 +440,7 @@ static void pointer_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch
 static short hex_to_num(char hex) {
   short num = 0;
   if (is_digit(hex)) {
-    num = hex - SHIFT;
+    num = hex - SHIFT_zero;
   } else if ((hex >= 'A') && (hex <= 'F')) {
     num = hex - SHIFT_HEX;
   } else {

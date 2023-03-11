@@ -15,8 +15,8 @@ int main(void) {
   //int num = 0, test_num = 0;
   //printf("!!!test: %e %e\n", +inf, NAN);
   float a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-  const char src[] = "0.115e-3 -iNf +inF nAn ";
-  const char *format = "%e %f %G %E";
+  const char src[] = "0.115e-3 \t\n +INfiNity 0.3e-6 +infINAty ";
+  const char *format = "%e %f %G %E%s";
   int res = 0, test_res = 0;
   puts("===sscanf===");
   res = sscanf(src, format, &a1, &b1, &c1, &d1, rem); 
