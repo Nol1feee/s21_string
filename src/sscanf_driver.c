@@ -1,6 +1,7 @@
 /* driver for s21_sscanf.c */
 
 #include <stdio.h>
+//#include <math.h>
 
 int s21_sscanf(const char *str, const char *format, ...);
 
@@ -12,6 +13,7 @@ int main(void) {
   //char test_inter[20] = {'0'};
   //char test_dst3[20] = {'0'};
   //int num = 0, test_num = 0;
+  //printf("!!!test: %e %e\n", +inf, NAN);
   float a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
   const char src[] = "0.115e-3 -iNf +inF nAn ";
   const char *format = "%e %f %G %E";

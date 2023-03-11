@@ -152,6 +152,8 @@ static int set_specs(const char **format, _Bool *ass_supress, int *width, int *l
         break;
       case 'e':
         specs |= spec_e;
+        break;
+      case 'E':
         specs |= spec_E;
         break;
       case 'f':
@@ -270,8 +272,36 @@ static long double get_exp(long double res, const char **str, int *err) {
   return res;
 }
 
+/* check if the 'i' character is inf and get value if yes */
+static long double get_inf(const char **str, int *err) {
+  char next_ch = *((*str) + 1);
+  char next_next_ch = *((*str) + 2);
+  long double res = 0;
+  if ((next_ch == 'n' || next_ch == 'N') && (next_next_ch == 'f' || next_next_ch == 'F')) {
+    res = INFINITY;
+    (*str) += 3; // go to the next character after inf
+  } else { 
+    *err = ER;
+  }
+  return res;
+}
+
+/* check if the 'i' character is nan and get value if yes */
+static long double get_nan(const char **str, int *err) {
+  char next_ch = *((*str) + 1);
+  char next_next_ch = *((*str) + 2);
+  long double res = 0;
+  if ((next_ch == 'a' || next_ch == 'A') && (next_next_ch == 'n' || next_next_ch == 'N')) {
+    res = NAN;
+    (*str) += 3; // go to the next character after inf
+  } else { 
+    *err = ER;
+  }
+  return res;
+}
+
 /* */
-static void get_first_fpnum(const char **str, int sign, int *count, long double *res, int* power10, int *err, int *inf_nan) {
+static void get_first_fpnum(const char **str, int sign, int *count, long double *res, int* power10, int *err) {
   char next_ch = *((*str) + 1);
   if (is_digit(**str)) {
     *res = (**str - SHIFT) * sign;
@@ -281,10 +311,11 @@ static void get_first_fpnum(const char **str, int sign, int *count, long double 
     (*power10)++;
     (*str)++;
     (*count)++;
-  } else if (/* is_inf_nan*/) {
-    //check for inf and nan
-    //(*inf_nan) = INF; or (*inf_nan) = NAN;
-  } else {
+  } else if ((**str == 'i') || (**str == 'I')) {
+    *res = get_inf(str, err) * sign;
+  } else if ((**str == 'n') || (**str == 'N')) {
+    *res = get_nan(str, err) * sign;
+  }  else {
     // TODO:hanlde error
     *err = ER;
   }
@@ -315,19 +346,17 @@ static void str_to_fpnum(const char **str, int width, int sign, int count, int *
 /* put floating-point number from source string to another agrument of sscanf */
 static void scan_efg(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
-  int count = 0, inf_nan = 0; // TODO: finish sign handle as +1 character into count (for width)
+  int count = 0; // TODO: finish sign handle as +1 character into count (for width)
   int sign = sign_check(str, &count); 
   long double res = 0;
   int power10 = 0; /* for power of 10 */
-  get_first_fpnum(str, sign, &count, &res, &power10, err, &inf_nan);
-  if (!(*err) && !inf_nan) {
+  get_first_fpnum(str, sign, &count, &res, &power10, err);
+  if (!(*err) && (res != INFINITY) && (res != NAN)) {
     str_to_fpnum(str, width, sign, count, &power10, &res, err);
-  } else if (inf_nan = INF) {
-    //handle inf
-  } else if (inf_nan = NAN) {
-    //handle NAN
+  }   
+  if (!(*err)) {
+    fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret, err);
   }
-  fpnum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret, err);
 }
 
 /* check if the character is a hexadecimal symbol */
