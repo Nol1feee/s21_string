@@ -419,7 +419,9 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
       int *dst_num = va_arg(*argp, int*);
       *dst_num = (int)res;
     }
-    (*ret)++;
+    if (!(specs & spec_n)) {
+      (*ret)++;
+    }
   }
 }
 
@@ -624,7 +626,7 @@ int s21_sscanf(const char *str, const char *format, ...) {
   if (!(*str) && *format) {
     ret = EOF;
   }
-  while (*str && *format &&(!err)) {
+  while ((*str || *format) &&(!err)) {
     get_specifier(&str, &format, &outsider_ch); /* set format to the start of specifier*/
     printf("str:%s\n", str);
     printf("format:%s\n", format);
