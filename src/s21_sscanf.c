@@ -514,7 +514,9 @@ static void scan_oct(const char **str, va_list *argp, _Bool ass_supress, _Bool o
   //int sign = sign_check(str, &count); /* get sign or check for double sign */
   prefix_check(str, specs, &count, &sign); /* skip 0 prefix */
   long res = str_to_oct(str, width, sign, count, err); /* convert from string to octal int*/
-  inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret); /* write down into another arg*/
+  if (!(*err)) {
+    inum_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret); /* write down into another arg*/
+  }
 }
 
 /* put pointer from source string to another agrument of sscanf */
