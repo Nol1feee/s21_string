@@ -511,7 +511,6 @@ static long str_to_oct(const char **str, int width, int sign, int count, int *er
 static void scan_oct(const char **str, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
   skip_whitespaces(str);
   int count = 0, sign = 0;// TODO: finish sign handle as +1 character into count (for width)
-  //int sign = sign_check(str, &count); /* get sign or check for double sign */
   prefix_check(str, specs, &count, &sign); /* skip 0 prefix */
   long res = str_to_oct(str, width, sign, count, err); /* convert from string to octal int*/
   if (!(*err)) {
@@ -575,6 +574,18 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   }
 }
 
+/* */
+static void scan_percent(const char **str, /*va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret,*/ int *err) {
+  skip_whitespaces(str);
+  if (**str) {
+    if (**str == '%') { 
+      (*str)++;
+    } else {
+      *err = ER;
+    }
+  }
+}
+
 /* scan processing*/
 static void scan_proc(const char **str, const char* const *str_start, int specs, va_list *argp, _Bool ass_supress, _Bool outsider_ch, int width, int length, int *ret, int *err) {
   if (specs & spec_s) { /* scan strings */
@@ -597,6 +608,9 @@ static void scan_proc(const char **str, const char* const *str_start, int specs,
   }
   if ((specs & spec_i) || (specs & spec_d)) { /* scan signed integer: dec/oct/hex */
     scan_doh(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err); 
+  }
+  if ((specs & spec_percent)) { /* scan '%'*/
+    scan_percent(str, /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err); 
   }
 }
 
