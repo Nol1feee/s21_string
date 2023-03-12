@@ -633,6 +633,9 @@ int s21_sscanf(const char *str, const char *format, ...) {
     bool ass_supress = false; /* supress assignment (*) */
     int width = 0, length = 0;
     int specs = set_specs(&format, &ass_supress, &width, &length, &err); /* fill the specs number */
+    if (!(*str) && !(specs & spec_n)) {
+      break;
+    }
     scan_proc(&str, &str_start, specs, &argp, ass_supress, outsider_ch, width, length, &ret, &err);
   }
   va_end(argp);
