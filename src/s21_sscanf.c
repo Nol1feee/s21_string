@@ -601,7 +601,7 @@ static void scan_uint(const char **str, va_list *argp, bool ass_supress, bool ou
   if (**str) {
   int count = 0, sign = 0;
   sign = sign_check(str, &count);
-  unsigned int res = 0;
+  int res = 0;
   res = str_to_dec(str, width, sign, count, err);
   if(!(*err)) {
     uint_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
