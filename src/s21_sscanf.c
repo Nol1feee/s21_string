@@ -406,10 +406,10 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
   return prefix;
 }
 
-/* puts integer number into another vararg*/
+/* puts signed integer number into another vararg*/
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-    if (is_efg(specs) && (length == 'l')) {
+    if (is_efg(specs) && (length == 'l')) { // TODO:  WHY THE FUCK IS EFG HERE
       long *dst_num = va_arg(*argp, long*); /* take argument address */
       *dst_num = res;
     } else if (is_efg(specs) && (length == 'h')) {
@@ -417,6 +417,25 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, i
       *dst_num = (short)res;
     } else {
       int *dst_num = va_arg(*argp, int*);
+      *dst_num = (int)res;
+    }
+    if (!(specs & spec_n)) {
+      (*ret)++;
+    }
+  }
+}
+
+/* puts insigned integer number into another vararg*/
+static void uint_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res, int *ret) {
+  if (!ass_supress && !outsider_ch) {
+    if (length == 'l') {
+      unsigned long *dst_num = va_arg(*argp, unsigned long*); /* take argument address */
+      *dst_num = res;
+    } else if (length == 'h') {
+      unsigned short *dst_num = va_arg(*argp, unsigned short*);
+      *dst_num = (short)res;
+    } else {
+      unsigned int *dst_num = va_arg(*argp, unsigned int*);
       *dst_num = (int)res;
     }
     if (!(specs & spec_n)) {
@@ -576,6 +595,22 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   }
 }
 
+/* put unsigned decimal integer from source string to another agrument of sscanf */
+static void scan_uint(const char **str, va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret, int *err) {
+  skip_whitespaces(str);
+  if (**str) {
+  int count = 0, sign = 0;
+  sign = sign_check(str, &count);
+  unsigned int res = 0;
+  res = str_to_dec(str, width, sign, count, err);
+  if(!(*err)) {
+    uint_into_arg(argp, ass_supress, outsider_ch, length, specs, res, ret);
+  }  
+  } else {
+    *ret = EOF;
+  }
+}
+
 /* */
 static void scan_percent(const char **str, /*va_list *argp, bool ass_supress, bool outsider_ch, int width, int length, int specs, int *ret,*/ int *err) {
   skip_whitespaces(str);
@@ -610,6 +645,9 @@ static void scan_proc(const char **str, const char* const *str_start, int specs,
   }
   if ((specs & spec_i) || (specs & spec_d)) { /* scan signed integer: dec/oct/hex */
     scan_doh(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err); 
+  }
+  if (specs & spec_u) { /* scan unsigned decimal integer*/
+    scan_uint(str, argp, ass_supress, outsider_ch, width, length, specs, ret, err); 
   }
   if ((specs & spec_percent)) { /* scan '%'*/
     scan_percent(str, /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err); 
