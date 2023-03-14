@@ -127,8 +127,10 @@ static long str_to_dec(const char **string, int width, int sign, int count, int 
     count++; // if was a sign, then count 1++, else 0++
     (*string)++;
     while (is_digit(**string) && ((count < width) || (!width)) && !overflow) {
-      overflow = (res > ((INT_MAX - (**string - SHIFT_zero)) / 10) ) ? true : false;
+      overflow = (res > (((INT_MAX - (**string - SHIFT_zero)) / 10) + 1) ) ? true : false;
       res = res * DEC + (**string - SHIFT_zero);
+      //printf("res = %ld\n", res);
+      //printf("overflow = %d\n", overflow);
       (*string)++;
       count++;
     }
@@ -139,6 +141,7 @@ static long str_to_dec(const char **string, int width, int sign, int count, int 
     res = -1;
     skip_non_whitespaces(string);
   }
+  printf("finish res = %ld\n", res);
   return res;
 }
 
@@ -424,10 +427,10 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
 /* puts signed integer number into another vararg*/
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch, int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-    if (is_efg(specs) && (length == 'l')) { // TODO:  WHY THE FUCK IS EFG HERE
+    if (length == 'l') { 
       long *dst_num = va_arg(*argp, long*); /* take argument address */
       *dst_num = res;
-    } else if (is_efg(specs) && (length == 'h')) {
+    } else if (length == 'h') {
       short *dst_num = va_arg(*argp, short*);
       *dst_num = (short)res;
     } else {
@@ -595,6 +598,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress, bool out
   switch (prefix) {
     case DEC: 
       res = str_to_dec(str, width, sign, count, err);
+      printf("get res = %ld\n", res);
       break;
     case OCT:
       res = str_to_oct(str, width, sign, count, err);
