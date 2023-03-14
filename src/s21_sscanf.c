@@ -1,4 +1,5 @@
 #include "s21_string.h"
+#include <limits.h>
 #define OK 0
 #define ER 1
 /*sscanf implementation*/
@@ -60,6 +61,13 @@ static void skip_all(const char **string) {
   }
 }
 
+/* skip before the whole string */
+static void skip_non_whitespaces(const char **string) {
+  while (**string && !is_whitespace(**string)) {
+    (*string)++;
+  }
+}
+
 /* sets the format pointer to the character after the % */
 static void get_specifier(const char **str, const char **format, _Bool *outsider_ch) {
   int white_count = skip_whitespaces(format);
@@ -112,19 +120,26 @@ static int sign_check(const char **str, int *count) {
 static long str_to_dec(const char **string, int width, int sign, int count, int *err) {
   //sign = sign_check(string, &count);
   long res = 0;
+  bool overflow = false;
   *err = ER;
   if (is_digit(**string)) {
     res = **string - SHIFT_zero; /* get the first digit */
     count++; // if was a sign, then count 1++, else 0++
     (*string)++;
-    while (is_digit(**string) && ((count < width) || (!width))) {
+    while (is_digit(**string) && ((count < width) || (!width)) && !overflow) {
+      overflow = (res > ((INT_MAX - (**string - SHIFT_zero)) / 10) ) ? true : false;
       res = res * DEC + (**string - SHIFT_zero);
       (*string)++;
       count++;
     }
     *err = OK;
   }   
-  return res * sign;
+  res = res * sign;
+  if (overflow) {
+    res = -1;
+    skip_non_whitespaces(string);
+  }
+  return res;
 }
 
 /* check character if it's a length*/
