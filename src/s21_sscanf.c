@@ -41,7 +41,7 @@ enum {
 
 /* check white-space characters */
 static _Bool is_whitespace(char ch) {
-  return (ch == ' ' || ch == '\t' || ch == '\n') ? true : false;
+  return (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') ? true : false;
 }
 
 /* skip white-space chatacters */

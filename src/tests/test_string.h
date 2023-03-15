@@ -33,7 +33,7 @@ Suite *to_lower_s21(void);
 Suite *to_upper_s21(void);
 Suite *trim_s21(void);
 
-// Suite *sscanf_s21(void);
+Suite *sscanf_s21(void);
 Suite *sprintf_s21(void);
 
 #endif  // SRC_TESTS_TEST_STRING_H_
