@@ -5,13 +5,13 @@
 #define s21_NULL (void *)0
 
 #include <math.h>  //sscanf
+#include <math.h>  //sscanf
 #include <stdarg.h>
+#include <stdbool.h>  //sscanf
 #include <stdbool.h>  //sscanf
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h> //sscanf
-#include <stdbool.h> //sscanf
 
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done

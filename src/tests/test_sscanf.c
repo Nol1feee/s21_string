@@ -56,38 +56,38 @@ START_TEST(sscanf_EOF5) {
 }
 END_TEST
 
- START_TEST(sscanf_fail1) {
-   char str[] = "21";
-   char *fstr = "%ds";
-   int a1 = 0, a2 = 0;
+START_TEST(sscanf_fail1) {
+  char str[] = "21";
+  char *fstr = "%ds";
+  int a1 = 0, a2 = 0;
 
-   int s21 = s21_sscanf(str, fstr, &a1);
-   int standard = sscanf(str, fstr, &a2);
-   ck_assert_int_eq(s21, standard);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1);
+  int standard = sscanf(str, fstr, &a2);
+  ck_assert_int_eq(s21, standard);
+}
+END_TEST
 
- START_TEST(sscanf_fail2) {
-   char str[] = "21";
-   char *fstr = "%sz";
-   int a1 = 0, a2 = 0;
+START_TEST(sscanf_fail2) {
+  char str[] = "21";
+  char *fstr = "%sz";
+  int a1 = 0, a2 = 0;
 
-   int s21 = s21_sscanf(str, fstr, &a1);
-   int standard = sscanf(str, fstr, &a2);
-   ck_assert_int_eq(s21, standard);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1);
+  int standard = sscanf(str, fstr, &a2);
+  ck_assert_int_eq(s21, standard);
+}
+END_TEST
 
- START_TEST(sscanf_fail6) {
-   char str[] = "21 \t \r 25\0";
-   char *fstr = "%d %*n %d";
-   int a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0;
+START_TEST(sscanf_fail6) {
+  char str[] = "21 \t \r 25\0";
+  char *fstr = "%d %*n %d";
+  int a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &a3, &a5);
-   int standard = sscanf(str, fstr, &a2, &a4, &a6);
-   ck_assert_int_eq(s21, standard);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1, &a3, &a5);
+  int standard = sscanf(str, fstr, &a2, &a4, &a6);
+  ck_assert_int_eq(s21, standard);
+}
+END_TEST
 
 START_TEST(sscanf_fail7) {
   char str[] = "21";
@@ -100,81 +100,81 @@ START_TEST(sscanf_fail7) {
 }
 END_TEST
 
- START_TEST(sscanf_format_c1) {
-   char str[] = "   a     b c d";
-   char *fstr = "%c %c %c %c";
-   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
+START_TEST(sscanf_format_c1) {
+  char str[] = "   a     b c d";
+  char *fstr = "%c %c %c %c";
+  int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_c2) {
-   char str[] = "   a     b c d";
-   char *fstr = "%c %c %c %c";
-   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
+START_TEST(sscanf_format_c2) {
+  char str[] = "   a     b c d";
+  char *fstr = "%c %c %c %c";
+  int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_c3) {
-   char str[] = "abcd";
-   char *fstr = "%c %c %c %c";
-   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
+START_TEST(sscanf_format_c3) {
+  char str[] = "abcd";
+  char *fstr = "%c %c %c %c";
+  int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_c4) {
-   char str[] = "\tabcd";
-   char *fstr = "%c %*c %*c %c";
-   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+START_TEST(sscanf_format_c4) {
+  char str[] = "\tabcd";
+  char *fstr = "%c %*c %*c %c";
+  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_c5) {
-   char str[] = " a\t\\\r";
-   char *fstr = "%c%c%c%c";
-   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+START_TEST(sscanf_format_c5) {
+  char str[] = " a\t\\\r";
+  char *fstr = "%c%c%c%c";
+  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
 START_TEST(sscanf_long_chars1) {
   char str[] = "\tabcd";
@@ -221,105 +221,105 @@ START_TEST(sscanf_long_chars3) {
 }
 END_TEST
 
- START_TEST(sscanf_format_d1) {
-   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "555562187237128730893213890 666 777 888";
-   const char *fstr = "%d %10d %*d %d";
+START_TEST(sscanf_format_d1) {
+  int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "555562187237128730893213890 666 777 888";
+  const char *fstr = "%d %10d %*d %d";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_d2) {
-   short a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "555367 1234 -32768 32768";
-   const char *fstr = "%4hd %3hd %hd %hd";
+START_TEST(sscanf_format_d2) {
+  short a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "555367 1234 -32768 32768";
+  const char *fstr = "%4hd %3hd %hd %hd";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_d3) {
-   long a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "1000000000 -2147483648 2147483648 l1";
-   const char *fstr = "%10ld %ld %ld %*ld";
+START_TEST(sscanf_format_d3) {
+  long a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "1000000000 -2147483648 2147483648 l1";
+  const char *fstr = "%10ld %ld %ld %*ld";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_d4) {
-   short a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "-7 1234 -32768 ++++32768";
-   const char *fstr = "%hd %3hd %hd %hd";
+START_TEST(sscanf_format_d4) {
+  short a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "-7 1234 -32768 ++++32768";
+  const char *fstr = "%hd %3hd %hd %hd";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_d5) {
-   short a1 = 0, a2 = 0;
-   long b1 = 0, b2 = 0;
-   int c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "    0567a+1234\t--32768d 1337";
-   const char *fstr = "%4hda%ld%d%2d";
+START_TEST(sscanf_format_d5) {
+  short a1 = 0, a2 = 0;
+  long b1 = 0, b2 = 0;
+  int c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "    0567a+1234\t--32768d 1337";
+  const char *fstr = "%4hda%ld%d%2d";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
- START_TEST(sscanf_format_d6) {
-   short a1 = 0, a2 = 0;
-   long b1 = 0, b2 = 0;
-   int c1 = 0, c2 = 0, d1 = 0, d2 = 0;
-   const char str[] = "    a555367a+1234\t--32768d 1337";
-   const char *fstr = " a%hda%ld%d%2d";
+START_TEST(sscanf_format_d6) {
+  short a1 = 0, a2 = 0;
+  long b1 = 0, b2 = 0;
+  int c1 = 0, c2 = 0, d1 = 0, d2 = 0;
+  const char str[] = "    a555367a+1234\t--32768d 1337";
+  const char *fstr = " a%hda%ld%d%2d";
 
-   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
-   int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
+  int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
+  int standard = sscanf(str, fstr, &a2, &b2, &c2, &d2);
 
-   ck_assert_int_eq(s21, standard);
-   ck_assert_int_eq(a1, a2);
-   ck_assert_int_eq(b1, b2);
-   ck_assert_int_eq(c1, c2);
-   ck_assert_int_eq(d1, d2);
- }
- END_TEST
+  ck_assert_int_eq(s21, standard);
+  ck_assert_int_eq(a1, a2);
+  ck_assert_int_eq(b1, b2);
+  ck_assert_int_eq(c1, c2);
+  ck_assert_int_eq(d1, d2);
+}
+END_TEST
 
 START_TEST(sscanf_format_i1) {
   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
@@ -880,24 +880,24 @@ Suite *sscanf_s21() {
   tcase_add_test(tc_core, sscanf_EOF3);
   tcase_add_test(tc_core, sscanf_EOF4);
   tcase_add_test(tc_core, sscanf_EOF5);
-   tcase_add_test(tc_core, sscanf_fail1);
-   tcase_add_test(tc_core, sscanf_fail2);
-   tcase_add_test(tc_core, sscanf_fail6);
+  tcase_add_test(tc_core, sscanf_fail1);
+  tcase_add_test(tc_core, sscanf_fail2);
+  tcase_add_test(tc_core, sscanf_fail6);
   tcase_add_test(tc_core, sscanf_fail7);
-   tcase_add_test(tc_core, sscanf_format_c1);
-   tcase_add_test(tc_core, sscanf_format_c2);
-   tcase_add_test(tc_core, sscanf_format_c3);
-   tcase_add_test(tc_core, sscanf_format_c4);
-   tcase_add_test(tc_core, sscanf_format_c5);
+  tcase_add_test(tc_core, sscanf_format_c1);
+  tcase_add_test(tc_core, sscanf_format_c2);
+  tcase_add_test(tc_core, sscanf_format_c3);
+  tcase_add_test(tc_core, sscanf_format_c4);
+  tcase_add_test(tc_core, sscanf_format_c5);
   tcase_add_test(tc_core, sscanf_long_chars1);
   tcase_add_test(tc_core, sscanf_long_chars2);
   tcase_add_test(tc_core, sscanf_long_chars3);
-   tcase_add_test(tc_core, sscanf_format_d1);
-   tcase_add_test(tc_core, sscanf_format_d2);
-   tcase_add_test(tc_core, sscanf_format_d3);
-   tcase_add_test(tc_core, sscanf_format_d4);
-   tcase_add_test(tc_core, sscanf_format_d5);
-   tcase_add_test(tc_core, sscanf_format_d6);
+  tcase_add_test(tc_core, sscanf_format_d1);
+  tcase_add_test(tc_core, sscanf_format_d2);
+  tcase_add_test(tc_core, sscanf_format_d3);
+  tcase_add_test(tc_core, sscanf_format_d4);
+  tcase_add_test(tc_core, sscanf_format_d5);
+  tcase_add_test(tc_core, sscanf_format_d6);
   tcase_add_test(tc_core, sscanf_format_i1);
   tcase_add_test(tc_core, sscanf_format_i2);
   tcase_add_test(tc_core, sscanf_format_i3);
