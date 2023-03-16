@@ -4,6 +4,7 @@
 #include <check.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 
 #include "../s21_string.h"
 
@@ -35,5 +36,22 @@ Suite *trim_s21(void);
 
 Suite *sscanf_s21(void);
 Suite *sprintf_s21(void);
+
+//temp
+Suite *test_sprintf_c(void);
+Suite *test_sprintf_e(void);
+Suite *test_sprintf_f(void);
+Suite *test_sprintf_g(void);
+Suite *test_sprintf(void);
+Suite *test_sprintf_signed(void);
+Suite *test_sprintf_signed_i(void);
+Suite *test_sprintf_octal(void);
+Suite *test_sprintf_unsigned(void);
+Suite *test_sprintf_hex(void);
+Suite *test_sprintf_HEX(void);
+Suite *test_sprintf_percent(void);
+Suite *test_sprintf_pointer(void);
+Suite *test_sprintf_n(void);
+Suite *test_sprintf_string(void);
 
 #endif  // SRC_TESTS_TEST_STRING_H_
