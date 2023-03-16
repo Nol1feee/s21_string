@@ -1,7 +1,6 @@
 /* driver for s21_sscanf.c */
 
 #include <stdio.h>
-//#include <math.h>
 
 int s21_sscanf(const char *str, const char *format, ...);
 

@@ -5,9 +5,7 @@
 #define s21_NULL (void *)0
 
 #include <math.h>  //sscanf
-#include <math.h>  //sscanf
 #include <stdarg.h>
-#include <stdbool.h>  //sscanf
 #include <stdbool.h>  //sscanf
 #include <stdint.h>
 #include <stdio.h>
