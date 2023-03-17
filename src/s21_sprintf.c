@@ -1,59 +1,67 @@
 #include "s21_sprintf.h"
 
 int s21_sprintf(char* buf, const char* format, ...) {
-  *buf = 0;
+  //*buf = 0; //TODO for what?
   va_list param;
   va_start(param, format);
-  char* temp = NULL;
-  char* result = NULL;
-  long int d;
-  long double f;
-  wchar_t symbol;
-  char* string;
-  uint64_t u;
-  s21 sh21;
+  char* temp = NULL;    // TODO for what?
+  char* result = NULL;  // TODO for what?
+  long int d;           // TODO for what?
+  long double f;        // TODO for what?
+  wchar_t symbol;       // TODO for what?
+  char* string;         // TODO for what?
+  uint64_t u;           // TODO for what?
+  s21 sh21;             // struct for some flags, width, length, precision, etc
   s21_reset_struct(&sh21);
-  int count_char = 0;
+  int count_char = 0;  // for %n
 
-  for (const char* line = format; *line; line++) {
-    //    if (*line == '\0') break;
-    if (sh21.format == 0 && *line != '%') {
-      count_char += 1;  // для флага n
-      s21_strncat(buf, line, 1);
+  while (*format++) {
+    if (!sh21.percent && *format != '%') { //if we met a regular ch
+      count_char++;
+      s21_strncat(buf, format, 1); // add current character into buf
 
-    } else if (sh21.format == 0 && *line == '%') {
-      sh21.format = 1;
+    } else if (!sh21.percent && *format == '%') { // if we met % for the first time
+      sh21.percent = 1; // treats current '%' as start of format specifier
 
-    } else if (sh21.format) {
-      if (*line == '%') {
-        // s21_strcat?
-        result = calloc(2, sizeof(char));
-        result[0] = '%';
-        s21_strcat(buf, result);
-        free(result);
+    } else if (sh21.percent) {
+      // TODO change struct name
+      /*
+      TODO start of separate funcs: 
+      1) read flags, width, length, precision, etc into struct
+        1.1) make several separate bitfields for store of flags, width, length, precision, etc 
+        1.2) make funcs like is_flag(), is_width(), is_length(), is_precision(), etc 
+        1.3) make funcs to fill each structure 
+        1.4) after meeting first % as start of specificator make next ch lower-case for using
+             switch-case in future
+      */
+      if (*format == '%') {
+        //result = calloc(2, sizeof(char));
+        //result[0] = '%';
+        s21_strcat(buf, "%");
+        //free(result);
         s21_reset_struct(&sh21);
-        count_char += 1;
-      } else if (*line == '-') {
+        count_char++;
+      } else if (*format == '-') {
         sh21.fill_left = 1;
-      } else if (*line == '+') {
+      } else if (*format == '+') {
         sh21.signed_conversion = 1;
-      } else if (*line == ' ') {
+      } else if (*format == ' ') {
         sh21.space_signed_conversion = 1;
-      } else if (*line == '.') {
+      } else if (*format == '.') {
         sh21.floating = 0;
-      } else if (*line == 'h') {
+      } else if (*format == 'h') {
         sh21.h_flag = 1;
-      } else if (*line == 'l') {
+      } else if (*format == 'l') {
         sh21.l_flag = 1;
-      } else if (*line == '#') {
+      } else if (*format == '#') {
         sh21.need_prefix = 1;
-      } else if (*line == 'L') {
+      } else if (*format == 'L') {
         sh21.L_flag = 1;
-      } else if (((*line) >= '0') && ((*line) <= '9')) {
-        numbers(line, &sh21);
+      } else if (((*format) >= '0') && ((*format) <= '9')) {
+        numbers(format, &sh21);
         // пропускает цифры, которые были обработаны в numbers
-        while (*(line + 1) >= '0' && *(line + 1) <= '9') line++;
-      } else if (*line == 'i' || *line == 'd') {
+        while (*(format + 1) >= '0' && *(format + 1) <= '9') format++;
+      } else if (*format == 'i' || *format == 'd') {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);
         else if (sh21.l_flag)
@@ -61,56 +69,57 @@ int s21_sprintf(char* buf, const char* format, ...) {
         else
           d = va_arg(param, int);
         flag_i_d(&sh21, temp, buf, result, d);
-      } else if (*line == 'x' || *line == 'X') {  // 16-ричное число инт
+      } else if (*format == 'x' || *format == 'X') {  // 16-ричное число инт
         d = va_arg(param, uint64_t);
-        flag_x(&sh21, temp, buf, result, d, 'x' - *line);
-      } else if (*line == 'p') {
+        flag_x(&sh21, temp, buf, result, d, 'x' - *format);
+      } else if (*format == 'p') {
         d = va_arg(param, uint64_t);
         flag_p(&sh21, temp, buf, result, d);
-      } else if (*line == 'o') {  // 8-ричное число инт
+      } else if (*format == 'o') {  // 8-ричное число инт
         d = (unsigned int)va_arg(param, uint64_t);
         flag_o(&sh21, temp, buf, result, d);
-      } else if (*line == 'O') {
+      } else if (*format == 'O') {
         d = va_arg(param, uint64_t);
         flag_o(&sh21, temp, buf, result, d);
-      } else if (*line == 'c') {
+      } else if (*format == 'c') {
         d = va_arg(param, int);
         flag_i_d(&sh21, temp, buf, result, d);
-      } else if (*line == 'f') {
+      } else if (*format == 'f') {
         if (sh21.L_flag) {
           f = va_arg(param, long double);
         } else {
           f = va_arg(param, double);
         }
         flag_f(&sh21, temp, buf, result, f);
-      } else if (*line == 'c') {
+      } else if (*format == 'c') {
         symbol = (char)va_arg(param, int);
         flag_c(&sh21, buf, result, symbol);
-      } else if (*line == 's') {
+      } else if (*format == 's') {
         string = va_arg(param, char*);
         flag_s(&sh21, string, buf, result);
-      } else if (*line == 'u') {
+      } else if (*format == 'u') {
         u = va_arg(param, uint64_t);
         flag_u(&sh21, temp, buf, result, u);
-      } else if (*line == 'g' || *line == 'G') {
+      } else if (*format == 'g' || *format == 'G') {
         if (sh21.L_flag == 1) {
           f = va_arg(param, long double);
         } else {
           f = va_arg(param, double);
-          flag_g(&sh21, temp, buf, result, f, *line);
+          flag_g(&sh21, temp, buf, result, f, *format);
         }
-      } else if (*line == 'e' || *line == 'E') {
+      } else if (*format == 'e' || *format == 'E') {
         if (sh21.L_flag == 1) {
           f = va_arg(param, long double);
         } else {
           f = va_arg(param, double);
-          flag_e(&sh21, temp, buf, result, f, *line);
+          flag_e(&sh21, temp, buf, result, f, *format);
         }
-      } else if (*line == 'n') {
+      } else if (*format == 'n') {
         int* count = va_arg(param, int*);
         *count = count_char;
         fill_result(buf, result, &sh21);
       }
+      //TODO end of separate funcs
     }
   }
   va_end(param);
@@ -118,8 +127,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
 }
 
 void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
-            char line) {
-  temp = handler_flag_e(f, s21->floating, line, s21);
+            char format) {
+  temp = handler_flag_e(f, s21->floating, format, s21);
   result = calloc(s21_strlen(temp) + 1, sizeof(char));
 
   result = s21_add_sign(result, temp, s21->signed_conversion,
@@ -127,7 +136,7 @@ void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
   insert_and_free(s21, temp, buf, result);
 }
 
-char* handler_flag_e(long double num, int floating, char line, s21* sh21) {
+char* handler_flag_e(long double num, int floating, char format, s21* sh21) {
   int point = (floating == -1) ? 6 : floating;
   int count_e = 0;
   if ((int)num == 0) {
@@ -142,10 +151,10 @@ char* handler_flag_e(long double num, int floating, char line, s21* sh21) {
     }
   }
   char* str = s21_float_to_string(num, point, sh21->need_prefix);
-  if (count_e < 0 && line == 'e') s21_strcat(str, "e-");
-  if (count_e < 0 && line == 'E') s21_strcat(str, "E-");
-  if (count_e > 0 && line == 'e') s21_strcat(str, "e+");
-  if (count_e > 0 && line == 'E') s21_strcat(str, "E+");
+  if (count_e < 0 && format == 'e') s21_strcat(str, "e-");
+  if (count_e < 0 && format == 'E') s21_strcat(str, "E-");
+  if (count_e > 0 && format == 'e') s21_strcat(str, "e+");
+  if (count_e > 0 && format == 'E') s21_strcat(str, "E+");
   if (count_e < 0) count_e *= -1;
   if (count_e < 10) s21_strcat(str, "0");
   char* clean = s21_int_to_string(count_e, floating);
@@ -155,15 +164,15 @@ char* handler_flag_e(long double num, int floating, char line, s21* sh21) {
 }
 
 void flag_g(s21* sh21, char* temp, char* buf, char* result, long double f,
-            char line) {
-  temp = handler_flag_g(f, sh21, line);
+            char format) {
+  temp = handler_flag_g(f, sh21, format);
   result = calloc(s21_strlen(temp) + 1, sizeof(char));
   result = s21_add_sign(result, temp, sh21->signed_conversion,
                         sh21->space_signed_conversion, f);
   insert_and_free(sh21, temp, buf, result);
 }
 
-char* handler_flag_g(long double num, s21* s21, char line) {
+char* handler_flag_g(long double num, s21* s21, char format) {
   int point = (s21->floating != -1) ? s21->floating : 6;
   int count_e = 0;
   long double copy = num;
@@ -184,10 +193,10 @@ char* handler_flag_g(long double num, s21* s21, char line) {
       for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
     }
     for (int i = s21_strlen(str); str[i - 1] == '0'; i--) str[i - 1] = '\0';
-    if (count_e < 0 && line == 'g') s21_strcat(str, "e-");
-    if (count_e < 0 && line == 'G') s21_strcat(str, "E-");
-    if (count_e > 0 && line == 'g') s21_strcat(str, "e+");
-    if (count_e > 0 && line == 'G') s21_strcat(str, "E+");
+    if (count_e < 0 && format == 'g') s21_strcat(str, "e-");
+    if (count_e < 0 && format == 'G') s21_strcat(str, "E-");
+    if (count_e > 0 && format == 'g') s21_strcat(str, "e+");
+    if (count_e > 0 && format == 'G') s21_strcat(str, "E+");
     if (count_e < 10) s21_strcat(str, "0");
     char* clear = s21_int_to_string(count_e, s21->floating);
     s21_strcat(str, clear);
@@ -295,10 +304,10 @@ void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u) {
 
 char* revers(char* str, int i) {
   str[i] = '\0';
-  for (int j = 0, k = s21_strlen(str) - 1, line; j < k; j++, k--) {
-    line = str[j];
+  for (int j = 0, k = s21_strlen(str) - 1, format; j < k; j++, k--) {
+    format = str[j];
     str[j] = str[k];
-    str[k] = line;
+    str[k] = format;
   }
   return str;
 }
@@ -450,7 +459,7 @@ char* s21_uint_to_string(unsigned long long number, long int floating) {
 }
 
 void s21_reset_struct(s21* sh21) {
-  sh21->format = 0;
+  sh21->percent = 0;
   sh21->fill_left = 0;
   sh21->signed_conversion = 0;
   sh21->space_signed_conversion = 0;
@@ -469,12 +478,12 @@ void fill_result(char* buf, char* result, s21* sh21) {
 }
 
 // блять! Перевод, сука, стринга в инт
-void numbers(const char* line, s21* sh21) {
+void numbers(const char* format, s21* sh21) {
   int atoi = 0;
-  while (*line >= '0' && *line <= '9') {
+  while (*format >= '0' && *format <= '9') {
     atoi *= 10;
-    atoi += *line;
-    line++;
+    atoi += *format;
+    format++;
     atoi -= '0';
   }
   if (sh21->floating == -1)
@@ -490,23 +499,23 @@ void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
   fill_result(buf, result, sh21);
 }
 
-char* s21_add_spaces(char* line, s21* sh21) {
-  int str_len = s21_strlen(line);
+char* s21_add_spaces(char* format, s21* sh21) {
+  int str_len = s21_strlen(format);
   if (str_len < sh21->width) {
     char* temp = calloc(sh21->width + 1, sizeof(char));
     int padding_len = sh21->width - str_len;
     char* spc_ptr = calloc(padding_len + 1, sizeof(char));
     spc_ptr[padding_len] = 0;  // Влад, посмотри
     if (sh21->fill_left == 1) {
-      s21_strcat(temp, line);
+      s21_strcat(temp, format);
       s21_strcat(temp, spc_ptr);
     } else {
       s21_strcat(temp, spc_ptr);
-      s21_strcat(temp, line);
+      s21_strcat(temp, format);
     }
     free(spc_ptr);
-    free(line);
-    line = temp;
+    free(format);
+    format = temp;
   }
-  return line;
+  return format;
 }
