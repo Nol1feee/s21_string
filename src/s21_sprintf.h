@@ -4,12 +4,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <string.h>
 
 #include "s21_string.h"
 
 typedef struct s21 {
-  int format;     // флаг для повторного символа %
+  int percent;     // флаг для повторного символа %
   int fill_left;  // выравнивание по левому краю
   int signed_conversion;  // указываем знак для любых чтсел
   int space_signed_conversion;  // если число положительное, и мы не указали,

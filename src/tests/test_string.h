@@ -2,9 +2,9 @@
 #define SRC_TESTS_TEST_STRING_H_
 
 #include <check.h>
+#include <limits.h>
 #include <stdint.h>
 #include <string.h>
-#include <limits.h>
 
 #include "../s21_string.h"
 
@@ -37,7 +37,7 @@ Suite *trim_s21(void);
 Suite *sscanf_s21(void);
 Suite *sprintf_s21(void);
 
-//temp
+// temp
 Suite *test_sprintf_c(void);
 Suite *test_sprintf_e(void);
 Suite *test_sprintf_f(void);
