@@ -412,7 +412,7 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
                           int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-     if (!(specs & spec_c)) {
+     if (specs & spec_c) {
      char *dst_char = va_arg(*argp, char *);
      *dst_char = res;
      } else if (length == 'l') {
@@ -430,7 +430,7 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
       (*ret)++;
     }
   }
-}
+
 
 /* puts insigned integer number into another vararg*/
 static void uint_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
@@ -669,13 +669,18 @@ static void scan_percent(const char **str,
 }
 
 
-/*static void scan_char(const char **str, va_list *argp, bool ass_supress,
+static void scan_char(const char **str, va_list *argp, bool ass_supress,
                       bool outsider_ch, int width, int specs,
-                      int *ret, int *err)  {
+                      int *ret) {
 skip(str, is_whitespace);
 
+inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
+if (width) {
+(*str) += width;
+} else (*str)++;
 
-}*/
+
+}
 
 
 
@@ -717,10 +722,13 @@ static void scan_proc(const char **str, const char *const *str_start, int specs,
     scan_uint(str, argp, ass_supress, outsider_ch, width, length, specs, ret,
               err);
   }
-  if ((specs & spec_percent)) { /* scan '%'*/
+  if (specs & spec_percent) { /* scan '%'*/
     scan_percent(
         str,
         /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err);
+  }
+  if (specs & spec_c) {
+   scan_char(str, argp, ass_supress, outsider_ch, width, specs,ret);
   }
 }
 
