@@ -604,16 +604,13 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress,
                      int *ret, int *err) {
   skip(str, is_whitespace);
   if (**str) {
-    int count = 0, sign = 0;  // TODO: insert sign_check into str_to_oct/hex
-    // int sign = sign_check(str, &count); /* get sign or check for double sign
-    // */
+    int count = 0, sign = 0;      
     int prefix = 0;
     prefix = prefix_check(str, specs, &count, &sign);
     long res = 0;
     switch (prefix) {
       case DEC:
         res = str_to_dec(str, width, sign, count, err);
-        printf("get res = %ld\n", res);
         break;
       case OCT:
         res = str_to_oct(str, width, sign, count, err);
