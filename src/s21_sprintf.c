@@ -1,8 +1,13 @@
 #include "s21_sprintf.h"
 
-/* chek if it's a flag */
+/* check if it's a flag */
 static bool is_flag(char ch) {
   return (ch == '-' || ch == '+' || ch == ' ' || ch == '#' || ch == '0') ? true : false;
+}
+
+/* check if it's a length */
+static bool is_length(char ch) {
+  return (ch == 'h' || ch == 'l' || ch == 'L') ? true : false;
 }
 
 /* 
@@ -125,7 +130,7 @@ void spec_processing(char* buf, const char* format, s21* sh21, int* count_char,
 
 /* 
 get width and precision from format string for current arg
-stops at the first ch after flags
+stops at the first ch after width or precision
 */
 static void get_width_precision(const char **format, int *num_value, bool *bool_value, int *err) {
   if (**format == '*') {
@@ -135,6 +140,18 @@ static void get_width_precision(const char **format, int *num_value, bool *bool_
     *num_value = str_to_dec(format, 0, 1, 0, err); /* get width (str, width, sign, count, err);*/
   }
   return;
+}
+
+/* 
+get length
+stops at the first ch after length character
+*/
+static void get_length(const char **format) {
+  char res = 0;
+  if (is_length(**format))
+    res = **format;
+  }
+  return res;
 }
 
 int s21_sprintf(char* buf, const char* format, ...) {
@@ -149,6 +166,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
   Flags flag;
   int width = 0, precision = 0; //for width and percision
   bool arg_width = false, arg_precision = false; // for * and .*  width and precision in additiona argument
+  char length = 0;
 
   while (*format) {
     if (!is_spec && *format != '%') {  // if we met a regular ch
@@ -173,10 +191,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
       */
       get_flags(&format, &flags);
       get_width_precision(&format, &width, &arg_width, &err);
+      //may be add hiding for get_precision() ?
       if (*format == '.') {
         format++;
         get_width_precision(&format, &precision, &arg_precision, &err);
       }
+      length = get_length(&format);
       spec_processing(buf, format, &sh21, &count_char, &param);
       is_spec = false;
     }
