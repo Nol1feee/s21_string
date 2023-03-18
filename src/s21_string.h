@@ -11,6 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* common funcs */
+bool is_digit(char ch);
+bool is_whitespace(char ch);
+bool isnt_whitespace(char ch);
+bool isnt_end(char ch);
+int skip (const char **string, bool (*skip_cond)(char)); // skips the characters that the skip_cond defines
+
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done
 int enum_delim(char str, const char *delim);

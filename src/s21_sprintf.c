@@ -30,7 +30,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
       1) read flags, width, length, precision, etc into struct
         1.1) make several separate bitfields for store of flags, width, length, precision, etc 
         1.2) make funcs like is_flag(), is_width(), is_length(), is_precision(), etc 
-        1.3) make funcs to fill each structure 
+        1.3) make funcs to fill each structure  
         1.4) after meeting first % as start of specificator make next ch lower-case for using
              switch-case in future
       */
@@ -57,10 +57,11 @@ int s21_sprintf(char* buf, const char* format, ...) {
         sh21.need_prefix = 1;
       } else if (*format == 'L') {
         sh21.L_flag = 1;
-      } else if (((*format) >= '0') && ((*format) <= '9')) {
+      } else if (is_digit(*format)) {
         numbers(format, &sh21);
         // пропускает цифры, которые были обработаны в numbers
-        while (*(format + 1) >= '0' && *(format + 1) <= '9') format++;
+        skip(&format+1, is_digit);
+        //while(is_digit(*(format + 1))) {format++}
       } else if (*format == 'i' || *format == 'd') {
         if (sh21.h_flag)
           d = (short int)va_arg(param, int);

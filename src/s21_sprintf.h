@@ -7,6 +7,16 @@
 
 #include "s21_string.h"
 
+/* bit field for flags */
+/*typedef struct flags {
+  unsigned int minus : 1; //int fill_left;  // выравнивание по левому краю
+  unsigned int plus : 1;  //int signed_conversion;  // указываем знак для любых чтсел
+  unsigned int space : 1;
+  unsigned int sharp : 1;
+  unsigned int zero : 1;
+} Flags;*/
+
+
 typedef struct s21 {
   int percent;     // флаг для повторного символа %
   int fill_left;  // выравнивание по левому краю

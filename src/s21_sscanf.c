@@ -37,40 +37,36 @@ enum {
 };
 
 /* check white-space characters */
-static _Bool is_whitespace(char ch) {
+bool is_whitespace(char ch) {
   return (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') ? true : false;
 }
 
-/* skip white-space chatacters */
-static int skip_whitespaces(const char **string) {
+/* check non white-space characters */
+bool isnt_whitespace(char ch) {
+  return !is_whitespace(ch);
+}
+
+/* is not an end of string  */
+bool isnt_end(char ch) {
+  return ch;
+}
+
+/* func for skipping different characters */
+int skip (const char **string, bool (*skip_cond)(char)) {
   int count = 0;
-  while (is_whitespace(**string)) {
+  while (**string && (*skip_cond)(**string)) {
     (*string)++;
     count++;
   }
   return count;
 }
 
-/* skip the whole string */
-static void skip_all(const char **string) {
-  while (**string) {
-    (*string)++;
-  }
-}
-
-/* skip before the whole string */
-static void skip_non_whitespaces(const char **string) {
-  while (**string && !is_whitespace(**string)) {
-    (*string)++;
-  }
-}
-
 /* sets the format pointer to the character after the % */
 static void get_specifier(const char **str, const char **format,
                           _Bool *outsider_ch) {
-  int white_count = skip_whitespaces(format);
+  int white_count = skip(format, is_whitespace);
   if (white_count) {
-    skip_whitespaces(str);
+    skip(str, is_whitespace);
   }
   while (**format != '%') { /* skip all regular characters*/
     if (**format != **str) {
@@ -84,7 +80,7 @@ static void get_specifier(const char **str, const char **format,
 }
 
 /* check character if it's a digit*/
-static _Bool is_digit(char ch) {
+bool is_digit(char ch) {
   return ((ch >= '0') && (ch <= '9')) ? true : false;
 }
 
@@ -99,7 +95,7 @@ static int sign_check(const char **str, int *count) {
   char next_ch = *((*str) + 1);
   if ((is_sign(**str)) && (is_sign(next_ch))) {
     sign = 0;
-    skip_all(str);
+    skip(str, isnt_end);
     // TODO: handle error
   } else if (**str == '-') {
     sign = -1;
@@ -138,7 +134,7 @@ static long str_to_dec(const char **string, int width, int sign, int count,
   res = res * sign;
   if (overflow) {
     res = -1;
-    skip_non_whitespaces(string);
+    skip(string, isnt_whitespace);
   }
   printf("finish res = %ld\n", res);
   return res;
@@ -254,9 +250,9 @@ static int str_to_str(const char **str, int width /*, int length*/) {
 }
 
 /* put string from source string to another agrument of sscanf */
-static void scan_string(const char **str, va_list *argp, _Bool ass_supress,
-                        _Bool outsider_ch, int width, int *ret) {
-  skip_whitespaces(str);
+static void scan_string(const char **str, va_list *argp, bool ass_supress,
+                        bool outsider_ch, int width, int *ret) {
+  skip(str, is_whitespace);
   const char *str_start = *str;        // save start of string
   int count = str_to_str(str, width);  // number of characters
   str_into_arg(argp, ass_supress, outsider_ch, count, str_start, ret);
@@ -400,7 +396,7 @@ static void str_to_fpnum(const char **str, int width, int sign, int count,
 static void scan_efg(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count =
       0;  // TODO: finish sign handle as +1 character into count (for width)
   int sign = sign_check(str, &count);
@@ -547,7 +543,7 @@ static long str_to_hex(const char **str, int width, int sign, int count,
 static void scan_hex(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -590,7 +586,7 @@ static long str_to_oct(const char **str, int width, int sign, int count,
 static void scan_oct(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -608,7 +604,7 @@ static void scan_pointer(const char **str, va_list *argp, _Bool ass_supress,
                          _Bool outsider_ch, int width, int specs, int *ret,
                          int *err) {
   *err = ER;
-  skip_whitespaces(str); /* number of hexadecimal characters */
+  skip(str, is_whitespace); /* number of hexadecimal characters */
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -647,7 +643,7 @@ static void count_chars(const char **str, const char *const *str_start,
 static void scan_doh(const char **str, va_list *argp, bool ass_supress,
                      bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
     int count = 0, sign = 0;  // TODO: insert sign_check into str_to_oct/hex
     // int sign = sign_check(str, &count); /* get sign or check for double sign
@@ -680,7 +676,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress,
 static void scan_uint(const char **str, va_list *argp, bool ass_supress,
                       bool outsider_ch, int width, int length, int specs,
                       int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
     int count = 0, sign = 0;
     sign = sign_check(str, &count);
@@ -699,7 +695,7 @@ static void scan_percent(const char **str,
                          /*va_list *argp, bool ass_supress, bool outsider_ch,
                             int width, int length, int specs, int *ret,*/
                          int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
     if (**str == '%') {
       (*str)++;
