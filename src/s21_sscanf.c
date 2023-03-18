@@ -1,8 +1,6 @@
 #include <limits.h>
 
 #include "s21_string.h"
-#define OK 0
-#define ER 1
 /*sscanf implementation*/
 
 /* for specifiers */
@@ -42,17 +40,13 @@ bool is_whitespace(char ch) {
 }
 
 /* check non white-space characters */
-bool isnt_whitespace(char ch) {
-  return !is_whitespace(ch);
-}
+bool isnt_whitespace(char ch) { return !is_whitespace(ch); }
 
 /* is not an end of string  */
-bool isnt_end(char ch) {
-  return ch;
-}
+bool isnt_end(char ch) { return ch; }
 
 /* func for skipping different characters */
-int skip (const char **string, bool (*skip_cond)(char)) {
+int skip(const char **string, bool (*skip_cond)(char)) {
   int count = 0;
   while (**string && (*skip_cond)(**string)) {
     (*string)++;
@@ -80,9 +74,7 @@ static void get_specifier(const char **str, const char **format,
 }
 
 /* check character if it's a digit*/
-bool is_digit(char ch) {
-  return ((ch >= '0') && (ch <= '9')) ? true : false;
-}
+bool is_digit(char ch) { return ((ch >= '0') && (ch <= '9')) ? true : false; }
 
 /* checks if the character if a sign or not */
 static _Bool is_sign(char ch) {
@@ -109,7 +101,7 @@ static int sign_check(const char **str, int *count) {
 }
 
 /* converts from string to number */
-static long str_to_dec(const char **string, int width, int sign, int count,
+long str_to_dec(const char **string, int width, int sign, int count,
                        int *err) {
   // sign = sign_check(string, &count);
   long res = 0;

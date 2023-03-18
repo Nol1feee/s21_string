@@ -11,12 +11,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define OK 0  // for errors
+#define ER 1  //
+
 /* common funcs */
 bool is_digit(char ch);
 bool is_whitespace(char ch);
 bool isnt_whitespace(char ch);
 bool isnt_end(char ch);
-int skip (const char **string, bool (*skip_cond)(char)); // skips the characters that the skip_cond defines
+int skip(const char **string,
+         bool (*skip_cond)(
+             char));  // skips the characters that the skip_cond defines
+long str_to_dec(const char **string, int width, int sign, int count, int *err);
+
 
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done
