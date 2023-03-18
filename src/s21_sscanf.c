@@ -412,15 +412,19 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
                           int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-    if (length == 'l') {
+     if (!(specs & spec_c)) {
+     char *dst_char = va_arg(*argp, char *);
+     *dst_char = res;
+     } else if (length == 'l') {
       long *dst_num = va_arg(*argp, long *); /* take argument address */
       *dst_num = res;
     } else if (length == 'h') {
       short *dst_num = va_arg(*argp, short *);
       *dst_num = (short)res;
-    } else {
+    } else  {
       int *dst_num = va_arg(*argp, int *);
       *dst_num = (int)res;
+    }   
     }
     if (!(specs & spec_n)) {
       (*ret)++;
@@ -663,6 +667,19 @@ static void scan_percent(const char **str,
     }
   }
 }
+
+
+/*static void scan_char(const char **str, va_list *argp, bool ass_supress,
+                      bool outsider_ch, int width, int specs,
+                      int *ret, int *err)  {
+skip(str, is_whitespace);
+
+
+}*/
+
+
+
+
 
 /* scan processing*/
 static void scan_proc(const char **str, const char *const *str_start, int specs,
