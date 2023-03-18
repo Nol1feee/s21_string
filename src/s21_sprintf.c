@@ -5,11 +5,32 @@ static bool is_flag(char ch) {
   return (ch == '-' || ch == '+' || ch == ' ' || ch == '#' || ch == '0') ? true : false;
 }
 
-/* get flags from format string for current argument */
-void get_flags(const char* format) {
+/* 
+get flags from format string for current argument 
+stops at the first ch after flags
+*/
+void get_flags(const char** format, Flags *flag) {
   while (is_flag(*format)) {
-    //fill the struct
+    switch (*format) {
+      case '-':
+        flag->fill_left = true;
+        break;
+      case '+':
+        flag->show_sign = true;
+        break;
+      case ' ':
+        flag->hide_sign = true;
+        break;
+      case '#':
+        flag->oxefg_format = true;
+        break;
+      case '0':
+        flag->zero_fill = true;
+        break;
+    }
+    (*format)++;
   }
+  return;
 }
 
 void spec_processing(char* buf, const char* format, s21* sh21, int* count_char,
@@ -102,8 +123,23 @@ void spec_processing(char* buf, const char* format, s21* sh21, int* count_char,
   }
 }
 
+/* 
+get width and precision from format string for current arg
+stops at the first ch after flags
+*/
+static void get_width_precision(const char **format, int *num_value, bool *bool_value, int *err) {
+  if (**format == '*') {
+    *num_value = true;
+    (*format)++;
+  } else { 
+    *num_value = str_to_dec(format, 0, 1, 0, err); /* get width (str, width, sign, count, err);*/
+  }
+  return;
+}
+
 int s21_sprintf(char* buf, const char* format, ...) {
   //*buf = 0; //TODO for what?
+  int err = OK; // for errors
   va_list param;
   va_start(param, format);
   s21 sh21;  // struct for some flags, width, length, precision, etc
@@ -111,6 +147,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
   int count_char = 0;    // for %n
   bool is_spec = false;  // for tracking specifiers
   Flags flag;
+  int width = 0, precision = 0; //for width and percision
+  bool arg_width = false, arg_precision = false; // for * and .*  width and precision in additiona argument
 
   while (*format) {
     if (!is_spec && *format != '%') {  // if we met a regular ch
@@ -133,7 +171,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
       meeting first % as start of specificator make next ch lower-case for using
              switch-case in future
       */
-      get_flags(format, &flags);
+      get_flags(&format, &flags);
+      get_width_precision(&format, &width, &arg_width, &err);
+      if (*format == '.') {
+        format++;
+        get_width_precision(&format, &precision, &arg_precision, &err);
+      }
       spec_processing(buf, format, &sh21, &count_char, &param);
       is_spec = false;
     }
