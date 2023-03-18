@@ -16,21 +16,13 @@ typedef struct {
   bool zero_fill : 1;     // 0
 } Flags;
 
-typedef struct s21 {
-  int percent;    // флаг для повторного символа %
-  int fill_left;  // выравнивание по левому краю
-  int signed_conversion;  // указываем знак для любых чтсел
-  int space_signed_conversion;  // если число положительное, и мы не указали,
-                                // что нам нужно явно указать знак,то у
-                                // положительных чисел на месте знака будет
-                                // пробел
-  int width;        // ширина
-  int floating;     // точность
-  int h_flag;       // шорт инт
-  int l_flag;       // лонг инт
-  int need_prefix;  // нужно для не десятичной
-  int L_flag;
-} s21;
+typedef struct {
+  int width = 0;
+  int precision = 0;
+  bool arg_width = false; // for * width in additiona argument
+  bool arg_precision = false; // for .* precision in additiona argument
+  char length = 0;
+} Wid_prec_len;
 
 int s21_sprintf(char* buf, const char* format, ...);
 

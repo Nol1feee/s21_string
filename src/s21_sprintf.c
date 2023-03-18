@@ -101,8 +101,7 @@ static int set_specs_printf(const char **format, int *err) {
   return specs;
 }
 
-void print_processing(char* buf, const char* format, s21* sh21, int* count_char,
-                     va_list* param, int* err) {
+void print_processing(int specs, int* count_char, va_list* param, int* err) {
   long int d;           // TODO for what?
   long double f;        // TODO for what?
   wchar_t symbol;       // TODO for what?
@@ -205,16 +204,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
   int err = OK;  // for errors
   va_list param;
   va_start(param, format);
-  s21 sh21;  // struct for some flags, width, length, precision, etc
-  s21_reset_struct(&sh21);
   int count_char = 0;          // for %n
   bool is_spec_start = false;  // for tracking start of specifiers (%)
   Flags flag;
-  int width = 0, precision = 0;  // for width and percision
-  bool arg_width = false,
-       arg_precision =
-           false;  // for * and .*  width and precision in additiona argument
-  char length = 0;
+  Wid_prec_len wpl;
+  memset(&flag, 0, sizeof Flags); //reset flag
+  reset(wpl);
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
@@ -588,17 +583,12 @@ char* s21_uint_to_string(unsigned long long number, long int floating) {
   return revers(str, i + 1);
 }
 
-void s21_reset_struct(s21* sh21) {
-  sh21->percent = 0;
-  sh21->fill_left = 0;
-  sh21->signed_conversion = 0;
-  sh21->space_signed_conversion = 0;
-  sh21->width = -1;
-  sh21->floating = -1;
-  sh21->h_flag = 0;
-  sh21->l_flag = 0;
-  sh21->need_prefix = 0;
-  sh21->L_flag = 0;
+void reset(Wid_prec_len *wpl) {
+  wpl->width = 0;
+  wpl->precision = 0;
+  wpl->arg_width = false;
+  wpl->arg_precision = false;
+  wpl->length = 0;
 }
 
 void fill_result(char* buf, char* result, s21* sh21) {
