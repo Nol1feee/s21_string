@@ -101,7 +101,39 @@ static int set_specs_printf(const char **format, int *err) {
   return specs;
 }
 
-void print_processing(int specs, int* count_char, va_list* param, int* err) {
+void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
+  s21_strcat(result, temp);
+  free(temp);
+  result = s21_add_spaces(result, sh21);
+  fill_result(buf, result, sh21);
+}
+
+char* s21_int_to_string(long int number, long int floating) {
+  int i = 0;
+  char* str = calloc(32, sizeof(char)); // TODO free!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // TODO protect calloc
+  if (number < 0) number *= -1; // make positive
+  if (number != 0) {
+    while (number > 0) {
+      str[i++] = (number % 10) + SHIFT_zero;
+      number /= 10;
+    }
+  } else if (floating != 0) {
+    str[i] = '0';
+  }
+  return revers(str, i);
+}
+
+void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
+  temp = s21_int_to_string(d, sh21->floating);
+  result = calloc(s21_strlen(temp) + 1, sizeof(char));
+  result = s21_add_sign(result, temp, sh21->signed_conversion,
+                        sh21->space_signed_conversion, d);
+  result = s21_add_zero(result, temp, sh21->floating);
+  insert_and_free(sh21, temp, buf, result);
+}
+
+void print_processing(int specs, int* count_char, va_list* param, Wid_prec_len wpl, Flags flag, int* err) {
   long int d;           // TODO for what?
   long double f;        // TODO for what?
   wchar_t symbol;       // TODO for what?
@@ -109,60 +141,57 @@ void print_processing(int specs, int* count_char, va_list* param, int* err) {
   uint64_t u;           // TODO for what?
   char* temp = NULL;    // TODO for what?
   char* result = NULL;  // TODO for what?
-  if (*format == 'i' || *format == 'd') {
-      if (sh21->h_flag)
+  if ((specs & spec_i) || (specs & spec_i)) {
+      if (wpl->length == 'h')
         d = (short int)va_arg(*param, int);
-      else if (sh21->l_flag)
+      else if (wpl->length == 'l')
         d = va_arg(*param, long int);
       else
         d = va_arg(*param, int);
       flag_i_d(sh21, temp, buf, result, d);
-    } else if (*format == 'x' || *format == 'X') {  // 16-ричное число инт
+    } else if ((specs & spec_x) || (specs & spec_X)) {  // 16-ричное число инт
       d = va_arg(*param, uint64_t);
       flag_x(sh21, temp, buf, result, d, 'x' - *format);
-    } else if (*format == 'p') {
+    } else if ((specs & spec_p)) {
       d = va_arg(*param, uint64_t);
       flag_p(sh21, temp, buf, result, d);
-    } else if (*format == 'o') {  // 8-ричное число инт
+    } else if ((specs & spec_o)) {  // 8-ричное число инт
       d = (unsigned int)va_arg(*param, uint64_t);
       flag_o(sh21, temp, buf, result, d);
-    } else if (*format == 'O') {
-      d = va_arg(*param, uint64_t);
-      flag_o(sh21, temp, buf, result, d);
-    } else if (*format == 'c') {
+    } else if ((specs & spec_c)) {
       d = va_arg(*param, int);
       flag_i_d(sh21, temp, buf, result, d);
-    } else if (*format == 'f') {
+    } else if ((specs & spec_f)) {
       if (sh21->L_flag) {
         f = va_arg(*param, long double);
       } else {
         f = va_arg(*param, double);
       }
       flag_f(sh21, temp, buf, result, f);
-    } else if (*format == 'c') {
+    } else if ((specs & spec_c)) {
       symbol = (char)va_arg(*param, int);
       flag_c(sh21, buf, result, symbol);
-    } else if (*format == 's') {
+    } else if ((specs & spec_s)) {
       string = va_arg(*param, char*);
       flag_s(sh21, string, buf, result);
-    } else if (*format == 'u') {
+    } else if ((specs & spec_u)) {
       u = va_arg(*param, uint64_t);
       flag_u(sh21, temp, buf, result, u);
-    } else if (*format == 'g' || *format == 'G') {
+    } else if ((specs & spec_g) || (specs & spec_G)) {
       if (sh21->L_flag == 1) {
         f = va_arg(*param, long double);
       } else {
         f = va_arg(*param, double);
         flag_g(sh21, temp, buf, result, f, *format);
       }
-    } else if (*format == 'e' || *format == 'E') {
+    } else if ((specs & spec_e) || (specs & spec_E)) {
       if (sh21->L_flag == 1) {
         f = va_arg(*param, long double);
       } else {
         f = va_arg(*param, double);
         flag_e(sh21, temp, buf, result, f, *format);
       }
-    } else if (*format == 'n') {
+    } else if ((specs & spec_n)) {
       int* count = va_arg(*param, int*);
       *count = *count_char;
       fill_result(buf, result, sh21);
@@ -208,8 +237,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
   bool is_spec_start = false;  // for tracking start of specifiers (%)
   Flags flag;
   Wid_prec_len wpl;
-  memset(&flag, 0, sizeof Flags); //reset flag
-  reset(wpl);
+  reset(&wpl, &flag);
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
@@ -243,6 +271,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
       length = get_length(&format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
       print_processing(buf, format, &sh21, &count_char, &param, &err);
+      reset(wpl);
       is_spec_start = false;
     }
     format++;
@@ -335,14 +364,7 @@ char* handler_flag_g(long double num, s21* s21, char format) {
   return str;
 }
 
-void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
-  temp = s21_int_to_string(d, sh21->floating);
-  result = calloc(s21_strlen(temp) + 1, sizeof(char));
-  result = s21_add_sign(result, temp, sh21->signed_conversion,
-                        sh21->space_signed_conversion, d);
-  result = s21_add_zero(result, temp, sh21->floating);
-  insert_and_free(sh21, temp, buf, result);
-}
+
 
 void flag_x(s21* sh21, char* temp, char* buf, char* result, unsigned int d,
             int shift) {
@@ -437,20 +459,7 @@ char* revers(char* str, int i) {
   return str;
 }
 
-char* s21_int_to_string(long int number, long int floating) {
-  int i = 1;
-  char* str = calloc(32, sizeof(char));
-  if (number < 0) number *= -1;
-  if (number != 0) {
-    while (number > 0) {
-      str[i++ - 1] = (number % 10) + '0';
-      number /= 10;
-    }
-  } else if (floating != 0) {
-    str[i - 1] = '0';
-  }
-  return revers(str, i);
-}
+
 
 char* s21_hexadecimal_to_string(long int number, long int floating, int shift,
                                 int need_prefix) {
@@ -583,12 +592,13 @@ char* s21_uint_to_string(unsigned long long number, long int floating) {
   return revers(str, i + 1);
 }
 
-void reset(Wid_prec_len *wpl) {
+void reset(Wid_prec_len *wpl, Flags *flag) {
   wpl->width = 0;
   wpl->precision = 0;
   wpl->arg_width = false;
   wpl->arg_precision = false;
   wpl->length = 0;
+  memset(&flag, 0, sizeof Flags); //reset flag
 }
 
 void fill_result(char* buf, char* result, s21* sh21) {
@@ -597,12 +607,7 @@ void fill_result(char* buf, char* result, s21* sh21) {
   free(result);
 }
 
-void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
-  s21_strcat(result, temp);
-  free(temp);
-  result = s21_add_spaces(result, sh21);
-  fill_result(buf, result, sh21);
-}
+
 
 char* s21_add_spaces(char* format, s21* sh21) {
   int str_len = s21_strlen(format);

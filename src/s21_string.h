@@ -35,6 +35,14 @@ enum {
   spec_percent = 1 << 15
 };
 
+/* for shifts */
+enum {
+  SHIFT_zero = 48, /* code of 0 in ASCII */
+  SHIFT_HEX = 55,  /* code of A - 10 in ASCII */
+  SHIFT_hex = 87,  /* code of a - 10 in ASCII */
+  SHIFT_case = 32  /* difference between A(65) and a(97)*/
+};
+
 /* common funcs */
 bool is_digit(char ch);
 bool is_whitespace(char ch);

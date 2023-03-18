@@ -4,14 +4,6 @@
 /* for systems */
 enum { OCT = 8, DEC = 10, HEX = 16 };
 
-/* for shifts */
-enum {
-  SHIFT_zero = 48, /* code of 0 in ASCII */
-  SHIFT_HEX = 55,  /* code of A - 10 in ASCII */
-  SHIFT_hex = 87,  /* code of a - 10 in ASCII */
-  SHIFT_case = 32  /* difference between A(65) and a(97)*/
-};
-
 /* check white-space characters */
 bool is_whitespace(char ch) {
   return (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') ? true : false;
@@ -93,8 +85,6 @@ long str_to_dec(const char **string, int width, int sign, int count, int *err) {
                      ? true
                      : false;
       res = res * DEC + (**string - SHIFT_zero);
-      // printf("res = %ld\n", res);
-      // printf("overflow = %d\n", overflow);
       (*string)++;
       count++;
     }
