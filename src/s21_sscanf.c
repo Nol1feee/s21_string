@@ -1,27 +1,5 @@
-#include <limits.h>
-
-#include "s21_string.h"
 /*sscanf implementation*/
-
-/* for specifiers */
-enum {
-  spec_c = 1 << 0,
-  spec_d = 1 << 1,
-  spec_i = 1 << 2,
-  spec_e = 1 << 3,
-  spec_E = 1 << 4,
-  spec_f = 1 << 5,
-  spec_g = 1 << 6,
-  spec_G = 1 << 7,
-  spec_o = 1 << 8,
-  spec_s = 1 << 9,
-  spec_u = 1 << 10,
-  spec_x = 1 << 11,
-  spec_X = 1 << 12,
-  spec_p = 1 << 13,
-  spec_n = 1 << 14,
-  spec_percent = 1 << 15
-};
+#include "s21_string.h"
 
 /* for systems */
 enum { OCT = 8, DEC = 10, HEX = 16 };
@@ -101,8 +79,7 @@ static int sign_check(const char **str, int *count) {
 }
 
 /* converts from string to number */
-long str_to_dec(const char **string, int width, int sign, int count,
-                       int *err) {
+long str_to_dec(const char **string, int width, int sign, int count, int *err) {
   // sign = sign_check(string, &count);
   long res = 0;
   bool overflow = false;
@@ -144,7 +121,7 @@ static bool is_correct_length(const char **format) {
 }
 
 /* set the specs in an integer number according to enum */
-static int set_specs(const char **format, _Bool *ass_supress, int *width,
+int set_specs(const char **format, bool *ass_supress, int *width,
                      int *length, int *err) {
   int specs = 0;
   while ((**format) && !is_whitespace(**format) && (!specs)) {

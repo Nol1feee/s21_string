@@ -10,7 +10,7 @@
 /* bit field for flags */
 typedef struct {
   bool fill_left : 1;     //-
-  bool show_sign : 1;     // + 
+  bool show_sign : 1;     // +
   bool hide_sign : 1;     // space
   bool oxefg_format : 1;  // #
   bool zero_fill : 1;     // 0
