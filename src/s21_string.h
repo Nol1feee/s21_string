@@ -52,8 +52,8 @@ int skip(const char **string,
          bool (*skip_cond)(
              char));  // skips the characters that the skip_cond defines
 long str_to_dec(const char **string, int width, int sign, int count, int *err);
-int set_specs(const char **format, _Bool *ass_supress, int *width,
-                     int *length, int *err);
+int set_specs(const char **format, _Bool *ass_supress, int *width, int *length,
+              int *err);
 
 s21_size_t s21_strlen(const char *string);          // done
 char *s21_strcat(char *str_change, char *str_add);  // done

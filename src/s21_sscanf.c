@@ -111,8 +111,8 @@ static bool is_correct_length(const char **format) {
 }
 
 /* set the specs in an integer number according to enum */
-int set_specs(const char **format, bool *ass_supress, int *width,
-                     int *length, int *err) {
+int set_specs(const char **format, bool *ass_supress, int *width, int *length,
+              int *err) {
   int specs = 0;
   while ((**format) && !is_whitespace(**format) && (!specs)) {
     switch (**format) {
@@ -412,25 +412,24 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
                           int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-     if (specs & spec_c) {
-     char *dst_char = va_arg(*argp, char *);
-     *dst_char = res;
-     } else if (length == 'l') {
+    if (specs & spec_c) {
+      char *dst_char = va_arg(*argp, char *);
+      *dst_char = res;
+    } else if (length == 'l') {
       long *dst_num = va_arg(*argp, long *); /* take argument address */
       *dst_num = res;
     } else if (length == 'h') {
       short *dst_num = va_arg(*argp, short *);
       *dst_num = (short)res;
-    } else  {
+    } else {
       int *dst_num = va_arg(*argp, int *);
       *dst_num = (int)res;
-    }   
-    }
-    if (!(specs & spec_n)) {
-      (*ret)++;
     }
   }
-
+  if (!(specs & spec_n)) {
+    (*ret)++;
+  }
+}
 
 /* puts insigned integer number into another vararg*/
 static void uint_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
@@ -608,7 +607,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress,
                      int *ret, int *err) {
   skip(str, is_whitespace);
   if (**str) {
-    int count = 0, sign = 0;      
+    int count = 0, sign = 0;
     int prefix = 0;
     prefix = prefix_check(str, specs, &count, &sign);
     long res = 0;
@@ -665,23 +664,16 @@ static void scan_percent(const char **str,
   }
 }
 
-
 static void scan_char(const char **str, va_list *argp, bool ass_supress,
-                      bool outsider_ch, int width, int specs,
-                      int *ret) {
-skip(str, is_whitespace);
+                      bool outsider_ch, int width, int specs, int *ret) {
+  skip(str, is_whitespace);
 
-inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
-if (width) {
-(*str) += width;
-} else (*str)++;
-
-
+  inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
+  if (width) {
+    (*str) += width;
+  } else
+    (*str)++;
 }
-
-
-
-
 
 /* scan processing*/
 static void scan_proc(const char **str, const char *const *str_start, int specs,
@@ -725,7 +717,7 @@ static void scan_proc(const char **str, const char *const *str_start, int specs,
         /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err);
   }
   if (specs & spec_c) {
-   scan_char(str, argp, ass_supress, outsider_ch, width, specs,ret);
+    scan_char(str, argp, ass_supress, outsider_ch, width, specs, ret);
   }
 }
 

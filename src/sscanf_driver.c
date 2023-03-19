@@ -5,7 +5,7 @@
 int s21_sscanf(const char *str, const char *format, ...);
 
 int main(void) {
-  long a1 = 0, a2 = 0; 
+  long a1 = 0, a2 = 0;
   unsigned int b1 = 0, b2 = 0, c1 = 0, c2 = 0;
   const char src[] = "12345 015 % -868";
   const char *format = "%3ld %o %% %u";
