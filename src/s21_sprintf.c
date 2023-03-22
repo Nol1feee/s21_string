@@ -1,132 +1,376 @@
 #include "s21_sprintf.h"
 
+void reset(Wid_prec_len* wpl, Flags* flag) {
+  wpl->width = 0;
+  wpl->precision = 0;
+  wpl->arg_width = false;
+  wpl->arg_precision = false;
+  wpl->length = 0;
+  s21_memset(&flag, 0, sizeof(Flags));  // reset flag
+}
+
+/* check if it's a flag */
+static bool is_flag(const char ch) {
+  return (ch == '-' || ch == '+' || ch == ' ' || ch == '#' || ch == '0')
+             ? true
+             : false;
+}
+
+/* check if it's a length */
+static bool is_length(char ch) {
+  return (ch == 'h' || ch == 'l' || ch == 'L') ? true : false;
+}
+
+/*
+get flags from format string for current argument
+stops at the first ch after flags
+*/
+void get_flags(const char** format, Flags* flag) {
+  while (is_flag(**format)) {
+    switch (**format) {
+      case '-':
+        flag->fill_left = true;
+        break;
+      case '+':
+        flag->show_sign = true;
+        break;
+      case ' ':
+        flag->hide_sign = true;
+        break;
+      case '#':
+        flag->oxefg_format = true;
+        break;
+      case '0':
+        flag->zero_fill = true;
+        break;
+    }
+    (*format)++;
+  }
+  return;
+}
+
+static int set_specs_printf(const char** format, int* err) {
+  int specs = 0;
+  switch (**format) {
+    case 'c':
+      specs |= spec_c;
+      break;
+    case 'd':
+      specs |= spec_d;
+      break;
+    case 'i':
+      specs |= spec_i;
+      break;
+    case 'e':
+      specs |= spec_e;
+      break;
+    case 'E':
+      specs |= spec_E;
+      break;
+    case 'f':
+      specs |= spec_f;
+      break;
+    case 'g':
+      specs |= spec_g;
+      break;
+    case 'G':
+      specs |= spec_G;
+      break;
+    case 'o':
+      specs |= spec_o;
+      break;
+    case 's':
+      specs |= spec_s;
+      break;
+    case 'u':
+      specs |= spec_u;
+      break;
+    case 'x':
+      specs |= spec_x;
+      break;
+    case 'X':
+      specs |= spec_X;
+      break;
+    case 'p':
+      specs |= spec_p;
+      break;
+    case 'n':
+      specs |= spec_n;
+      break;
+    case '%':
+      specs |= spec_percent;
+      break;
+
+    default:
+      // TODO:handle an error and delete this huety
+      fprintf(stderr, "Incorrect specifier\n");
+      *err = ER;
+  }
+  (*format)++;
+  return specs;
+}
+
+static char* s21_add_spaces(char* format, Flags* flag, int width) {
+  int str_len = s21_strlen(format);
+  if (str_len < width) {
+    char* temp = calloc(width + 1, sizeof(char));
+    int padding_len = width - str_len;
+    char* spc_ptr = calloc(padding_len + 1, sizeof(char));
+    spc_ptr[padding_len] = 0;  // Влад, посмотри
+    if (flag->fill_left) {
+      s21_strcat(temp, format);
+      s21_strcat(temp, spc_ptr);
+    } else {
+      s21_strcat(temp, spc_ptr);
+      s21_strcat(temp, format);
+    }
+    free(spc_ptr);
+    free(format);
+    format = temp;
+  }
+  return format;
+}
+
+static void fill_result(char* buf, char* result, Wid_prec_len* wpl,
+                        Flags* flag) {
+  s21_strcat(buf, result);
+  reset(wpl, flag);
+  free(result);
+}
+
+static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
+                            char* buf, char* result) {
+  s21_strcat(result, temp);
+  free(temp);
+  result = s21_add_spaces(result, flag, wpl->width);
+  fill_result(buf, result, wpl, flag);
+}
+
+static char* revers(char* str, int i) {
+  str[i] = '\0';
+  for (int j = 0, k = s21_strlen(str) - 1, format; j < k; j++, k--) {
+    format = str[j];
+    str[j] = str[k];
+    str[k] = format;
+  }
+  return str;
+}
+
+static char* s21_int_to_string(long int number, int precision) {
+  int i = 0;
+  // why 32?
+  char* str =
+      calloc(32, sizeof(char));  // TODO free!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // TODO protect calloc
+  if (number < 0) number *= -1;  // make positive
+  if (number != 0) {
+    while (number > 0) {
+      str[i++] = (number % 10) + SHIFT_zero;
+      number /= 10;
+    }
+  } else if (precision != 0) {
+    str[i] = '0';
+  }
+  return revers(str, i);
+}
+
+static char* s21_add_zero(char* dest, char* src, int floating) {
+  if ((int)floating > (int)s21_strlen(src)) {
+    size_t k = s21_strlen(dest);
+    if (s21_strlen(dest)) floating++;
+    dest = realloc(dest, (floating + 1) * sizeof(char));
+    for (; k < (floating - s21_strlen(src)); k++) s21_strcat(dest, "0");
+    dest[k] = '\0';
+  }
+  return dest;
+}
+
+static char* s21_add_sign(char* dest, char* src, int signed_conversion,
+                          int space_signed_conversion, long int number) {
+  if (number < 0 || (int)signed_conversion == 1) {
+    dest = realloc(dest, s21_strlen(src) + 2);
+    if (number < 0) {
+      dest[0] = '-';
+    } else {
+      dest[0] = '+';
+    }
+    dest[1] = '\0';
+  } else if (space_signed_conversion == 1) {
+    dest = realloc(dest, s21_strlen(src) + 2);
+
+    dest[0] = ' ';
+
+    dest[1] = '\0';
+  }
+  return dest;
+}
+
+static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long int d) {
+  temp = s21_int_to_string(d, wpl->precision);  // get string with number
+  //TODO protect calloc 
+  char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
+  result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
+  result = s21_add_zero(result, temp, wpl->precision);
+  insert_and_free(wpl, flag, temp, buf, result);
+}
+
+void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
+  //TODO protect calloc 
+  char *result = calloc(2, sizeof(char));
+  /*if (wpl->width && !(flag->fill_left)) {
+    for (int i = 0; i < wpl->width; i++) {
+      result[i] = ' ';
+      if (i == wpl->width - 1) result[i] = symbol;
+    }
+  } else if (wpl->width != -1) {
+    result[0] = symbol;
+    for (int i = 1; i < wpl->width; i++) result[i] = ' ';
+  } else {
+    result[0] = symbol;
+  }*/
+  result[0] = symbol;
+  result[1] = 0;
+  fill_result(buf, result, wpl, flag);
+}
+
+// count_char for %n
+void print_processing(char* buf, int specs, /*int *count_char,*/ va_list* param,
+                      Wid_prec_len* wpl, Flags* flag, int* err) {
+  long int d;  // TODO for what?
+  // long double f;        // TODO for what?
+  char symbol;          // for %c
+  // char* string;         // TODO for what?
+  // uint64_t u;           // TODO for what?
+  char* temp = NULL;    // TODO for what?
+  if ((specs & spec_d) || (specs & spec_i)) {
+    if (wpl->length == 'h') {
+      d = (short int)va_arg(*param, int);
+    } else if (wpl->length == 'l') {
+      d = va_arg(*param, long int);
+    } else {
+      d = va_arg(*param, int);
+    }
+    flag_i_d(wpl, flag, temp, buf, d);
+  } else if ((specs & spec_c)) {
+    symbol = (char)va_arg(*param, int);
+    flag_c(buf, flag, wpl, symbol);
+  } else {
+    *err = ER;
+  }
+  /*} else if ((specs & spec_x) || (specs & spec_X)) {  // 16-ричное число инт
+    d = va_arg(*param, uint64_t);
+    flag_x(sh21, temp, buf, result, d, 'x' - *format);
+  } else if ((specs & spec_p)) {
+    d = va_arg(*param, uint64_t);
+    flag_p(sh21, temp, buf, result, d);
+  } else if ((specs & spec_o)) {  // 8-ричное число инт
+    d = (unsigned int)va_arg(*param, uint64_t);
+    flag_o(sh21, temp, buf, result, d);
+  } else if ((specs & spec_c)) {
+    d = va_arg(*param, int);
+    flag_i_d(sh21, temp, buf, result, d);
+  } else if ((specs & spec_f)) {
+    if (sh21->L_flag) {
+      f = va_arg(*param, long double);
+    } else {
+      f = va_arg(*param, double);
+    }
+    flag_f(sh21, temp, buf, result, f);
+  } else if ((specs & spec_c)) {
+    symbol = (char)va_arg(*param, int);
+    flag_c(sh21, buf, result, symbol);
+  } else if ((specs & spec_s)) {
+    string = va_arg(*param, char*);
+    flag_s(sh21, string, buf, result);
+  } else if ((specs & spec_u)) {
+    u = va_arg(*param, uint64_t);
+    flag_u(sh21, temp, buf, result, u);
+  } else if ((specs & spec_g) || (specs & spec_G)) {
+    if (sh21->L_flag == 1) {
+      f = va_arg(*param, long double);
+    } else {
+      f = va_arg(*param, double);
+      flag_g(sh21, temp, buf, result, f, *format);
+    }
+  } else if ((specs & spec_e) || (specs & spec_E)) {
+    if (sh21->L_flag == 1) {
+      f = va_arg(*param, long double);
+    } else {
+      f = va_arg(*param, double);
+      flag_e(sh21, temp, buf, result, f, *format);
+    }
+  } else if ((specs & spec_n)) {
+    int* count = va_arg(*param, int*);
+    *count = *count_char;
+    fill_result(buf, result, sh21);
+  }*/
+}
+
+/*
+get width and precision from format string for current arg
+stops at the first ch after width or precision
+*/
+static void get_width_precision(const char** format, int* num_value,
+                                bool* bool_value, int* err) {
+  if (**format == '*') {
+    *bool_value = true;
+    (*format)++;
+  } else {
+    *num_value = str_to_dec(format, 0, 1, 0,
+                            err); /* get width (str, width, sign, count, err);*/
+  }
+  return;
+}
+
+/*
+get length
+stops at the first ch after length character
+*/
+static char get_length(const char** format) {
+  return (is_length(**format)) ? (**format) : 0;
+}
+
 int s21_sprintf(char* buf, const char* format, ...) {
-  //*buf = 0; //TODO for what?
+  int err = OK;  // for errors
   va_list param;
   va_start(param, format);
-  char* temp = NULL;    // TODO for what?
-  char* result = NULL;  // TODO for what?
-  long int d;           // TODO for what?
-  long double f;        // TODO for what?
-  wchar_t symbol;       // TODO for what?
-  char* string;         // TODO for what?
-  uint64_t u;           // TODO for what?
-  s21 sh21;             // struct for some flags, width, length, precision, etc
-  s21_reset_struct(&sh21);
-  int count_char = 0;  // for %n
+  int count_char = 0;          // for %n
+  bool is_spec_start = false;  // for tracking start of specifiers (%)
+  Flags flag;
+  Wid_prec_len wpl;
+  reset(&wpl, &flag);
 
-  while (*format++) {
-    if (!sh21.percent && *format != '%') { //if we met a regular ch
+  while (*format) {
+    if (!is_spec_start && *format != '%') {  // if we met a regular ch
       count_char++;
-      s21_strncat(buf, format, 1); // add current character into buf
-
-    } else if (!sh21.percent && *format == '%') { // if we met % for the first time
-      sh21.percent = 1; // treats current '%' as start of format specifier
-
-    } else if (sh21.percent) {
-      // TODO change struct name
-      /*
-      TODO start of separate funcs: 
-      1) read flags, width, length, precision, etc into struct
-        1.1) make several separate bitfields for store of flags, width, length, precision, etc 
-        1.2) make funcs like is_flag(), is_width(), is_length(), is_precision(), etc 
-        1.3) make funcs to fill each structure 
-        1.4) after meeting first % as start of specificator make next ch lower-case for using
-             switch-case in future
-      */
-      if (*format == '%') {
-        //result = calloc(2, sizeof(char));
-        //result[0] = '%';
-        s21_strcat(buf, "%");
-        //free(result);
-        s21_reset_struct(&sh21);
-        count_char++;
-      } else if (*format == '-') {
-        sh21.fill_left = 1;
-      } else if (*format == '+') {
-        sh21.signed_conversion = 1;
-      } else if (*format == ' ') {
-        sh21.space_signed_conversion = 1;
-      } else if (*format == '.') {
-        sh21.floating = 0;
-      } else if (*format == 'h') {
-        sh21.h_flag = 1;
-      } else if (*format == 'l') {
-        sh21.l_flag = 1;
-      } else if (*format == '#') {
-        sh21.need_prefix = 1;
-      } else if (*format == 'L') {
-        sh21.L_flag = 1;
-      } else if (((*format) >= '0') && ((*format) <= '9')) {
-        numbers(format, &sh21);
-        // пропускает цифры, которые были обработаны в numbers
-        while (*(format + 1) >= '0' && *(format + 1) <= '9') format++;
-      } else if (*format == 'i' || *format == 'd') {
-        if (sh21.h_flag)
-          d = (short int)va_arg(param, int);
-        else if (sh21.l_flag)
-          d = va_arg(param, long int);
-        else
-          d = va_arg(param, int);
-        flag_i_d(&sh21, temp, buf, result, d);
-      } else if (*format == 'x' || *format == 'X') {  // 16-ричное число инт
-        d = va_arg(param, uint64_t);
-        flag_x(&sh21, temp, buf, result, d, 'x' - *format);
-      } else if (*format == 'p') {
-        d = va_arg(param, uint64_t);
-        flag_p(&sh21, temp, buf, result, d);
-      } else if (*format == 'o') {  // 8-ричное число инт
-        d = (unsigned int)va_arg(param, uint64_t);
-        flag_o(&sh21, temp, buf, result, d);
-      } else if (*format == 'O') {
-        d = va_arg(param, uint64_t);
-        flag_o(&sh21, temp, buf, result, d);
-      } else if (*format == 'c') {
-        d = va_arg(param, int);
-        flag_i_d(&sh21, temp, buf, result, d);
-      } else if (*format == 'f') {
-        if (sh21.L_flag) {
-          f = va_arg(param, long double);
-        } else {
-          f = va_arg(param, double);
-        }
-        flag_f(&sh21, temp, buf, result, f);
-      } else if (*format == 'c') {
-        symbol = (char)va_arg(param, int);
-        flag_c(&sh21, buf, result, symbol);
-      } else if (*format == 's') {
-        string = va_arg(param, char*);
-        flag_s(&sh21, string, buf, result);
-      } else if (*format == 'u') {
-        u = va_arg(param, uint64_t);
-        flag_u(&sh21, temp, buf, result, u);
-      } else if (*format == 'g' || *format == 'G') {
-        if (sh21.L_flag == 1) {
-          f = va_arg(param, long double);
-        } else {
-          f = va_arg(param, double);
-          flag_g(&sh21, temp, buf, result, f, *format);
-        }
-      } else if (*format == 'e' || *format == 'E') {
-        if (sh21.L_flag == 1) {
-          f = va_arg(param, long double);
-        } else {
-          f = va_arg(param, double);
-          flag_e(&sh21, temp, buf, result, f, *format);
-        }
-      } else if (*format == 'n') {
-        int* count = va_arg(param, int*);
-        *count = count_char;
-        fill_result(buf, result, &sh21);
+      s21_strncat(buf, format, 1);  // add current character into buf
+      format++;
+      // if we met % for the first time
+    } else if (!is_spec_start && *format == '%') {
+      is_spec_start = true;  // treats current '%' as start of format specifier
+      format++;
+    } else  if (is_spec_start) {  // start specificator processing
+      get_flags(&format, &flag);
+      get_width_precision(&format, &wpl.width, &wpl.arg_width, &err);
+      // may be add hiding for this with get_precision() ?
+      if (*format == '.') {
+        format++;
+        get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
       }
-      //TODO end of separate funcs
+      wpl.length = get_length(&format);
+      int specs = set_specs_printf(&format, &err); /* fill the specs number */
+      print_processing(buf, specs, /*&count_char,*/ &param, &wpl, &flag, &err);
+      reset(&wpl, &flag);
+      is_spec_start = false;
     }
+    //format++;
   }
   va_end(param);
+  printf("count_char = %d\n", count_char);
   return s21_strlen(buf);
 }
 
-void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
+/*void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
             char format) {
   temp = handler_flag_e(f, s21->floating, format, s21);
   result = calloc(s21_strlen(temp) + 1, sizeof(char));
@@ -210,19 +454,10 @@ char* handler_flag_g(long double num, s21* s21, char format) {
   return str;
 }
 
-void flag_i_d(s21* sh21, char* temp, char* buf, char* result, long int d) {
-  temp = s21_int_to_string(d, sh21->floating);
-  result = calloc(s21_strlen(temp) + 1, sizeof(char));
-  result = s21_add_sign(result, temp, sh21->signed_conversion,
-                        sh21->space_signed_conversion, d);
-  result = s21_add_zero(result, temp, sh21->floating);
-  insert_and_free(sh21, temp, buf, result);
-}
-
 void flag_x(s21* sh21, char* temp, char* buf, char* result, unsigned int d,
             int shift) {
-  temp = s21_hexadecimal_to_string(d, sh21->floating, shift, sh21->need_prefix);
-  result = calloc(s21_strlen(temp) + 1, sizeof(char));
+  temp = s21_hexadecimal_to_string(d, sh21->floating, shift,
+sh21->need_prefix); result = calloc(s21_strlen(temp) + 1, sizeof(char));
   result = s21_add_zero(result, temp, sh21->floating);
   insert_and_free(sh21, temp, buf, result);
 }
@@ -248,25 +483,11 @@ void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f) {
   result = s21_add_sign(result, temp, sh21->signed_conversion,
                         sh21->space_signed_conversion, f);
   insert_and_free(sh21, temp, buf, result);
-}
+}*/
 
-void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol) {
-  result = calloc((sh21->width != -1 ? sh21->width : 0) + 2, sizeof(char));
-  if (sh21->width != -1 && sh21->fill_left == 0) {
-    for (int i = 0; i < sh21->width; i++) {
-      result[i] = ' ';
-      if (i == sh21->width - 1) result[i] = symbol;
-    }
-  } else if (sh21->width != -1) {
-    result[0] = symbol;
-    for (int i = 1; i < sh21->width; i++) result[i] = ' ';
-  } else {
-    result[0] = symbol;
-  }
-  fill_result(buf, result, sh21);
-}
 
-void flag_s(s21* sh21, char* string, char* buf, char* result) {
+
+/*void flag_s(s21* sh21, char* string, char* buf, char* result) {
   int input_len = s21_strlen(string);
   if (sh21->floating < input_len && sh21->floating >= 0)
     input_len = sh21->floating;
@@ -286,9 +507,9 @@ void flag_s(s21* sh21, char* string, char* buf, char* result) {
   s21_memset(p_ptr, ' ', padding_len);
   s21_memcpy(s_ptr, string, input_len);
   fill_result(buf, result, sh21);
-}
+}*/
 
-void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u) {
+/*void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u) {
   if (sh21->h_flag) {
     u = (uint16_t)u;
   } else if (sh21->l_flag) {
@@ -300,33 +521,8 @@ void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u) {
   result = calloc(s21_strlen(temp) + 1, sizeof(char));
   result = s21_add_zero(result, temp, sh21->floating);
   insert_and_free(sh21, temp, buf, result);
-}
-
-char* revers(char* str, int i) {
-  str[i] = '\0';
-  for (int j = 0, k = s21_strlen(str) - 1, format; j < k; j++, k--) {
-    format = str[j];
-    str[j] = str[k];
-    str[k] = format;
-  }
-  return str;
-}
-
-char* s21_int_to_string(long int number, long int floating) {
-  int i = 1;
-  char* str = calloc(32, sizeof(char));
-  if (number < 0) number *= -1;
-  if (number != 0) {
-    while (number > 0) {
-      str[i++ - 1] = (number % 10) + '0';
-      number /= 10;
-    }
-  } else if (floating != 0) {
-    str[i - 1] = '0';
-  }
-  return revers(str, i);
-}
-
+}*/
+/*
 char* s21_hexadecimal_to_string(long int number, long int floating, int shift,
                                 int need_prefix) {
   int i = 0;
@@ -357,13 +553,9 @@ char* s21_hexadecimal_to_string(long int number, long int floating, int shift,
   return revers(str, i);
 }
 
-char* s21_octal_to_string(long int number, long int floating, int need_prefix) {
-  int i = 0;
-  char* str = calloc(32, sizeof(char));
-  if (number < 0) number *= -1;
-  if (number != 0) {
-    while (number > 0) {
-      str[++i - 1] = (number % 8) + '0';
+char* s21_octal_to_string(long int number, long int floating, int need_prefix)
+{ int i = 0; char* str = calloc(32, sizeof(char)); if (number < 0) number *=
+-1; if (number != 0) { while (number > 0) { str[++i - 1] = (number % 8) + '0';
       number /= 8;
     }
     if (need_prefix) {
@@ -378,36 +570,9 @@ char* s21_octal_to_string(long int number, long int floating, int need_prefix) {
   return revers(str, i);
 }
 
-char* s21_add_sign(char* dest, char* src, int signed_conversion,
-                   int space_signed_conversion, long int number) {
-  if (number < 0 || (int)signed_conversion == 1) {
-    dest = realloc(dest, s21_strlen(src) + 2);
-    if (number < 0) {
-      dest[0] = '-';
-    } else {
-      dest[0] = '+';
-    }
-    dest[1] = '\0';
-  } else if (space_signed_conversion == 1) {
-    dest = realloc(dest, s21_strlen(src) + 2);
 
-    dest[0] = ' ';
 
-    dest[1] = '\0';
-  }
-  return dest;
-}
 
-char* s21_add_zero(char* dest, char* src, int floating) {
-  if ((int)floating > (int)s21_strlen(src)) {
-    size_t k = s21_strlen(dest);
-    if (s21_strlen(dest)) floating++;
-    dest = realloc(dest, (floating + 1) * sizeof(char));
-    for (; k < (floating - s21_strlen(src)); k++) s21_strcat(dest, "0");
-    dest[k] = '\0';
-  }
-  return dest;
-}
 
 int s21_pow(int x, int y) {
   int temp = x;
@@ -456,66 +621,4 @@ char* s21_uint_to_string(unsigned long long number, long int floating) {
     str[i] = '0';
   }
   return revers(str, i + 1);
-}
-
-void s21_reset_struct(s21* sh21) {
-  sh21->percent = 0;
-  sh21->fill_left = 0;
-  sh21->signed_conversion = 0;
-  sh21->space_signed_conversion = 0;
-  sh21->width = -1;
-  sh21->floating = -1;
-  sh21->h_flag = 0;
-  sh21->l_flag = 0;
-  sh21->need_prefix = 0;
-  sh21->L_flag = 0;
-}
-
-void fill_result(char* buf, char* result, s21* sh21) {
-  s21_strcat(buf, result);
-  s21_reset_struct(sh21);
-  free(result);
-}
-
-// блять! Перевод, сука, стринга в инт
-void numbers(const char* format, s21* sh21) {
-  int atoi = 0;
-  while (*format >= '0' && *format <= '9') {
-    atoi *= 10;
-    atoi += *format;
-    format++;
-    atoi -= '0';
-  }
-  if (sh21->floating == -1)
-    sh21->width = atoi;
-  else if (sh21->floating == 0)
-    sh21->floating = atoi;
-}
-
-void insert_and_free(s21* sh21, char* temp, char* buf, char* result) {
-  s21_strcat(result, temp);
-  free(temp);
-  result = s21_add_spaces(result, sh21);
-  fill_result(buf, result, sh21);
-}
-
-char* s21_add_spaces(char* format, s21* sh21) {
-  int str_len = s21_strlen(format);
-  if (str_len < sh21->width) {
-    char* temp = calloc(sh21->width + 1, sizeof(char));
-    int padding_len = sh21->width - str_len;
-    char* spc_ptr = calloc(padding_len + 1, sizeof(char));
-    spc_ptr[padding_len] = 0;  // Влад, посмотри
-    if (sh21->fill_left == 1) {
-      s21_strcat(temp, format);
-      s21_strcat(temp, spc_ptr);
-    } else {
-      s21_strcat(temp, spc_ptr);
-      s21_strcat(temp, format);
-    }
-    free(spc_ptr);
-    free(format);
-    format = temp;
-  }
-  return format;
-}
+}*/

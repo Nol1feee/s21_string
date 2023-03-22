@@ -1,76 +1,36 @@
-#include <limits.h>
-
-#include "s21_string.h"
-#define OK 0
-#define ER 1
 /*sscanf implementation*/
-
-/* for specifiers */
-enum {
-  spec_c = 1 << 0,
-  spec_d = 1 << 1,
-  spec_i = 1 << 2,
-  spec_e = 1 << 3,
-  spec_E = 1 << 4,
-  spec_f = 1 << 5,
-  spec_g = 1 << 6,
-  spec_G = 1 << 7,
-  spec_o = 1 << 8,
-  spec_s = 1 << 9,
-  spec_u = 1 << 10,
-  spec_x = 1 << 11,
-  spec_X = 1 << 12,
-  spec_p = 1 << 13,
-  spec_n = 1 << 14,
-  spec_percent = 1 << 15
-};
+#include "s21_string.h"
 
 /* for systems */
 enum { OCT = 8, DEC = 10, HEX = 16 };
 
-/* for shifts */
-enum {
-  SHIFT_zero = 48, /* code of 0 in ASCII */
-  SHIFT_HEX = 55,  /* code of A - 10 in ASCII */
-  SHIFT_hex = 87,  /* code of a - 10 in ASCII */
-  SHIFT_case = 32  /* difference between A(65) and a(97)*/
-};
-
 /* check white-space characters */
-static _Bool is_whitespace(char ch) {
+bool is_whitespace(char ch) {
   return (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') ? true : false;
 }
 
-/* skip white-space chatacters */
-static int skip_whitespaces(const char **string) {
+/* check non white-space characters */
+bool isnt_whitespace(char ch) { return !is_whitespace(ch); }
+
+/* is not an end of string  */
+bool isnt_end(char ch) { return ch; }
+
+/* func for skipping different characters */
+int skip(const char **string, bool (*skip_cond)(char)) {
   int count = 0;
-  while (is_whitespace(**string)) {
+  while (**string && (*skip_cond)(**string)) {
     (*string)++;
     count++;
   }
   return count;
 }
 
-/* skip the whole string */
-static void skip_all(const char **string) {
-  while (**string) {
-    (*string)++;
-  }
-}
-
-/* skip before the whole string */
-static void skip_non_whitespaces(const char **string) {
-  while (**string && !is_whitespace(**string)) {
-    (*string)++;
-  }
-}
-
 /* sets the format pointer to the character after the % */
 static void get_specifier(const char **str, const char **format,
                           _Bool *outsider_ch) {
-  int white_count = skip_whitespaces(format);
+  int white_count = skip(format, is_whitespace);
   if (white_count) {
-    skip_whitespaces(str);
+    skip(str, is_whitespace);
   }
   while (**format != '%') { /* skip all regular characters*/
     if (**format != **str) {
@@ -84,9 +44,7 @@ static void get_specifier(const char **str, const char **format,
 }
 
 /* check character if it's a digit*/
-static _Bool is_digit(char ch) {
-  return ((ch >= '0') && (ch <= '9')) ? true : false;
-}
+bool is_digit(char ch) { return ((ch >= '0') && (ch <= '9')) ? true : false; }
 
 /* checks if the character if a sign or not */
 static _Bool is_sign(char ch) {
@@ -99,7 +57,7 @@ static int sign_check(const char **str, int *count) {
   char next_ch = *((*str) + 1);
   if ((is_sign(**str)) && (is_sign(next_ch))) {
     sign = 0;
-    skip_all(str);
+    skip(str, isnt_end);
     // TODO: handle error
   } else if (**str == '-') {
     sign = -1;
@@ -113,8 +71,7 @@ static int sign_check(const char **str, int *count) {
 }
 
 /* converts from string to number */
-static long str_to_dec(const char **string, int width, int sign, int count,
-                       int *err) {
+long str_to_dec(const char **string, int width, int sign, int count, int *err) {
   // sign = sign_check(string, &count);
   long res = 0;
   bool overflow = false;
@@ -128,8 +85,6 @@ static long str_to_dec(const char **string, int width, int sign, int count,
                      ? true
                      : false;
       res = res * DEC + (**string - SHIFT_zero);
-      // printf("res = %ld\n", res);
-      // printf("overflow = %d\n", overflow);
       (*string)++;
       count++;
     }
@@ -138,9 +93,8 @@ static long str_to_dec(const char **string, int width, int sign, int count,
   res = res * sign;
   if (overflow) {
     res = -1;
-    skip_non_whitespaces(string);
+    skip(string, isnt_whitespace);
   }
-  printf("finish res = %ld\n", res);
   return res;
 }
 
@@ -156,8 +110,8 @@ static bool is_correct_length(const char **format) {
 }
 
 /* set the specs in an integer number according to enum */
-static int set_specs(const char **format, _Bool *ass_supress, int *width,
-                     int *length, int *err) {
+int set_specs(const char **format, bool *ass_supress, int *width, int *length,
+              int *err) {
   int specs = 0;
   while ((**format) && !is_whitespace(**format) && (!specs)) {
     switch (**format) {
@@ -254,9 +208,9 @@ static int str_to_str(const char **str, int width /*, int length*/) {
 }
 
 /* put string from source string to another agrument of sscanf */
-static void scan_string(const char **str, va_list *argp, _Bool ass_supress,
-                        _Bool outsider_ch, int width, int *ret) {
-  skip_whitespaces(str);
+static void scan_string(const char **str, va_list *argp, bool ass_supress,
+                        bool outsider_ch, int width, int *ret) {
+  skip(str, is_whitespace);
   const char *str_start = *str;        // save start of string
   int count = str_to_str(str, width);  // number of characters
   str_into_arg(argp, ass_supress, outsider_ch, count, str_start, ret);
@@ -400,7 +354,7 @@ static void str_to_fpnum(const char **str, int width, int sign, int count,
 static void scan_efg(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count =
       0;  // TODO: finish sign handle as +1 character into count (for width)
   int sign = sign_check(str, &count);
@@ -457,7 +411,10 @@ static int prefix_check(const char **str, int specs, int *count, int *sign) {
 static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
                           int length, int specs, long res, int *ret) {
   if (!ass_supress && !outsider_ch) {
-    if (length == 'l') {
+    if (specs & spec_c) {
+      char *dst_char = va_arg(*argp, char *);
+      *dst_char = res;
+    } else if (length == 'l') {
       long *dst_num = va_arg(*argp, long *); /* take argument address */
       *dst_num = res;
     } else if (length == 'h') {
@@ -467,9 +424,9 @@ static void inum_into_arg(va_list *argp, _Bool ass_supress, _Bool outsider_ch,
       int *dst_num = va_arg(*argp, int *);
       *dst_num = (int)res;
     }
-    if (!(specs & spec_n)) {
-      (*ret)++;
-    }
+  }
+  if (!(specs & spec_n)) {
+    (*ret)++;
   }
 }
 
@@ -547,7 +504,7 @@ static long str_to_hex(const char **str, int width, int sign, int count,
 static void scan_hex(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -590,7 +547,7 @@ static long str_to_oct(const char **str, int width, int sign, int count,
 static void scan_oct(const char **str, va_list *argp, _Bool ass_supress,
                      _Bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -608,7 +565,7 @@ static void scan_pointer(const char **str, va_list *argp, _Bool ass_supress,
                          _Bool outsider_ch, int width, int specs, int *ret,
                          int *err) {
   *err = ER;
-  skip_whitespaces(str); /* number of hexadecimal characters */
+  skip(str, is_whitespace); /* number of hexadecimal characters */
   int count = 0,
       sign =
           0;  // TODO: finish sign handle as +1 character into count (for width)
@@ -647,18 +604,15 @@ static void count_chars(const char **str, const char *const *str_start,
 static void scan_doh(const char **str, va_list *argp, bool ass_supress,
                      bool outsider_ch, int width, int length, int specs,
                      int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
-    int count = 0, sign = 0;  // TODO: insert sign_check into str_to_oct/hex
-    // int sign = sign_check(str, &count); /* get sign or check for double sign
-    // */
+    int count = 0, sign = 0;
     int prefix = 0;
     prefix = prefix_check(str, specs, &count, &sign);
     long res = 0;
     switch (prefix) {
       case DEC:
         res = str_to_dec(str, width, sign, count, err);
-        printf("get res = %ld\n", res);
         break;
       case OCT:
         res = str_to_oct(str, width, sign, count, err);
@@ -680,7 +634,7 @@ static void scan_doh(const char **str, va_list *argp, bool ass_supress,
 static void scan_uint(const char **str, va_list *argp, bool ass_supress,
                       bool outsider_ch, int width, int length, int specs,
                       int *ret, int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
     int count = 0, sign = 0;
     sign = sign_check(str, &count);
@@ -699,7 +653,7 @@ static void scan_percent(const char **str,
                          /*va_list *argp, bool ass_supress, bool outsider_ch,
                             int width, int length, int specs, int *ret,*/
                          int *err) {
-  skip_whitespaces(str);
+  skip(str, is_whitespace);
   if (**str) {
     if (**str == '%') {
       (*str)++;
@@ -707,6 +661,17 @@ static void scan_percent(const char **str,
       *err = ER;
     }
   }
+}
+
+static void scan_char(const char **str, va_list *argp, bool ass_supress,
+                      bool outsider_ch, int width, int specs, int *ret) {
+  skip(str, is_whitespace);
+
+  inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
+  if (width) {
+    (*str) += width;
+  } else
+    (*str)++;
 }
 
 /* scan processing*/
@@ -745,10 +710,13 @@ static void scan_proc(const char **str, const char *const *str_start, int specs,
     scan_uint(str, argp, ass_supress, outsider_ch, width, length, specs, ret,
               err);
   }
-  if ((specs & spec_percent)) { /* scan '%'*/
+  if (specs & spec_percent) { /* scan '%'*/
     scan_percent(
         str,
         /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err);
+  }
+  if (specs & spec_c) {
+    scan_char(str, argp, ass_supress, outsider_ch, width, specs, ret);
   }
 }
 

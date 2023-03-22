@@ -109,7 +109,7 @@ SSCANF_EXE=s21_sscanf
 sscanf : 
 	$(CC) $(FLAGS) $(SSCANF_SRC) -o $(SSCANF_EXE) -lm
 
-SPRINTF_SRC=s21_strlen.c s21_memcpy.c s21_memset.c s21_strncat.c s21_strcat.c s21_sprintf.c sprintf_driver.c
+SPRINTF_SRC=s21_strlen.c s21_strcpy.c s21_strncpy.c s21_sscanf.c s21_memcpy.c s21_memset.c s21_strncat.c s21_strcat.c s21_sprintf.c sprintf_driver.c
 SPRINTF_EXE=s21_sprintf
 
 sprintf : 
