@@ -95,7 +95,6 @@ long str_to_dec(const char **string, int width, int sign, int count, int *err) {
     res = -1;
     skip(string, isnt_whitespace);
   }
-  printf("finish res = %ld\n", res);
   return res;
 }
 
