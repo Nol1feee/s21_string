@@ -214,7 +214,7 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
   insert_and_free(wpl, flag, temp, buf, result);
 }
 
-void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
+void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter) {
   //TODO protect calloc 
   char *result = calloc(1, sizeof(char));
   /*if (wpl->width && !(flag->fill_left)) {
@@ -229,11 +229,12 @@ void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
     result[0] = symbol;
   }*/
   result[0] = symbol;
+  (*counter)++;
   fill_result(buf, result, wpl, flag);
 }
 
 // count_char for %n
-void print_processing(char* buf, int specs, /*int *count_char,*/ va_list* param,
+void print_processing(char* buf, int specs, int *counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
   long int d;  // TODO for what?
   // long double f;        // TODO for what?
@@ -252,7 +253,7 @@ void print_processing(char* buf, int specs, /*int *count_char,*/ va_list* param,
     flag_i_d(wpl, flag, temp, buf, d);
   } else if ((specs & spec_c)) {
     symbol = (char)va_arg(*param, int);
-    flag_c(buf, flag, wpl, symbol);
+    flag_c(buf, flag, wpl, symbol, counter);
   } else {
     *err = ER;
   }
@@ -334,7 +335,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
   int err = OK;  // for errors
   va_list param;
   va_start(param, format);
-  int count_char = 0;          // for %n
+  int counter = 0;          // for %n
   bool is_spec_start = false;  // for tracking start of specifiers (%)
   Flags flag;
   Wid_prec_len wpl;
@@ -342,7 +343,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
-      count_char++;
+      counter++;
       s21_strncat(buf, format, 1);  // add current character into buf
       format++;
       // if we met % for the first time
@@ -359,15 +360,16 @@ int s21_sprintf(char* buf, const char* format, ...) {
       }
       wpl.length = get_length(&format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
-      print_processing(buf, specs, /*&count_char,*/ &param, &wpl, &flag, &err);
+      print_processing(buf, specs, &counter, &param, &wpl, &flag, &err);
       reset(&wpl, &flag);
       is_spec_start = false;
     }
     //format++;
   }
   va_end(param);
-  printf("count_char = %d\n", count_char);
-  return s21_strlen(buf);
+  printf("counter = %d\n", counter);
+  //return s21_strlen(buf);
+  return counter;
 }
 
 /*void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
