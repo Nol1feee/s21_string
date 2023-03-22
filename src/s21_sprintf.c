@@ -216,7 +216,7 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
 
 void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
   //TODO protect calloc 
-  char *result = calloc(2, sizeof(char));
+  char *result = calloc(1, sizeof(char));
   /*if (wpl->width && !(flag->fill_left)) {
     for (int i = 0; i < wpl->width; i++) {
       result[i] = ' ';
@@ -229,7 +229,6 @@ void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
     result[0] = symbol;
   }*/
   result[0] = symbol;
-  result[1] = 0;
   fill_result(buf, result, wpl, flag);
 }
 
@@ -331,6 +330,7 @@ static char get_length(const char** format) {
 }
 
 int s21_sprintf(char* buf, const char* format, ...) {
+  *buf = 0;
   int err = OK;  // for errors
   va_list param;
   va_start(param, format);
