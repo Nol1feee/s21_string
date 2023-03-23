@@ -214,24 +214,32 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
   insert_and_free(wpl, flag, temp, buf, result);
 }
 
-void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter) {
-  //TODO protect calloc 
-    char *result = calloc(1, sizeof(char));
-    result[0] = symbol;
-    (*counter)++;
-    fill_result(buf, result, wpl, flag);
-  /*if (wpl->width && !(flag->fill_left)) {
-    for (int i = 0; i < wpl->width; i++) {
-      result[i] = ' ';
-      if (i == wpl->width - 1) result[i] = symbol;
+/* */
+static char* put_c (char *result, char symbol, int number, int *counter) {
+  if (NULL != (result = calloc(number, sizeof(char)))) {
+    for (int i = 0; i < number; i++) {
+      result[i] = symbol;
+      (*counter)++;
     }
-  } else if (wpl->width != -1) {
-    result[0] = symbol;
-    for (int i = 1; i < wpl->width; i++) result[i] = ' ';
-  } else {
-    result[0] = symbol;
-  }*/
   }
+  return result;
+}
+
+void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter, int *err) {
+  char *result = NULL;
+  if (!wpl->arg_width && wpl->width) {
+    result = put_c(result, symbol, wpl->width, counter);
+  } else if (wpl->arg_width) {
+    // handle getting width from the another arg
+  } else {
+    result = put_c(result, symbol, 1, counter);
+  }
+  if (result) {
+    fill_result(buf, result, wpl, flag);
+  } else {
+    *err = ER;
+  }
+}
 
 // count_char for %n
 void print_processing(char* buf, int specs, int *counter, va_list* param,
@@ -253,7 +261,7 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
     flag_i_d(wpl, flag, temp, buf, d);
   } else if ((specs & spec_c)) {
     symbol = (char)va_arg(*param, int);
-    flag_c(buf, flag, wpl, symbol, counter);
+    flag_c(buf, flag, wpl, symbol, counter, err);
   } else {
     *err = ER;
   }
