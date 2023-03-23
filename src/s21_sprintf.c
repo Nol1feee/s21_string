@@ -216,7 +216,10 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
 
 void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter) {
   //TODO protect calloc 
-  char *result = calloc(1, sizeof(char));
+    char *result = calloc(1, sizeof(char));
+    result[0] = symbol;
+    (*counter)++;
+    fill_result(buf, result, wpl, flag);
   /*if (wpl->width && !(flag->fill_left)) {
     for (int i = 0; i < wpl->width; i++) {
       result[i] = ' ';
@@ -228,10 +231,7 @@ void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter
   } else {
     result[0] = symbol;
   }*/
-  result[0] = symbol;
-  (*counter)++;
-  fill_result(buf, result, wpl, flag);
-}
+  }
 
 // count_char for %n
 void print_processing(char* buf, int specs, int *counter, va_list* param,
@@ -330,6 +330,26 @@ static char get_length(const char** format) {
   return (is_length(**format)) ? (**format) : 0;
 }
 
+char *sp_strncat(char *str_change, const char *str_add, s21_size_t n) {
+  s21_size_t len_str_change = s21_strlen(str_change);
+  int k = n;
+  int i = 1;
+  while (str_add[i] != '\0' && i < k) {
+    str_change[len_str_change + i] = str_add[i];
+    i++;
+  }
+  str_change[len_str_change + i] = '\0';
+  return str_change;
+}
+
+void add_to_buf(char *buf, const char* format, int bytes) {
+  if (!buf[s21_strlen(buf)] &&  !buf[s21_strlen(buf) - 1]) {
+    sp_strncat(buf, format, bytes);  // add current character into buf
+  } else {
+    s21_strncat(buf, format, bytes);  // add current character into buf
+  }
+}
+
 int s21_sprintf(char* buf, const char* format, ...) {
   *buf = 0;
   int err = OK;  // for errors
@@ -344,7 +364,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
       counter++;
-      s21_strncat(buf, format, 1);  // add current character into buf
+      add_to_buf(buf, format, 1);  // add current character into buf
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {

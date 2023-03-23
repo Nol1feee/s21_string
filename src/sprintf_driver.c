@@ -1,16 +1,15 @@
 /* driver for s21_sprintf.c */
 
 #include <stdio.h>
-// #include <math.h>
-
-int s21_sprintf(char* buf, const char* format, ...);
+#include <string.h>
+#include "s21_string.h"
 
 int main(void) {
   int res = 0, test_res = 0;
   char str1[100];
   char str2[100];
-  char* str3 = "%c Test %c Test %c Test %c Test %c";
   int a = 0;
+  char* str3 = "%c Test %c Test %c Test %c Test %c";
   printf("\n===sprintf===\n");
   res = sprintf(str1, str3, a, a, a, a, a);
   printf("\nstr1: %s\n", str1);
