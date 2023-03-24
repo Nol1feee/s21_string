@@ -6,7 +6,7 @@ void reset(Wid_prec_len* wpl, Flags* flag) {
   wpl->arg_width = false;
   wpl->arg_precision = false;
   wpl->length = 0;
-  s21_memset(&flag, 0, sizeof(Flags));  // reset flag
+  s21_memset(flag, 0, sizeof(Flags));  // reset flag
 }
 
 /* check if it's a flag */
@@ -131,10 +131,8 @@ static char* s21_add_spaces(char* format, Flags* flag, int width) {
   return format;
 }
 
-static void fill_result(char* buf, char* result, Wid_prec_len* wpl,
-                        Flags* flag) {
+static void fill_result(char* buf, char* result) {
   s21_strcat(buf, result);
-  reset(wpl, flag);
   free(result);
 }
 
@@ -143,7 +141,8 @@ static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
   s21_strcat(result, temp);
   free(temp);
   result = s21_add_spaces(result, flag, wpl->width);
-  fill_result(buf, result, wpl, flag);
+  fill_result(buf, result);
+  //TODO reser structs
 }
 
 static char* revers(char* str, int i) {
@@ -225,22 +224,45 @@ static char* put_c (char *result, char symbol, int number, int *counter) {
   return result;
 }
 
+/* right justification within the given field width */
+static char* right_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
+    result = put_c(result, ' ', wpl->width - 1, counter);
+    if (result) {
+      fill_result(buf, result);
+    }
+    result = put_c(result, symbol, 1, counter);
+    return result;
+}
+
+/* left justification within the given field width */
+static char* left_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
+    result = put_c(result, symbol, 1, counter);
+    if (result) {
+      fill_result(buf, result);
+    }
+    result = put_c(result, ' ', wpl->width - 1, counter);
+    return result;
+}
+
 void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter, int *err) {
   char *result = NULL;
   if (!wpl->arg_width && wpl->width) {
-    result = put_c(result, ' ', wpl->width - 1, counter);
-    fill_result(buf, result, wpl, flag);
-    result = put_c(result, symbol, 1, counter);
+    if (flag->fill_left) {
+      result = left_justify(buf, result, wpl, symbol, counter);
+    } else {
+      result = right_justify(buf, result, wpl, symbol, counter);
+    }
   } else if (wpl->arg_width) {
     // handle getting width from the another arg
   } else {
     result = put_c(result, symbol, 1, counter);
   }
   if (result) {
-    fill_result(buf, result, wpl, flag);
+    fill_result(buf, result);
   } else {
     *err = ER;
   }
+  reset(wpl, flag);
 }
 
 // count_char for %n
@@ -394,8 +416,6 @@ int s21_sprintf(char* buf, const char* format, ...) {
         get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
       }
       wpl.length = get_length(&format);
-      printf("length = %c\n", wpl.length);
-      printf("*format = %c\n", *format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
       print_processing(buf, specs, &counter, &param, &wpl, &flag, &err);
       reset(&wpl, &flag);
