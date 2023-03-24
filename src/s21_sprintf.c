@@ -103,7 +103,7 @@ static int set_specs_printf(const char** format, int* err) {
 
     default:
       // TODO:handle an error and delete this huety
-      fprintf(stderr, "Incorrect specifier\n");
+      fprintf(stderr, "Incorrect specifier %c\n", **format);
       *err = ER;
   }
   (*format)++;
@@ -228,7 +228,9 @@ static char* put_c (char *result, char symbol, int number, int *counter) {
 void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter, int *err) {
   char *result = NULL;
   if (!wpl->arg_width && wpl->width) {
-    result = put_c(result, symbol, wpl->width, counter);
+    result = put_c(result, ' ', wpl->width - 1, counter);
+    fill_result(buf, result, wpl, flag);
+    result = put_c(result, symbol, 1, counter);
   } else if (wpl->arg_width) {
     // handle getting width from the another arg
   } else {
@@ -335,7 +337,12 @@ get length
 stops at the first ch after length character
 */
 static char get_length(const char** format) {
-  return (is_length(**format)) ? (**format) : 0;
+  char res = 0;
+  if (is_length(**format)) {
+    res = **format;
+    (*format)++;
+  }
+  return res;
 }
 
 char *sp_strncat(char *str_change, const char *str_add, s21_size_t n) {
@@ -387,6 +394,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
         get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
       }
       wpl.length = get_length(&format);
+      printf("length = %c\n", wpl.length);
+      printf("*format = %c\n", *format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
       print_processing(buf, specs, &counter, &param, &wpl, &flag, &err);
       reset(&wpl, &flag);
