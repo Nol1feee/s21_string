@@ -14,6 +14,7 @@
 
 #define OK 0  // for errors
 #define ER 1  //
+#define SPACE 32
 
 /* for specifiers */
 enum {

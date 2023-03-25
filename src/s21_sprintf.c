@@ -6,7 +6,7 @@ void reset(Wid_prec_len* wpl, Flags* flag) {
   wpl->arg_width = false;
   wpl->arg_precision = false;
   wpl->length = 0;
-  s21_memset(&flag, 0, sizeof(Flags));  // reset flag
+  s21_memset(flag, 0, sizeof(Flags));  // reset flag
 }
 
 /* check if it's a flag */
@@ -103,7 +103,7 @@ static int set_specs_printf(const char** format, int* err) {
 
     default:
       // TODO:handle an error and delete this huety
-      fprintf(stderr, "Incorrect specifier\n");
+      fprintf(stderr, "Incorrect specifier %c\n", **format);
       *err = ER;
   }
   (*format)++;
@@ -131,19 +131,28 @@ static char* s21_add_spaces(char* format, Flags* flag, int width) {
   return format;
 }
 
-static void fill_result(char* buf, char* result, Wid_prec_len* wpl,
-                        Flags* flag) {
-  s21_strcat(buf, result);
-  reset(wpl, flag);
+static void add_to_buf(char *buf, char ch, int *counter) {
+  buf[*counter] = ch;
+  (*counter)++;
+  buf[*counter] = '\0';
+}
+
+static void fill_result(char* buf, char* result, int *counter) {
+  if (result[0] == '\0') {
+    buf[*counter] = '\0'; 
+  } else {
+    s21_strcat(buf, result);
+  }
   free(result);
 }
 
 static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
-                            char* buf, char* result) {
+                            char* buf, char* result, int *counter) {
   s21_strcat(result, temp);
   free(temp);
   result = s21_add_spaces(result, flag, wpl->width);
-  fill_result(buf, result, wpl, flag);
+  fill_result(buf, result, counter);
+  //TODO reser structs
 }
 
 static char* revers(char* str, int i) {
@@ -211,30 +220,47 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
   char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
   result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
   result = s21_add_zero(result, temp, wpl->precision);
-  insert_and_free(wpl, flag, temp, buf, result);
+  insert_and_free(wpl, flag, temp, buf, result, 0);
 }
 
-void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol) {
-  //TODO protect calloc 
-  char *result = calloc(2, sizeof(char));
-  /*if (wpl->width && !(flag->fill_left)) {
-    for (int i = 0; i < wpl->width; i++) {
-      result[i] = ' ';
-      if (i == wpl->width - 1) result[i] = symbol;
+/* right justification within the given field width */
+static void right_justify(char *buf, Wid_prec_len *wpl, char ch, int *counter) {
+    for (int i = 0; i < wpl->width - 1; i++) {
+      add_to_buf(buf, SPACE, counter);
     }
-  } else if (wpl->width != -1) {
-    result[0] = symbol;
-    for (int i = 1; i < wpl->width; i++) result[i] = ' ';
+    add_to_buf(buf, ch, counter);
+}
+
+/* left justification within the given field width */
+static void left_justify(char *buf, Wid_prec_len *wpl, int ch, int *counter) {
+    add_to_buf(buf, ch, counter);
+    for (int i = 0; i < wpl->width - 1; i++) {
+      add_to_buf(buf, SPACE, counter);
+    }
+}
+
+void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
+  //char *result = NULL;
+  if (!wpl->arg_width && wpl->width) {
+    if (flag->fill_left) {
+      left_justify(buf, wpl, ch, counter);
+    } else {
+      right_justify(buf, wpl, ch, counter);
+    }
+  } else if (wpl->arg_width) {
+    // handle getting width from the another arg
   } else {
-    result[0] = symbol;
-  }*/
-  result[0] = symbol;
-  result[1] = 0;
-  fill_result(buf, result, wpl, flag);
+    add_to_buf(buf, ch, counter);
+  }
+  //TODO handle errors
+  if (*err) {
+  printf("%d", *err);
+  }
+  reset(wpl, flag);
 }
 
 // count_char for %n
-void print_processing(char* buf, int specs, /*int *count_char,*/ va_list* param,
+void print_processing(char* buf, int specs, int *counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
   long int d;  // TODO for what?
   // long double f;        // TODO for what?
@@ -253,7 +279,7 @@ void print_processing(char* buf, int specs, /*int *count_char,*/ va_list* param,
     flag_i_d(wpl, flag, temp, buf, d);
   } else if ((specs & spec_c)) {
     symbol = (char)va_arg(*param, int);
-    flag_c(buf, flag, wpl, symbol);
+    flag_c(buf, flag, wpl, symbol, counter, err);
   } else {
     *err = ER;
   }
@@ -327,14 +353,24 @@ get length
 stops at the first ch after length character
 */
 static char get_length(const char** format) {
-  return (is_length(**format)) ? (**format) : 0;
+  char res = 0;
+  if (is_length(**format)) {
+    res = **format;
+    (*format)++;
+  }
+  return res;
 }
 
+
+
+
+
 int s21_sprintf(char* buf, const char* format, ...) {
+  *buf = 0;
   int err = OK;  // for errors
   va_list param;
   va_start(param, format);
-  int count_char = 0;          // for %n
+  int counter = 0;          // for %n
   bool is_spec_start = false;  // for tracking start of specifiers (%)
   Flags flag;
   Wid_prec_len wpl;
@@ -342,8 +378,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
-      count_char++;
-      s21_strncat(buf, format, 1);  // add current character into buf
+      add_to_buf(buf, *format, &counter);  // add current character into buf
+      //counter++;
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {
@@ -359,15 +395,16 @@ int s21_sprintf(char* buf, const char* format, ...) {
       }
       wpl.length = get_length(&format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
-      print_processing(buf, specs, /*&count_char,*/ &param, &wpl, &flag, &err);
+      print_processing(buf, specs, &counter, &param, &wpl, &flag, &err);
       reset(&wpl, &flag);
       is_spec_start = false;
     }
     //format++;
   }
   va_end(param);
-  printf("count_char = %d\n", count_char);
-  return s21_strlen(buf);
+  printf("counter = %d\n", counter);
+  //return s21_strlen(buf);
+  return counter;
 }
 
 /*void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
