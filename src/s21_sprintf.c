@@ -131,38 +131,10 @@ static char* s21_add_spaces(char* format, Flags* flag, int width) {
   return format;
 }
 
-/* modification of strnctar which doesn't remove last \0 */
-static void sp_strncat(char *str_change, const char *str_add, s21_size_t n, int counter) {
-  //s21_size_t len_str_change = s21_strlen(str_change);
-  int len_str_change = counter;
-  int i = 1;
-  while (str_add[i] != '\0' && i < (int)n) {
-    str_change[len_str_change + i] = str_add[i];
-    i++;
-  }
-  str_change[len_str_change + i] = '\0';
-  //return str_change;
-}
-
-/*char *sp_strcat(char *str_change, char *str_add) {
-  if (!str_change[s21_strlen(str_change)] &&  !str_change[s21_strlen(str_change) - 1]) {
-  return (sp_strncat(str_change, str_add,
-                      s21_strlen(str_change) + s21_strlen(str_add)));
-  } else {
-  return (s21_strncat(str_change, str_add,
-                      s21_strlen(str_change) + s21_strlen(str_add)));
-  }
-}*/
-
-/* 
-add new characters into buf
-*/
-static void add_to_buf(char *buf, const char *format, int bytes, int counter) {
-  if (!buf[counter] &&  !buf[counter - 1]) {
-    sp_strncat(buf, format, bytes, counter);  // add current character into buf
-  } else {
-    s21_strncat(buf, format, bytes);  // add current character into buf
-  }
+static void add_to_buf(char *buf, char ch, int *counter) {
+  buf[*counter] = ch;
+  (*counter)++;
+  buf[*counter] = '\0';
 }
 
 static void fill_result(char* buf, char* result, int *counter) {
@@ -251,54 +223,38 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
   insert_and_free(wpl, flag, temp, buf, result, 0);
 }
 
-/* */
-static char* put_c (char *result, char symbol, int number, int *counter) {
-  if (NULL != (result = calloc(number, sizeof(char)))) {
-    for (int i = 0; i < number; i++) {
-      result[i] = symbol;
-      (*counter)++; // TODO delete?
-    }
-  }
-  return result;
-}
-
 /* right justification within the given field width */
-static char* right_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
-    result = put_c(result, ' ', wpl->width - 1, counter);
-    if (result) {
-      fill_result(buf, result, counter);
+static void right_justify(char *buf, Wid_prec_len *wpl, char ch, int *counter) {
+    for (int i = 0; i < wpl->width - 1; i++) {
+      add_to_buf(buf, SPACE, counter);
     }
-    result = put_c(result, symbol, 1, counter);
-    return result;
+    add_to_buf(buf, ch, counter);
 }
 
 /* left justification within the given field width */
-static char* left_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
-    result = put_c(result, symbol, 1, counter);
-    if (result) {
-      fill_result(buf, result, counter);
+static void left_justify(char *buf, Wid_prec_len *wpl, int ch, int *counter) {
+    add_to_buf(buf, ch, counter);
+    for (int i = 0; i < wpl->width - 1; i++) {
+      add_to_buf(buf, SPACE, counter);
     }
-    result = put_c(result, ' ', wpl->width - 1, counter);
-    return result;
 }
 
-void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter, int *err) {
-  char *result = NULL;
+void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
+  //char *result = NULL;
   if (!wpl->arg_width && wpl->width) {
     if (flag->fill_left) {
-      result = left_justify(buf, result, wpl, symbol, counter);
+      left_justify(buf, wpl, ch, counter);
     } else {
-      result = right_justify(buf, result, wpl, symbol, counter);
+      right_justify(buf, wpl, ch, counter);
     }
   } else if (wpl->arg_width) {
     // handle getting width from the another arg
   } else {
-    result = put_c(result, symbol, 1, counter);
+    add_to_buf(buf, ch, counter);
   }
-  if (result) {
-    fill_result(buf, result, counter);
-  } else {
-    *err = ER;
+  //TODO handle errors
+  if (*err) {
+  printf("%d", *err);
   }
   reset(wpl, flag);
 }
@@ -422,8 +378,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
-      add_to_buf(buf, format, 1, counter);  // add current character into buf
-      counter++;
+      add_to_buf(buf, *format, &counter);  // add current character into buf
+      //counter++;
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {
