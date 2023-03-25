@@ -131,17 +131,55 @@ static char* s21_add_spaces(char* format, Flags* flag, int width) {
   return format;
 }
 
-static void fill_result(char* buf, char* result) {
-  s21_strcat(buf, result);
+/* modification of strnctar which doesn't remove last \0 */
+static void sp_strncat(char *str_change, const char *str_add, s21_size_t n, int counter) {
+  //s21_size_t len_str_change = s21_strlen(str_change);
+  int len_str_change = counter;
+  int i = 1;
+  while (str_add[i] != '\0' && i < (int)n) {
+    str_change[len_str_change + i] = str_add[i];
+    i++;
+  }
+  str_change[len_str_change + i] = '\0';
+  //return str_change;
+}
+
+/*char *sp_strcat(char *str_change, char *str_add) {
+  if (!str_change[s21_strlen(str_change)] &&  !str_change[s21_strlen(str_change) - 1]) {
+  return (sp_strncat(str_change, str_add,
+                      s21_strlen(str_change) + s21_strlen(str_add)));
+  } else {
+  return (s21_strncat(str_change, str_add,
+                      s21_strlen(str_change) + s21_strlen(str_add)));
+  }
+}*/
+
+/* 
+add new characters into buf
+*/
+static void add_to_buf(char *buf, const char *format, int bytes, int counter) {
+  if (!buf[counter] &&  !buf[counter - 1]) {
+    sp_strncat(buf, format, bytes, counter);  // add current character into buf
+  } else {
+    s21_strncat(buf, format, bytes);  // add current character into buf
+  }
+}
+
+static void fill_result(char* buf, char* result, int *counter) {
+  if (result[0] == '\0') {
+    buf[*counter] = '\0'; 
+  } else {
+    s21_strcat(buf, result);
+  }
   free(result);
 }
 
 static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
-                            char* buf, char* result) {
+                            char* buf, char* result, int *counter) {
   s21_strcat(result, temp);
   free(temp);
   result = s21_add_spaces(result, flag, wpl->width);
-  fill_result(buf, result);
+  fill_result(buf, result, counter);
   //TODO reser structs
 }
 
@@ -210,7 +248,7 @@ static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long
   char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
   result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
   result = s21_add_zero(result, temp, wpl->precision);
-  insert_and_free(wpl, flag, temp, buf, result);
+  insert_and_free(wpl, flag, temp, buf, result, 0);
 }
 
 /* */
@@ -218,7 +256,7 @@ static char* put_c (char *result, char symbol, int number, int *counter) {
   if (NULL != (result = calloc(number, sizeof(char)))) {
     for (int i = 0; i < number; i++) {
       result[i] = symbol;
-      (*counter)++;
+      (*counter)++; // TODO delete?
     }
   }
   return result;
@@ -228,7 +266,7 @@ static char* put_c (char *result, char symbol, int number, int *counter) {
 static char* right_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
     result = put_c(result, ' ', wpl->width - 1, counter);
     if (result) {
-      fill_result(buf, result);
+      fill_result(buf, result, counter);
     }
     result = put_c(result, symbol, 1, counter);
     return result;
@@ -238,7 +276,7 @@ static char* right_justify(char *buf, char *result, Wid_prec_len *wpl, int symbo
 static char* left_justify(char *buf, char *result, Wid_prec_len *wpl, int symbol, int *counter) {
     result = put_c(result, symbol, 1, counter);
     if (result) {
-      fill_result(buf, result);
+      fill_result(buf, result, counter);
     }
     result = put_c(result, ' ', wpl->width - 1, counter);
     return result;
@@ -258,7 +296,7 @@ void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char symbol, int *counter
     result = put_c(result, symbol, 1, counter);
   }
   if (result) {
-    fill_result(buf, result);
+    fill_result(buf, result, counter);
   } else {
     *err = ER;
   }
@@ -367,25 +405,9 @@ static char get_length(const char** format) {
   return res;
 }
 
-char *sp_strncat(char *str_change, const char *str_add, s21_size_t n) {
-  s21_size_t len_str_change = s21_strlen(str_change);
-  int k = n;
-  int i = 1;
-  while (str_add[i] != '\0' && i < k) {
-    str_change[len_str_change + i] = str_add[i];
-    i++;
-  }
-  str_change[len_str_change + i] = '\0';
-  return str_change;
-}
 
-void add_to_buf(char *buf, const char* format, int bytes) {
-  if (!buf[s21_strlen(buf)] &&  !buf[s21_strlen(buf) - 1]) {
-    sp_strncat(buf, format, bytes);  // add current character into buf
-  } else {
-    s21_strncat(buf, format, bytes);  // add current character into buf
-  }
-}
+
+
 
 int s21_sprintf(char* buf, const char* format, ...) {
   *buf = 0;
@@ -400,8 +422,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
+      add_to_buf(buf, format, 1, counter);  // add current character into buf
       counter++;
-      add_to_buf(buf, format, 1);  // add current character into buf
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {
