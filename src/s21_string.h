@@ -5,16 +5,15 @@
 #define s21_NULL (void *)0
 
 #include <limits.h>
-#include <math.h>  //sscanf
+#include <math.h>  //sscanf, sprintf
 #include <stdarg.h>
-#include <stdbool.h>  //sscanf
+#include <stdbool.h>  //sscanf, sprintf
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define OK 0  // for errors
 #define ER 1  //
-#define SPACE 32
 
 /* for specifiers */
 enum {

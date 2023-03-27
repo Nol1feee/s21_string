@@ -16,6 +16,8 @@ int main(void) {
                                               to_upper_s21(), trim_s21(),*/
                               //sprintf_s21(),  // sscanf_s21(),
                               test_sprintf_c(),
+                              test_sprintf_signed(),
+                              test_sprintf_signed_i(),
                               /*test_sprintf_e(),
                               test_sprintf_f(),
                               test_sprintf_octal(),
@@ -25,9 +27,7 @@ int main(void) {
                               test_sprintf_unsigned(),
                               test_sprintf_HEX(),
                               test_sprintf_hex(),
-                              test_sprintf_pointer(),
-                              test_sprintf_signed(),*/
-//                              test_sprintf_signed_i(),
+                              test_sprintf_pointer(),*/
                               //test_sprintf_g(),*/
 
                               NULL};
