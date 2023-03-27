@@ -7,6 +7,9 @@
 
 #include "s21_string.h"
 
+#define SPACE 32
+#define MINUS '-'
+
 /* bit field for flags */
 typedef struct {
   bool fill_left : 1;     //-
@@ -31,7 +34,6 @@ int s21_sprintf(char* buf, const char* format, ...);
 // void flag_o(s21* sh21, char* temp, char* buf, char* result, long int d);
 // void flag_p(s21* sh21, char* temp, char* buf, char* result, long int d);
 // void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f);
-// void flag_c(s21* sh21, char* buf, char* result, wchar_t symbol);
 // void flag_s(s21* sh21, char* string, char* buf, char* result);
 // void flag_u(s21* sh21, char* temp, char* buf, char* result, uint64_t u);
 // int s21_pow(int x, int y);

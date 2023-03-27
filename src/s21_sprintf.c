@@ -110,7 +110,7 @@ static int set_specs_printf(const char** format, int* err) {
   return specs;
 }
 
-static char* s21_add_spaces(char* format, Flags* flag, int width) {
+/*static char* s21_add_spaces(char* format, Flags* flag, int width) {
   int str_len = s21_strlen(format);
   if (str_len < width) {
     char* temp = calloc(width + 1, sizeof(char));
@@ -129,7 +129,7 @@ static char* s21_add_spaces(char* format, Flags* flag, int width) {
     format = temp;
   }
   return format;
-}
+}*/
 
 static void add_to_buf(char *buf, char ch, int *counter) {
   buf[*counter] = ch;
@@ -137,16 +137,16 @@ static void add_to_buf(char *buf, char ch, int *counter) {
   buf[*counter] = '\0';
 }
 
-static void fill_result(char* buf, char* result, int *counter) {
+/*static void fill_result(char* buf, char* result, int *counter) {
   if (result[0] == '\0') {
     buf[*counter] = '\0'; 
   } else {
     s21_strcat(buf, result);
   }
   free(result);
-}
+}*/
 
-static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
+/*static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
                             char* buf, char* result, int *counter) {
   s21_strcat(result, temp);
   free(temp);
@@ -163,27 +163,11 @@ static char* revers(char* str, int i) {
     str[k] = format;
   }
   return str;
-}
+}*/
 
-static char* s21_int_to_string(long int number, int precision) {
-  int i = 0;
-  // why 32?
-  char* str =
-      calloc(32, sizeof(char));  // TODO free!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // TODO protect calloc
-  if (number < 0) number *= -1;  // make positive
-  if (number != 0) {
-    while (number > 0) {
-      str[i++] = (number % 10) + SHIFT_zero;
-      number /= 10;
-    }
-  } else if (precision != 0) {
-    str[i] = '0';
-  }
-  return revers(str, i);
-}
 
-static char* s21_add_zero(char* dest, char* src, int floating) {
+
+/*static char* s21_add_zero(char* dest, char* src, int floating) {
   if ((int)floating > (int)s21_strlen(src)) {
     size_t k = s21_strlen(dest);
     if (s21_strlen(dest)) floating++;
@@ -192,36 +176,11 @@ static char* s21_add_zero(char* dest, char* src, int floating) {
     dest[k] = '\0';
   }
   return dest;
-}
+}*/
 
-static char* s21_add_sign(char* dest, char* src, int signed_conversion,
-                          int space_signed_conversion, long int number) {
-  if (number < 0 || (int)signed_conversion == 1) {
-    dest = realloc(dest, s21_strlen(src) + 2);
-    if (number < 0) {
-      dest[0] = '-';
-    } else {
-      dest[0] = '+';
-    }
-    dest[1] = '\0';
-  } else if (space_signed_conversion == 1) {
-    dest = realloc(dest, s21_strlen(src) + 2);
 
-    dest[0] = ' ';
 
-    dest[1] = '\0';
-  }
-  return dest;
-}
 
-static void flag_i_d(Wid_prec_len* wpl, Flags* flag, char* temp, char* buf, long int d) {
-  temp = s21_int_to_string(d, wpl->precision);  // get string with number
-  //TODO protect calloc 
-  char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
-  result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
-  result = s21_add_zero(result, temp, wpl->precision);
-  insert_and_free(wpl, flag, temp, buf, result, 0);
-}
 
 /* right justification within the given field width */
 static void right_justify(char *buf, Wid_prec_len *wpl, char ch, int *counter) {
@@ -239,8 +198,8 @@ static void left_justify(char *buf, Wid_prec_len *wpl, int ch, int *counter) {
     }
 }
 
-void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
-  //char *result = NULL;
+/* handling %c */
+static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
   if (!wpl->arg_width && wpl->width) {
     if (flag->fill_left) {
       left_justify(buf, wpl, ch, counter);
@@ -254,32 +213,91 @@ void flag_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, in
   }
   //TODO handle errors
   if (*err) {
-  printf("%d", *err);
+    //
   }
   reset(wpl, flag);
+}
+
+/* */
+/*static char* s21_int_to_string(long int number, int precision) {
+  int i = 0;
+  // why 32?
+  char* str =
+      calloc(32, sizeof(char));  // TODO free!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // TODO protect calloc
+  if (number < 0) number *= -1;  // make positive
+  if (number != 0) {
+    while (number > 0) {
+      str[i++] = (number % 10) + SHIFT_zero;
+      number /= 10;
+    }
+  } else if (precision != 0) {
+    str[i] = '0';
+  }
+  return revers(str, i);
+}*/
+
+/* count digits in the number */
+static int count_digits(long num) {
+  int res = 0;
+  while (num > 0) {
+    num /= 10;
+    res++;
+  }
+  return res;
+}
+
+static void add_sign(char *buf, long *num, int *counter) {
+ if (*num < 0) {
+    add_to_buf(buf, MINUS, counter);
+    *num *= -1;
+  }
+}
+
+/* handling %d and %i */
+static void spec_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter) {
+  /*temp = s21_int_to_string(d, wpl->precision);  // get string with number
+  //TODO protect calloc 
+  char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
+  result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
+  result = s21_add_zero(result, temp, wpl->precision);
+  insert_and_free(wpl, flag, temp, buf, result, 0);*/
+  printf("=== %d %d ===\n", wpl->width, flag->fill_left);
+  // 0. Put sign (if there is)
+  add_sign(buf, &num, counter);
+  int digits = count_digits(num);
+  for (int pow10 = digits - 1; pow10 > 0; pow10--) {
+    add_to_buf(buf, num / (int)pow(10, pow10) + SHIFT_zero, counter);
+    num %= (long)pow(10, pow10);
+  }
+  add_to_buf(buf, num + SHIFT_zero, counter);
+  printf("digits = %d\n", digits);
+  // 1. Get next digit
+  // 2. Put digit
+  // 3. Repeat
 }
 
 // count_char for %n
 void print_processing(char* buf, int specs, int *counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
-  long int d;  // TODO for what?
+  long num;  // TODO for what?
   // long double f;        // TODO for what?
-  char symbol;          // for %c
+  char ch;          // for %c
   // char* string;         // TODO for what?
   // uint64_t u;           // TODO for what?
-  char* temp = NULL;    // TODO for what?
+  //char* temp = NULL;    // TODO for what?
   if ((specs & spec_d) || (specs & spec_i)) {
     if (wpl->length == 'h') {
-      d = (short int)va_arg(*param, int);
+      num = (short)va_arg(*param, int);
     } else if (wpl->length == 'l') {
-      d = va_arg(*param, long int);
+      num = va_arg(*param, long);
     } else {
-      d = va_arg(*param, int);
+      num = va_arg(*param, int);
     }
-    flag_i_d(wpl, flag, temp, buf, d);
+    spec_di(buf, wpl, flag, num, counter);
   } else if ((specs & spec_c)) {
-    symbol = (char)va_arg(*param, int);
-    flag_c(buf, flag, wpl, symbol, counter, err);
+    ch = (char)va_arg(*param, int);
+    print_c(buf, flag, wpl, ch, counter, err);
   } else {
     *err = ER;
   }
@@ -302,10 +320,7 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
       f = va_arg(*param, double);
     }
     flag_f(sh21, temp, buf, result, f);
-  } else if ((specs & spec_c)) {
-    symbol = (char)va_arg(*param, int);
-    flag_c(sh21, buf, result, symbol);
-  } else if ((specs & spec_s)) {
+  }  else if ((specs & spec_s)) {
     string = va_arg(*param, char*);
     flag_s(sh21, string, buf, result);
   } else if ((specs & spec_u)) {
@@ -399,11 +414,8 @@ int s21_sprintf(char* buf, const char* format, ...) {
       reset(&wpl, &flag);
       is_spec_start = false;
     }
-    //format++;
   }
   va_end(param);
-  printf("counter = %d\n", counter);
-  //return s21_strlen(buf);
   return counter;
 }
 
