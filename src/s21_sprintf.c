@@ -131,70 +131,17 @@ static int set_specs_printf(const char** format, int* err) {
   return format;
 }*/
 
+/* */
 static void add_to_buf(char *buf, char ch, int *counter) {
   buf[*counter] = ch;
   (*counter)++;
   buf[*counter] = '\0';
 }
 
-/*static void fill_result(char* buf, char* result, int *counter) {
-  if (result[0] == '\0') {
-    buf[*counter] = '\0'; 
-  } else {
-    s21_strcat(buf, result);
-  }
-  free(result);
-}*/
-
-/*static void insert_and_free(Wid_prec_len* wpl, Flags* flag, char* temp,
-                            char* buf, char* result, int *counter) {
-  s21_strcat(result, temp);
-  free(temp);
-  result = s21_add_spaces(result, flag, wpl->width);
-  fill_result(buf, result, counter);
-  //TODO reser structs
-}
-
-static char* revers(char* str, int i) {
-  str[i] = '\0';
-  for (int j = 0, k = s21_strlen(str) - 1, format; j < k; j++, k--) {
-    format = str[j];
-    str[j] = str[k];
-    str[k] = format;
-  }
-  return str;
-}*/
-
-
-
-/*static char* s21_add_zero(char* dest, char* src, int floating) {
-  if ((int)floating > (int)s21_strlen(src)) {
-    size_t k = s21_strlen(dest);
-    if (s21_strlen(dest)) floating++;
-    dest = realloc(dest, (floating + 1) * sizeof(char));
-    for (; k < (floating - s21_strlen(src)); k++) s21_strcat(dest, "0");
-    dest[k] = '\0';
-  }
-  return dest;
-}*/
-
-
-
-
-
-/* right justification within the given field width */
-static void right_justify(char *buf, Wid_prec_len *wpl, char ch, int *counter) {
-    for (int i = 0; i < wpl->width - 1; i++) {
-      add_to_buf(buf, SPACE, counter);
-    }
-    add_to_buf(buf, ch, counter);
-}
-
-/* left justification within the given field width */
-static void left_justify(char *buf, Wid_prec_len *wpl, int ch, int *counter) {
-    add_to_buf(buf, ch, counter);
-    for (int i = 0; i < wpl->width - 1; i++) {
-      add_to_buf(buf, SPACE, counter);
+/* put spaces for justification */
+static void fill_width(char *buf, int width, int ch, int *counter) {
+    for (int i = 0; i < width; i++) {
+      add_to_buf(buf, ch, counter);
     }
 }
 
@@ -202,9 +149,11 @@ static void left_justify(char *buf, Wid_prec_len *wpl, int ch, int *counter) {
 static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
   if (!wpl->arg_width && wpl->width) {
     if (flag->fill_left) {
-      left_justify(buf, wpl, ch, counter);
+      add_to_buf(buf, ch, counter);
+      fill_width(buf, wpl->width - 1, SPACE, counter);
     } else {
-      right_justify(buf, wpl, ch, counter);
+      fill_width(buf, wpl->width - 1, SPACE, counter);
+      add_to_buf(buf, ch, counter);
     }
   } else if (wpl->arg_width) {
     // handle getting width from the another arg
@@ -218,25 +167,6 @@ static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *cou
   reset(wpl, flag);
 }
 
-/* */
-/*static char* s21_int_to_string(long int number, int precision) {
-  int i = 0;
-  // why 32?
-  char* str =
-      calloc(32, sizeof(char));  // TODO free!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // TODO protect calloc
-  if (number < 0) number *= -1;  // make positive
-  if (number != 0) {
-    while (number > 0) {
-      str[i++] = (number % 10) + SHIFT_zero;
-      number /= 10;
-    }
-  } else if (precision != 0) {
-    str[i] = '0';
-  }
-  return revers(str, i);
-}*/
-
 /* count digits in the number */
 static int count_digits(long num) {
   int res = 0;
@@ -247,34 +177,47 @@ static int count_digits(long num) {
   return res;
 }
 
+/* add sign into output buffer */
 static void add_sign(char *buf, long *num, int *counter) {
  if (*num < 0) {
-    add_to_buf(buf, MINUS, counter);
-    *num *= -1;
+    add_to_buf(buf, MINUS, counter); //TODO check how its work
+    (*num) *= -1;
   }
 }
 
-/* handling %d and %i */
-static void spec_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter) {
-  /*temp = s21_int_to_string(d, wpl->precision);  // get string with number
-  //TODO protect calloc 
-  char *result = calloc(s21_strlen(temp) + 1, sizeof(char));
-  result = s21_add_sign(result, temp, flag->show_sign, flag->hide_sign, d);
-  result = s21_add_zero(result, temp, wpl->precision);
-  insert_and_free(wpl, flag, temp, buf, result, 0);*/
-  printf("=== %d %d ===\n", wpl->width, flag->fill_left);
-  // 0. Put sign (if there is)
+/* add decimal integer into output buffer */
+static void add_dec(char *buf, long num, int *counter, int digits) {
   add_sign(buf, &num, counter);
-  int digits = count_digits(num);
   for (int pow10 = digits - 1; pow10 > 0; pow10--) {
-    add_to_buf(buf, num / (int)pow(10, pow10) + SHIFT_zero, counter);
+    add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
     num %= (long)pow(10, pow10);
   }
   add_to_buf(buf, num + SHIFT_zero, counter);
   printf("digits = %d\n", digits);
-  // 1. Get next digit
-  // 2. Put digit
-  // 3. Repeat
+}
+
+/* handling %d and %i */
+static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter, int *err) {
+  int digits = count_digits((num < 0) ? num * -1 : num);
+  int sign = (num < 0) ? 1 : 0;
+  if (!wpl->arg_width && wpl->width) {
+    if (flag->fill_left) {
+      add_dec(buf, num, counter, digits);
+      fill_width(buf, wpl->width - digits - sign, SPACE, counter);
+    } else {
+      fill_width(buf, wpl->width - digits - sign, SPACE, counter);
+      add_dec(buf, num, counter, digits);
+    }
+  } else if (wpl->arg_width) {
+    // handle getting width from the another arg
+  } else {
+    add_dec(buf, num, counter, digits);
+  }
+  //TODO handle errors
+  if (*err) {
+    //
+  }
+  reset(wpl, flag);
 }
 
 // count_char for %n
@@ -294,7 +237,7 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
     } else {
       num = va_arg(*param, int);
     }
-    spec_di(buf, wpl, flag, num, counter);
+    print_di(buf, wpl, flag, num, counter, err);
   } else if ((specs & spec_c)) {
     ch = (char)va_arg(*param, int);
     print_c(buf, flag, wpl, ch, counter, err);
