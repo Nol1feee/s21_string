@@ -267,7 +267,7 @@ static void spec_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *co
   add_sign(buf, &num, counter);
   int digits = count_digits(num);
   for (int pow10 = digits - 1; pow10 > 0; pow10--) {
-    add_to_buf(buf, num / (int)pow(10, pow10) + SHIFT_zero, counter);
+    add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
     num %= (long)pow(10, pow10);
   }
   add_to_buf(buf, num + SHIFT_zero, counter);
