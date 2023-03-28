@@ -101,8 +101,8 @@ START_TEST(sscanf_fail7) {
 END_TEST
 
 START_TEST(sscanf_format_c1) {
-  char str[] = "   a     b c d";
-  char *fstr = "%c %c %c %c";
+  const char str[] = "   a     b c d";
+    char *fstr = "%c %c %c %c";
   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
@@ -117,8 +117,8 @@ START_TEST(sscanf_format_c1) {
 END_TEST
 
 START_TEST(sscanf_format_c2) {
-  char str[] = "   a     b c d";
-  char *fstr = "%c %c %c %c";
+  const char str[] = "   a     b c d";
+  const char *fstr = " %c %c %c %c";
   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
@@ -132,8 +132,8 @@ START_TEST(sscanf_format_c2) {
 END_TEST
 
 START_TEST(sscanf_format_c3) {
-  char str[] = "abcd";
-  char *fstr = "%c %c %c %c";
+  const char str[] = "abcd";
+  const char *fstr = "%c %c %c %c";
   int a1 = 0, a2 = 5, b1 = 0, b2 = 5, c1 = 0, c2 = 5, d1 = 0, d2 = 5;
 
   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
@@ -147,8 +147,8 @@ START_TEST(sscanf_format_c3) {
 END_TEST
 
 START_TEST(sscanf_format_c4) {
-  char str[] = "\tabcd";
-  char *fstr = "%c %*c %*c %c";
+  const char str[] = "\tabcd";
+  const char *fstr = "%c %*c %*c %c";
   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
 
   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);
@@ -162,8 +162,8 @@ START_TEST(sscanf_format_c4) {
 END_TEST
 
 START_TEST(sscanf_format_c5) {
-  char str[] = " a\t\\\r";
-  char *fstr = "%c%c%c%c";
+  const char str[] = " a\t\\\r";
+  const char *fstr = "%c%c%c%c";
   int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0, d2 = 0;
 
   int s21 = s21_sscanf(str, fstr, &a1, &b1, &c1, &d1);

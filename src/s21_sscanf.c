@@ -29,6 +29,8 @@ int skip(const char **string, bool (*skip_cond)(char)) {
 static void get_specifier(const char **str, const char **format,
                           _Bool *outsider_ch) {
   int white_count = skip(format, is_whitespace);
+  /* if there are whitespaces in format
+  then we need to skip whitespaces in the str */
   if (white_count) {
     skip(str, is_whitespace);
   }
@@ -663,11 +665,15 @@ static void scan_percent(const char **str,
   }
 }
 
-static void scan_char(const char **str, va_list *argp, bool ass_supress,
-                      bool outsider_ch, int width, int specs, int *ret) {
+/* */
+static void scan_char(const char **str, const char *const *str_start, va_list *argp, bool ass_supress, bool outsider_ch, int width, int specs, int *ret) {
+  if (*str == *str_start && is_whitespace(**str)) {
+    inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
+  } else {
   skip(str, is_whitespace);
 
   inum_into_arg(argp, ass_supress, outsider_ch, 0, specs, **str, ret);
+  }
   if (width) {
     (*str) += width;
   } else
@@ -716,14 +722,14 @@ static void scan_proc(const char **str, const char *const *str_start, int specs,
         /*argp, ass_supress, outsider_ch, width, length, specs, ret,*/ err);
   }
   if (specs & spec_c) {
-    scan_char(str, argp, ass_supress, outsider_ch, width, specs, ret);
+    scan_char(str, str_start, argp, ass_supress, outsider_ch, width, specs, ret);
   }
 }
 
 /* main sscanf function */
 int s21_sscanf(const char *str, const char *format, ...) {
-  const char *const str_start =
-      str; /* save start of string for %n and free() */
+  /* save start of string for %n and free() */
+  const char *const str_start = str; 
   va_list argp;
   va_start(argp, format);
   bool outsider_ch = false; /* for outsider characters in the format string*/
@@ -732,8 +738,8 @@ int s21_sscanf(const char *str, const char *format, ...) {
     ret = EOF;
   }
   while ((*str || *format) && (!err)) {
-    get_specifier(&str, &format,
-                  &outsider_ch); /* set format to the start of specifier*/
+    /* set format to the start of specifier*/
+    get_specifier(&str, &format, &outsider_ch);     
     printf("str:%s\n", str);
     printf("format:%s\n", format);
     bool ass_supress = false; /* supress assignment (*) */
