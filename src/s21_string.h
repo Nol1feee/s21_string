@@ -14,6 +14,7 @@
 
 #define OK 0  // for errors
 #define ER 1  //
+#define VOID_PRECISION -1  //
 
 /* for specifiers */
 enum {
