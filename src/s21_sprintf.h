@@ -9,6 +9,7 @@
 
 #define SPACE 32
 #define MINUS '-'
+#define PLUS '+'
 
 /* bit field for flags */
 typedef struct {

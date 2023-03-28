@@ -139,10 +139,12 @@ static void add_to_buf(char *buf, char ch, int *counter) {
 }
 
 /* put spaces for justification */
-static void fill_width(char *buf, int width, int ch, int *counter) {
-    for (int i = 0; i < width; i++) {
-      add_to_buf(buf, ch, counter);
-    }
+static int fill_width(char *buf, int width, int ch, int *counter) {
+  int i = 0;
+  for (i = 0; i < width; i++) {
+    add_to_buf(buf, ch, counter);
+  }
+  return i;
 }
 
 /* handling %c */
@@ -170,48 +172,67 @@ static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *cou
 /* count digits in the number */
 static int count_digits(long num) {
   int res = 0;
-  while (num > 0) {
+  if (!num) {
+    res = 1;
+  } else {
+    while (num > 0) {
     num /= 10;
     res++;
+    }
   }
   return res;
 }
 
 /* add sign into output buffer */
-static void add_sign(char *buf, long *num, int *counter) {
- if (*num < 0) {
-    add_to_buf(buf, MINUS, counter); //TODO check how its work
+static void add_sign(char *buf, Flags *flag, long *num, int *counter) {
+  int sign = (*num < 0) ? MINUS : PLUS;
+  if (*num < 0) {
+    add_to_buf(buf, sign, counter); 
     (*num) *= -1;
+  }
+  if (flag->show_sign && *num < 0) {
+    add_to_buf(buf, sign, counter);
+  }
+  if (flag->hide_sign) {
+    add_to_buf(buf, SPACE, counter);
   }
 }
 
 /* add decimal integer into output buffer */
-static void add_dec(char *buf, long num, int *counter, int digits) {
-  add_sign(buf, &num, counter);
+static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
+  if (*err != VOID_PRECISION || num != 0) {
   for (int pow10 = digits - 1; pow10 > 0; pow10--) {
     add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
     num %= (long)pow(10, pow10);
   }
   add_to_buf(buf, num + SHIFT_zero, counter);
   printf("digits = %d\n", digits);
+  }
 }
 
 /* handling %d and %i */
 static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter, int *err) {
   int digits = count_digits((num < 0) ? num * -1 : num);
   int sign = (num < 0) ? 1 : 0;
+  int zeros = 0;
   if (!wpl->arg_width && wpl->width) {
     if (flag->fill_left) {
-      add_dec(buf, num, counter, digits);
-      fill_width(buf, wpl->width - digits - sign, SPACE, counter);
+      add_sign(buf, flag, &num, counter);
+      zeros = fill_width(buf, wpl->precision - digits, '0', counter);
+      add_dec(buf, num, counter, digits, err);
+      fill_width(buf, wpl->width - digits - sign - zeros, SPACE, counter);
     } else {
-      fill_width(buf, wpl->width - digits - sign, SPACE, counter);
-      add_dec(buf, num, counter, digits);
+      fill_width(buf, wpl->width - digits - wpl->precision - sign, SPACE, counter);
+      add_sign(buf, flag, &num, counter);
+      fill_width(buf, wpl->precision - digits, '0', counter);
+      add_dec(buf, num, counter, digits, err);
     }
   } else if (wpl->arg_width) {
     // handle getting width from the another arg
-  } else {
-    add_dec(buf, num, counter, digits);
+  } else if (wpl->precision != -1){
+    add_sign(buf, flag, &num, counter);
+    fill_width(buf, wpl->precision - digits, '0', counter);
+    add_dec(buf, num, counter, digits, err);
   }
   //TODO handle errors
   if (*err) {
@@ -228,7 +249,6 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
   char ch;          // for %c
   // char* string;         // TODO for what?
   // uint64_t u;           // TODO for what?
-  //char* temp = NULL;    // TODO for what?
   if ((specs & spec_d) || (specs & spec_i)) {
     if (wpl->length == 'h') {
       num = (short)va_arg(*param, int);
@@ -303,6 +323,7 @@ static void get_width_precision(const char** format, int* num_value,
     *num_value = str_to_dec(format, 0, 1, 0,
                             err); /* get width (str, width, sign, count, err);*/
   }
+  *err = (*num_value) ? OK : VOID_PRECISION;
   return;
 }
 
@@ -319,10 +340,7 @@ static char get_length(const char** format) {
   return res;
 }
 
-
-
-
-
+/* the main sprintf function */
 int s21_sprintf(char* buf, const char* format, ...) {
   *buf = 0;
   int err = OK;  // for errors
@@ -337,7 +355,6 @@ int s21_sprintf(char* buf, const char* format, ...) {
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
       add_to_buf(buf, *format, &counter);  // add current character into buf
-      //counter++;
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {
@@ -350,6 +367,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
       if (*format == '.') {
         format++;
         get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
+        printf("precision = %d\n", wpl.precision);
       }
       wpl.length = get_length(&format);
       int specs = set_specs_printf(&format, &err); /* fill the specs number */
