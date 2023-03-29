@@ -197,16 +197,12 @@ static int add_sign(char *buf, Flags *flag, long *num, int *counter) {
 
 /* add decimal integer into output buffer */
 static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
-  bool long_max = false;
-  if (num == LONG_MAX) {
-    long_max = true;
-  }
   if (*err != VOID_PRECISION || num != 0) {
   for (int pow10 = digits - 1; pow10 > 0; pow10--) {
     add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
     num %= (long)pow(10, pow10);
   }
-  if (long_max) {
+  if (*err == LONG_MIN_CASE) {
     add_to_buf(buf, num + 1 + SHIFT_zero, counter);
   } else {
     add_to_buf(buf, num + SHIFT_zero, counter);
@@ -221,6 +217,7 @@ static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
 static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter, int *err) {
   if (num == LONG_MIN) {
     num++;
+    *err = LONG_MIN_CASE;
   }
   int digits = count_digits((num < 0) ? num * -1 : num);
   int sign = (num < 0) ? 1 : 0;
