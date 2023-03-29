@@ -190,10 +190,10 @@ static void add_sign(char *buf, Flags *flag, long *num, int *counter) {
     add_to_buf(buf, sign, counter); 
     (*num) *= -1;
   }
-  if (flag->show_sign && *buf != MINUS) {
+  if (flag->show_sign && ((sign == MINUS && *buf != MINUS) || sign == PLUS)) {
     add_to_buf(buf, sign, counter);
   }
-  if (flag->hide_sign) {
+  if (flag->hide_sign && sign == PLUS) {
     add_to_buf(buf, SPACE, counter);
   }
 }
