@@ -218,20 +218,19 @@ static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *c
   int sign = (num < 0) ? 1 : 0;
   int zeros = 0;
   digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
-  if (!wpl->arg_width && wpl->width) {
+  if (wpl->width) {
     if (flag->fill_left) {
       add_sign(buf, flag, &num, counter);
       zeros = fill_width(buf, wpl->precision - digits, '0', counter);
       add_dec(buf, num, counter, digits, err);
       fill_width(buf, wpl->width - digits - sign - zeros, SPACE, counter);
     } else {
-      fill_width(buf, wpl->width - digits - wpl->precision - sign, SPACE, counter);
+      int aggregate = (flag->zero_fill) ? ZERO : SPACE;
+      fill_width(buf, wpl->width - digits - wpl->precision - sign, aggregate, counter);
       add_sign(buf, flag, &num, counter);
       fill_width(buf, wpl->precision - digits, '0', counter);
       add_dec(buf, num, counter, digits, err);
     }
-  } else if (wpl->arg_width) {
-    // handle getting width from the another arg
   } else if (wpl->precision != -1){
     add_sign(buf, flag, &num, counter);
     fill_width(buf, wpl->precision - digits, '0', counter);
@@ -317,11 +316,12 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
 get width and precision from format string for current arg
 stops at the first ch after width or precision
 */
-static void get_width_precision(const char** format, int* num_value,
+static void get_width_precision(const char** format, va_list* param, int* num_value,
                                 bool* bool_value, int* err, int opt) {
   if (**format == '*') {
     *bool_value = true;
     (*format)++;
+    *num_value = va_arg(*param, int);
   } else {
     *num_value = str_to_dec(format, 0, 1, 0,
                             err); /* get width (str, width, sign, count, err);*/
@@ -329,7 +329,6 @@ static void get_width_precision(const char** format, int* num_value,
   if ((opt == PRECISION) && !(*num_value)) {
     *err = VOID_PRECISION;
   }
-  return;
 }
 
 /*
@@ -367,11 +366,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
       format++;
     } else  if (is_spec_start) {  // start specificator processing
       get_flags(&format, &flag);
-      get_width_precision(&format, &wpl.width, &wpl.arg_width, &err, WIDTH);
+      get_width_precision(&format, &param, &wpl.width, &wpl.arg_width, &err, WIDTH);
+      printf("width = %d\n", wpl.width);
       // may be add hiding for this with get_precision() ?
       if (*format == '.') {
         format++;
-        get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err, PRECISION);
+        get_width_precision(&format, &param, &wpl.precision, &wpl.arg_precision, &err, PRECISION);
         printf("precision = %d\n", wpl.precision);
       }
       wpl.length = get_length(&format);
