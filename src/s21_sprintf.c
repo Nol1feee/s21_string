@@ -190,7 +190,7 @@ static void add_sign(char *buf, Flags *flag, long *num, int *counter) {
     add_to_buf(buf, sign, counter); 
     (*num) *= -1;
   }
-  if (flag->show_sign && *num < 0) {
+  if (flag->show_sign && *buf != MINUS) {
     add_to_buf(buf, sign, counter);
   }
   if (flag->hide_sign) {
@@ -207,6 +207,8 @@ static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
   }
   add_to_buf(buf, num + SHIFT_zero, counter);
   printf("digits = %d\n", digits);
+  } else {
+    //add_to_buf(buf, SPACE, counter);
   }
 }
 
@@ -215,6 +217,7 @@ static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *c
   int digits = count_digits((num < 0) ? num * -1 : num);
   int sign = (num < 0) ? 1 : 0;
   int zeros = 0;
+  digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
   if (!wpl->arg_width && wpl->width) {
     if (flag->fill_left) {
       add_sign(buf, flag, &num, counter);
@@ -315,7 +318,7 @@ get width and precision from format string for current arg
 stops at the first ch after width or precision
 */
 static void get_width_precision(const char** format, int* num_value,
-                                bool* bool_value, int* err) {
+                                bool* bool_value, int* err, int opt) {
   if (**format == '*') {
     *bool_value = true;
     (*format)++;
@@ -323,7 +326,9 @@ static void get_width_precision(const char** format, int* num_value,
     *num_value = str_to_dec(format, 0, 1, 0,
                             err); /* get width (str, width, sign, count, err);*/
   }
-  *err = (*num_value) ? OK : VOID_PRECISION;
+  if ((opt == PRECISION) && !(*num_value)) {
+    *err = VOID_PRECISION;
+  }
   return;
 }
 
@@ -362,11 +367,11 @@ int s21_sprintf(char* buf, const char* format, ...) {
       format++;
     } else  if (is_spec_start) {  // start specificator processing
       get_flags(&format, &flag);
-      get_width_precision(&format, &wpl.width, &wpl.arg_width, &err);
+      get_width_precision(&format, &wpl.width, &wpl.arg_width, &err, WIDTH);
       // may be add hiding for this with get_precision() ?
       if (*format == '.') {
         format++;
-        get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
+        get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err, PRECISION);
         printf("precision = %d\n", wpl.precision);
       }
       wpl.length = get_length(&format);

@@ -10,6 +10,9 @@
 #define SPACE 32
 #define MINUS '-'
 #define PLUS '+'
+// for get_width_precision()
+#define WIDTH 'w'
+#define PRECISION 'p'
 
 /* bit field for flags */
 typedef struct {
