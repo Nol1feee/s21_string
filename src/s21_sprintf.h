@@ -8,8 +8,12 @@
 #include "s21_string.h"
 
 #define SPACE 32
+#define ZERO '0'
 #define MINUS '-'
 #define PLUS '+'
+// for get_width_precision()
+#define WIDTH 'w'
+#define PRECISION 'p'
 
 /* bit field for flags */
 typedef struct {
@@ -23,8 +27,6 @@ typedef struct {
 typedef struct {
   int width;
   int precision;
-  bool arg_width;      // for * width in additiona argument
-  bool arg_precision;  // for .* precision in additiona argument
   char length;
 } Wid_prec_len;
 

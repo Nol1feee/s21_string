@@ -3,8 +3,6 @@
 void reset(Wid_prec_len* wpl, Flags* flag) {
   wpl->width = 0;
   wpl->precision = 0;
-  wpl->arg_width = false;
-  wpl->arg_precision = false;
   wpl->length = 0;
   s21_memset(flag, 0, sizeof(Flags));  // reset flag
 }
@@ -149,7 +147,7 @@ static int fill_width(char *buf, int width, int ch, int *counter) {
 
 /* handling %c */
 static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
-  if (!wpl->arg_width && wpl->width) {
+  if (wpl->width) {
     if (flag->fill_left) {
       add_to_buf(buf, ch, counter);
       fill_width(buf, wpl->width - 1, SPACE, counter);
@@ -157,8 +155,6 @@ static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *cou
       fill_width(buf, wpl->width - 1, SPACE, counter);
       add_to_buf(buf, ch, counter);
     }
-  } else if (wpl->arg_width) {
-    // handle getting width from the another arg
   } else {
     add_to_buf(buf, ch, counter);
   }
@@ -184,18 +180,19 @@ static int count_digits(long num) {
 }
 
 /* add sign into output buffer */
-static void add_sign(char *buf, Flags *flag, long *num, int *counter) {
+static int add_sign(char *buf, Flags *flag, long *num, int *counter) {
   int sign = (*num < 0) ? MINUS : PLUS;
   if (*num < 0) {
     add_to_buf(buf, sign, counter); 
     (*num) *= -1;
   }
-  if (flag->show_sign && *num < 0) {
+  if (flag->show_sign && ((sign == MINUS && *buf != MINUS) || sign == PLUS)) {
     add_to_buf(buf, sign, counter);
   }
-  if (flag->hide_sign) {
+  if (flag->hide_sign && sign == PLUS) {
     add_to_buf(buf, SPACE, counter);
   }
+  return 1;
 }
 
 /* add decimal integer into output buffer */
@@ -205,33 +202,45 @@ static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
     add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
     num %= (long)pow(10, pow10);
   }
-  add_to_buf(buf, num + SHIFT_zero, counter);
-  printf("digits = %d\n", digits);
+  if (*err == LONG_MIN_CASE) {
+    add_to_buf(buf, num + 1 + SHIFT_zero, counter);
+  } else {
+    add_to_buf(buf, num + SHIFT_zero, counter);
+  }
+  } else {
+    //add_to_buf(buf, SPACE, counter);
   }
 }
 
 /* handling %d and %i */
 static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter, int *err) {
+  if (num == LONG_MIN) {
+    num++;
+    *err = LONG_MIN_CASE;
+  }
   int digits = count_digits((num < 0) ? num * -1 : num);
   int sign = (num < 0) ? 1 : 0;
+  int was_sign = 0;
   int zeros = 0;
-  if (!wpl->arg_width && wpl->width) {
+  digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
+  if (wpl->width) {
     if (flag->fill_left) {
-      add_sign(buf, flag, &num, counter);
-      zeros = fill_width(buf, wpl->precision - digits, '0', counter);
+      was_sign = add_sign(buf, flag, &num, counter);
+      zeros = fill_width(buf, wpl->precision - digits, ZERO, counter);
       add_dec(buf, num, counter, digits, err);
+      sign = (was_sign && flag->hide_sign) ? 1 : sign;
       fill_width(buf, wpl->width - digits - sign - zeros, SPACE, counter);
     } else {
-      fill_width(buf, wpl->width - digits - wpl->precision - sign, SPACE, counter);
-      add_sign(buf, flag, &num, counter);
-      fill_width(buf, wpl->precision - digits, '0', counter);
+      was_sign = (flag->zero_fill) ? add_sign(buf, flag, &num, counter) : 0;
+      int aggregate = (flag->zero_fill) ? ZERO : SPACE;
+      fill_width(buf, wpl->width - digits - wpl->precision - sign, aggregate, counter);
+      (was_sign) ? :  add_sign(buf, flag, &num, counter);
+      fill_width(buf, wpl->precision - digits, ZERO, counter);
       add_dec(buf, num, counter, digits, err);
     }
-  } else if (wpl->arg_width) {
-    // handle getting width from the another arg
   } else if (wpl->precision != -1){
     add_sign(buf, flag, &num, counter);
-    fill_width(buf, wpl->precision - digits, '0', counter);
+    fill_width(buf, wpl->precision - digits, ZERO, counter);
     add_dec(buf, num, counter, digits, err);
   }
   //TODO handle errors
@@ -314,17 +323,18 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
 get width and precision from format string for current arg
 stops at the first ch after width or precision
 */
-static void get_width_precision(const char** format, int* num_value,
-                                bool* bool_value, int* err) {
+static void get_width_precision(const char** format, va_list* param, int* num_value,
+                                int* err, int opt) {
   if (**format == '*') {
-    *bool_value = true;
     (*format)++;
+    *num_value = va_arg(*param, int);
   } else {
     *num_value = str_to_dec(format, 0, 1, 0,
                             err); /* get width (str, width, sign, count, err);*/
   }
-  *err = (*num_value) ? OK : VOID_PRECISION;
-  return;
+  if ((opt == PRECISION) && !(*num_value)) {
+    *err = VOID_PRECISION;
+  }
 }
 
 /*
@@ -362,11 +372,12 @@ int s21_sprintf(char* buf, const char* format, ...) {
       format++;
     } else  if (is_spec_start) {  // start specificator processing
       get_flags(&format, &flag);
-      get_width_precision(&format, &wpl.width, &wpl.arg_width, &err);
+      get_width_precision(&format, &param, &wpl.width, &err, WIDTH);
+      printf("width = %d\n", wpl.width);
       // may be add hiding for this with get_precision() ?
       if (*format == '.') {
         format++;
-        get_width_precision(&format, &wpl.precision, &wpl.arg_precision, &err);
+        get_width_precision(&format, &param, &wpl.precision, &err, PRECISION);
         printf("precision = %d\n", wpl.precision);
       }
       wpl.length = get_length(&format);
