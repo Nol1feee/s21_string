@@ -207,7 +207,6 @@ static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
   } else {
     add_to_buf(buf, num + SHIFT_zero, counter);
   }
-  printf("digits = %d\n", digits);
   } else {
     //add_to_buf(buf, SPACE, counter);
   }
@@ -226,21 +225,22 @@ static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *c
   digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
   if (wpl->width) {
     if (flag->fill_left) {
-      add_sign(buf, flag, &num, counter);
-      zeros = fill_width(buf, wpl->precision - digits, '0', counter);
+      was_sign = add_sign(buf, flag, &num, counter);
+      zeros = fill_width(buf, wpl->precision - digits, ZERO, counter);
       add_dec(buf, num, counter, digits, err);
+      sign = (was_sign && flag->hide_sign) ? 1 : sign;
       fill_width(buf, wpl->width - digits - sign - zeros, SPACE, counter);
     } else {
       was_sign = (flag->zero_fill) ? add_sign(buf, flag, &num, counter) : 0;
       int aggregate = (flag->zero_fill) ? ZERO : SPACE;
       fill_width(buf, wpl->width - digits - wpl->precision - sign, aggregate, counter);
       (was_sign) ? :  add_sign(buf, flag, &num, counter);
-      fill_width(buf, wpl->precision - digits, '0', counter);
+      fill_width(buf, wpl->precision - digits, ZERO, counter);
       add_dec(buf, num, counter, digits, err);
     }
   } else if (wpl->precision != -1){
     add_sign(buf, flag, &num, counter);
-    fill_width(buf, wpl->precision - digits, '0', counter);
+    fill_width(buf, wpl->precision - digits, ZERO, counter);
     add_dec(buf, num, counter, digits, err);
   }
   //TODO handle errors
