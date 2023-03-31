@@ -1,4 +1,4 @@
-#include "s21_sprintf.h"
+#include "s21_sprintf.h"                                               
 
 void reset(Wid_prec_len* wpl, Flags* flag) {
   wpl->width = 0;
@@ -130,14 +130,14 @@ static int set_specs_printf(const char** format, int* err) {
 }*/
 
 /* */
-static void add_to_buf(char *buf, char ch, int *counter) {
+static void add_to_buf(char* buf, char ch, int* counter) {
   buf[*counter] = ch;
   (*counter)++;
   buf[*counter] = '\0';
 }
 
 /* put spaces for justification */
-static int fill_width(char *buf, int width, int ch, int *counter) {
+static int fill_width(char* buf, int width, int ch, int* counter) {
   int i = 0;
   for (i = 0; i < width; i++) {
     add_to_buf(buf, ch, counter);
@@ -146,7 +146,8 @@ static int fill_width(char *buf, int width, int ch, int *counter) {
 }
 
 /* handling %c */
-static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *counter, int *err) {
+static void print_c(char* buf, Flags* flag, Wid_prec_len* wpl, char ch,
+                    int* counter, int* err) {
   if (wpl->width) {
     if (flag->fill_left) {
       add_to_buf(buf, ch, counter);
@@ -158,7 +159,7 @@ static void print_c(char* buf, Flags *flag, Wid_prec_len *wpl, char ch, int *cou
   } else {
     add_to_buf(buf, ch, counter);
   }
-  //TODO handle errors
+  // TODO handle errors
   if (*err) {
     //
   }
@@ -172,19 +173,33 @@ static int count_digits(long num) {
     res = 1;
   } else {
     while (num > 0) {
-    num /= 10;
-    res++;
+      num /= 10;
+      res++;
     }
   }
   return res;
 }
 
+/* add decimal integer into output buffer */
+static void add_dec(char* buf, long num, int* counter, int digits, int* err) {
+  if (*err != VOID_PRECISION || num != 0) {
+    for (int pow10 = digits - 1; pow10 > 0; pow10--) {
+      add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
+      num %= (long)pow(10, pow10);
+    }
+    if (*err == LONG_MIN_CASE) {
+      add_to_buf(buf, num + 1 + SHIFT_zero, counter);
+    } else {
+      add_to_buf(buf, num + SHIFT_zero, counter);
+    }
+  } 
+}
+
+
 /* add sign into output buffer */
-static int add_sign(char *buf, Flags *flag, long *num, int *counter) {
-  int sign = (*num < 0) ? MINUS : PLUS;
-  if (*num < 0) {
-    add_to_buf(buf, sign, counter); 
-    (*num) *= -1;
+static int add_sign(char* buf, Flags* flag, int sign, int* counter) {
+  if (sign == MINUS) {
+    add_to_buf(buf, sign, counter);
   }
   if (flag->show_sign && ((sign == MINUS && *buf != MINUS) || sign == PLUS)) {
     add_to_buf(buf, sign, counter);
@@ -193,69 +208,155 @@ static int add_sign(char *buf, Flags *flag, long *num, int *counter) {
     add_to_buf(buf, SPACE, counter);
   }
   return 1;
-}
 
-/* add decimal integer into output buffer */
-static void add_dec(char *buf, long num, int *counter, int digits, int *err) {
-  if (*err != VOID_PRECISION || num != 0) {
-  for (int pow10 = digits - 1; pow10 > 0; pow10--) {
-    add_to_buf(buf, num / (long)pow(10, pow10) + SHIFT_zero, counter);
-    num %= (long)pow(10, pow10);
-  }
-  if (*err == LONG_MIN_CASE) {
-    add_to_buf(buf, num + 1 + SHIFT_zero, counter);
-  } else {
-    add_to_buf(buf, num + SHIFT_zero, counter);
-  }
-  } else {
-    //add_to_buf(buf, SPACE, counter);
-  }
 }
 
 /* handling %d and %i */
-static void print_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num, int *counter, int *err) {
+static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
+                     int* counter, int* err) {
+  /* check for the LONG_MIN */
   if (num == LONG_MIN) {
-    num++;
-    *err = LONG_MIN_CASE;
+    num++; /* increase by 1 to make it positive */
+    *err = LONG_MIN_CASE; /* note that LONG_MIN */
   }
+  /* count the number of digits */
   int digits = count_digits((num < 0) ? num * -1 : num);
-  int sign = (num < 0) ? 1 : 0;
+  /* if there is - then we need subtract one ch from width of the buf */
+  int sign_ch = (num < 0) ? 1 : 0;
+  int sign = 0;
+  if (num < 0) {
+    num *= -1;
+    sign = MINUS;
+  } else {
+    sign = PLUS;
+  }
+  /* remember the fact of working add_sign func */
   int was_sign = 0;
-  int zeros = 0;
+  int zeros = 0; /* keeps the number of zeros that had added into the buf */
+  /* if we have void precision and num ==0 then we won't add 0 into the buf */
   digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
-  if (wpl->width) {
-    if (flag->fill_left) {
-      was_sign = add_sign(buf, flag, &num, counter);
+  if (wpl->width) { /* if a width has been entered */
+    // TODO make separate functions for print
+    if (flag->fill_left) { /* if a '-' flag has been entered */
+      // здесь можно использовать только знак если заранее сделать все числа 
+      // больше 0 принудительно
+      // was_sign = add_sign(buf, flag, sign, counter);
+      // тогда надо будет заранее определять знак и, скорее всего,
+      // понадобится отдельная переменная для хранения информации, убираем мы из
+      // ширины единицу или нет (хотя это можно в самой функции заполнения сделать
+      // наверное
+      was_sign = add_sign(buf, flag, sign, counter); /* add sign into buf */
+      /* fill the buf by zeros if needed */
       zeros = fill_width(buf, wpl->precision - digits, ZERO, counter);
+      /* add decimal number into the buf */
       add_dec(buf, num, counter, digits, err);
-      sign = (was_sign && flag->hide_sign) ? 1 : sign;
-      fill_width(buf, wpl->width - digits - sign - zeros, SPACE, counter);
+      /* determine if we need to add or remove space for sign */
+      sign_ch = (was_sign && flag->hide_sign) ? 1 : sign_ch;
+      /* fill remain width by whitespaces */
+      fill_width(buf, wpl->width - digits - sign_ch - zeros, SPACE, counter);
     } else {
-      was_sign = (flag->zero_fill) ? add_sign(buf, flag, &num, counter) : 0;
+      /* if there is zero_fill flag then add sign before the zeroes
+       * else add sign after spaces */
+      was_sign = (flag->zero_fill) ? add_sign(buf, flag, sign, counter) : 0;
+      /* choose the aggregate */
       int aggregate = (flag->zero_fill) ? ZERO : SPACE;
-      fill_width(buf, wpl->width - digits - wpl->precision - sign, aggregate, counter);
-      (was_sign) ? :  add_sign(buf, flag, &num, counter);
+      /* fill the buf before the number */
+      fill_width(buf, wpl->width - digits - wpl->precision - sign_ch, aggregate,
+                 counter);
+      /* if there was a sign then we don't need to add this one again
+       * else we need to add sign */
+      if (!flag->zero_fill) {
+        add_sign(buf, flag, sign, counter);
+      }
+      /* if precision has been added fill the remain width before 
+       * the number by zeros */
       fill_width(buf, wpl->precision - digits, ZERO, counter);
+      /* add number into the buf */
       add_dec(buf, num, counter, digits, err);
     }
-  } else if (wpl->precision != -1){
-    add_sign(buf, flag, &num, counter);
+  } else {
+    /* add sign before the number */
+    add_sign(buf, flag, sign, counter);
+    /* if precision has been added fill the width before the number by zeros*/
     fill_width(buf, wpl->precision - digits, ZERO, counter);
+    /* add number into the buf */
     add_dec(buf, num, counter, digits, err);
   }
-  //TODO handle errors
+  // TODO handle errors
   if (*err) {
     //
   }
   reset(wpl, flag);
 }
 
-// count_char for %n
-void print_processing(char* buf, int specs, int *counter, va_list* param,
+
+/*char* handler_flag_e(long double num, int floating, char format, s21* sh21) {
+  int point = (floating == -1) ? 6 : floating;
+  int count_e = 0;
+  if ((int)num == 0) {
+    while ((int)num == 0) {
+      num *= 10;
+      count_e--;
+    }
+  } else {
+    while ((int)num > 9) {
+      num /= 10;
+      count_e++;
+    }
+  }
+  char* str = s21_float_to_string(num, point, sh21->need_prefix);
+  if (count_e < 0 && format == 'e') s21_strcat(str, "e-");
+  if (count_e < 0 && format == 'E') s21_strcat(str, "E-");
+  if (count_e > 0 && format == 'e') s21_strcat(str, "e+");
+  if (count_e > 0 && format == 'E') s21_strcat(str, "E+");
+  if (count_e < 0) count_e *= -1;
+  if (count_e < 10) s21_strcat(str, "0");
+  char* clean = s21_int_to_string(count_e, floating);
+  s21_strcat(str, clean);
+  free(clean);
+  return str;
+}*/
+
+
+/*static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
+                     int* counter, int* err) {
+  int sign = 0; // keeps the sign
+  int exponent = 0; // keeps the exponent
+  // remember sign and make the number positive
+  if (num < 0) {
+    sign = MINUS;
+    num *= -1;
+  } else {
+    sign = PLUS;
+  }
+  // determine where we will move the point
+  if (num < 1) {
+    //then move to the right while num < 1
+    while (num < 1) {
+      num *= 10;
+      exp--;
+    }
+    //print number into the buf
+  } else {
+    //then move to the left
+  }
+  // what if num == 1 ???
+
+  // old 
+  temp = handler_flag_e(f, s21->floating, format, s21);
+  result = calloc(s21_strlen(temp) + 1, sizeof(char));
+
+  result = s21_add_sign(result, temp, s21->signed_conversion,
+                        s21->space_signed_conversion, f);
+  insert_and_free(s21, temp, buf, result);
+}*/
+
+/* */
+static void print_processing(char* buf, int specs, int* counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
   long num;  // TODO for what?
   // long double f;        // TODO for what?
-  char ch;          // for %c
+  char ch;  // for %c
   // char* string;         // TODO for what?
   // uint64_t u;           // TODO for what?
   if ((specs & spec_d) || (specs & spec_i)) {
@@ -266,10 +367,17 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
     } else {
       num = va_arg(*param, int);
     }
-    print_di(buf, wpl, flag, num, counter, err);
-  } else if ((specs & spec_c)) {
+    handle_di(buf, wpl, flag, num, counter, err);
+  } else if (specs & spec_c) {
     ch = (char)va_arg(*param, int);
     print_c(buf, flag, wpl, ch, counter, err);
+  } else if (specs & spec_e) {
+    /*if (wpl->length == 'l') {
+      num = va_arg(*param, long double);
+    } else {
+      num = va_arg(*param, double);
+      flag_e(sh21, temp, buf, result, f, *format);
+    }*/
   } else {
     *err = ER;
   }
@@ -305,13 +413,6 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
       f = va_arg(*param, double);
       flag_g(sh21, temp, buf, result, f, *format);
     }
-  } else if ((specs & spec_e) || (specs & spec_E)) {
-    if (sh21->L_flag == 1) {
-      f = va_arg(*param, long double);
-    } else {
-      f = va_arg(*param, double);
-      flag_e(sh21, temp, buf, result, f, *format);
-    }
   } else if ((specs & spec_n)) {
     int* count = va_arg(*param, int*);
     *count = *count_char;
@@ -323,14 +424,14 @@ void print_processing(char* buf, int specs, int *counter, va_list* param,
 get width and precision from format string for current arg
 stops at the first ch after width or precision
 */
-static void get_width_precision(const char** format, va_list* param, int* num_value,
-                                int* err, int opt) {
+static void get_width_precision(const char** format, va_list* param,
+                                int* num_value, int* err, int opt) {
   if (**format == '*') {
     (*format)++;
     *num_value = va_arg(*param, int);
   } else {
-    *num_value = str_to_dec(format, 0, 1, 0,
-                            err); /* get width (str, width, sign, count, err);*/
+    /* get width (str, width, sign, count, err);*/
+    *num_value = str_to_dec(format, 0, 1, 0, err); 
   }
   if ((opt == PRECISION) && !(*num_value)) {
     *err = VOID_PRECISION;
@@ -356,7 +457,7 @@ int s21_sprintf(char* buf, const char* format, ...) {
   int err = OK;  // for errors
   va_list param;
   va_start(param, format);
-  int counter = 0;          // for %n
+  int counter = 0;             // for %n
   bool is_spec_start = false;  // for tracking start of specifiers (%)
   Flags flag;
   Wid_prec_len wpl;
@@ -364,13 +465,13 @@ int s21_sprintf(char* buf, const char* format, ...) {
 
   while (*format) {
     if (!is_spec_start && *format != '%') {  // if we met a regular ch
-      add_to_buf(buf, *format, &counter);  // add current character into buf
+      add_to_buf(buf, *format, &counter);    // add current character into buf
       format++;
       // if we met % for the first time
     } else if (!is_spec_start && *format == '%') {
       is_spec_start = true;  // treats current '%' as start of format specifier
       format++;
-    } else  if (is_spec_start) {  // start specificator processing
+    } else if (is_spec_start) {  // start specificator processing
       get_flags(&format, &flag);
       get_width_precision(&format, &param, &wpl.width, &err, WIDTH);
       printf("width = %d\n", wpl.width);
@@ -391,43 +492,9 @@ int s21_sprintf(char* buf, const char* format, ...) {
   return counter;
 }
 
-/*void flag_e(s21* s21, char* temp, char* buf, char* result, long double f,
-            char format) {
-  temp = handler_flag_e(f, s21->floating, format, s21);
-  result = calloc(s21_strlen(temp) + 1, sizeof(char));
 
-  result = s21_add_sign(result, temp, s21->signed_conversion,
-                        s21->space_signed_conversion, f);
-  insert_and_free(s21, temp, buf, result);
-}
 
-char* handler_flag_e(long double num, int floating, char format, s21* sh21) {
-  int point = (floating == -1) ? 6 : floating;
-  int count_e = 0;
-  if ((int)num == 0) {
-    while ((int)num == 0) {
-      num *= 10;
-      count_e--;
-    }
-  } else {
-    while ((int)num > 9) {
-      num /= 10;
-      count_e++;
-    }
-  }
-  char* str = s21_float_to_string(num, point, sh21->need_prefix);
-  if (count_e < 0 && format == 'e') s21_strcat(str, "e-");
-  if (count_e < 0 && format == 'E') s21_strcat(str, "E-");
-  if (count_e > 0 && format == 'e') s21_strcat(str, "e+");
-  if (count_e > 0 && format == 'E') s21_strcat(str, "E+");
-  if (count_e < 0) count_e *= -1;
-  if (count_e < 10) s21_strcat(str, "0");
-  char* clean = s21_int_to_string(count_e, floating);
-  s21_strcat(str, clean);
-  free(clean);
-  return str;
-}
-
+/*
 void flag_g(s21* sh21, char* temp, char* buf, char* result, long double f,
             char format) {
   temp = handler_flag_g(f, sh21, format);
@@ -505,8 +572,6 @@ void flag_f(s21* sh21, char* temp, char* buf, char* result, long double f) {
                         sh21->space_signed_conversion, f);
   insert_and_free(sh21, temp, buf, result);
 }*/
-
-
 
 /*void flag_s(s21* sh21, char* string, char* buf, char* result) {
   int input_len = s21_strlen(string);

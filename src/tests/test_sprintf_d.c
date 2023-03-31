@@ -240,6 +240,7 @@ START_TEST(sprintf_16_signed) {
   ck_assert_pstr_eq(str1, str2);
 }
 END_TEST
+
 START_TEST(sprintf_17_signed) {
   char str1[1024] = "";
   char str2[1024] = "";
