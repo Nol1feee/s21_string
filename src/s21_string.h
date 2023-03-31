@@ -12,10 +12,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define OK 0  // for errors
-#define ER 1  //
+#define OK 0               // for errors
+#define ER 1               //
 #define VOID_PRECISION -1  //
-#define LONG_MIN_CASE -2  //
+#define LONG_MIN_CASE -2   //
 
 /* for specifiers */
 enum {
