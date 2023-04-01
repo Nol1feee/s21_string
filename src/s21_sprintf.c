@@ -300,11 +300,44 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
   return str;
 }*/
 
+/* returns current digit in num */
+static int get_digit(long double *num) {
+  int digit = (int)(*num);
+  *num -= digit;
+  *num *= 10;
+  return digit;
+}
 
-/*static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
+/* rounded num that had added into the buf */
+static void round_buf(char *buf, int counter) {
+  if (buf[counter - 1] < 9) {
+    buf[counter - 1]++;
+  } else {
+    printf("last_buf = %c\n", buf[counter - 1]);
+    round_buf(buf, counter - 1);
+    buf[counter - 1] = ZERO;
+  }
+}
+
+/* returns current digit in num after rounding */
+static int get_round_digit(char *buf, long double *num, int *counter) {
+  int cur_digit = get_digit(num);
+  int next_digit = get_digit(num);
+  if (next_digit >= 5) {
+    cur_digit++;
+  }
+  if (cur_digit == 10) {
+    // RECURSIVE ???? change last digit in buf
+    round_buf(buf, *counter);
+    cur_digit = 0;
+  }
+  return cur_digit;
+}
+/* handles the %e specifier */
+static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
                      int* counter, int* err) {
   int sign = 0; // keeps the sign
-  int exponent = 0; // keeps the exponent
+  int exp = 0; // keeps the exponent
   // remember sign and make the number positive
   if (num < 0) {
     sign = MINUS;
@@ -312,6 +345,7 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
   } else {
     sign = PLUS;
   }
+  add_sign(buf, flag, sign, counter);
   // determine where we will move the point
   if (num < 1) {
     //then move to the right while num < 1
@@ -319,26 +353,48 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
       num *= 10;
       exp--;
     }
-    //print number into the buf
+    //print first digit into the buf
+    add_to_buf(buf, get_digit(&num) + SHIFT_zero, counter);
+    //print '.' into the buf
+    add_to_buf(buf, DOT, counter);
+    //print remain digits of the number into the buf
+    int digits = 0;
+    //if width not given then set it in standard width (6)
+    wpl->width = (wpl->width) ? wpl->width : 6;
+    while(digits < wpl->width || !wpl->width) {
+      // if pre-last digit then we need to round number
+      if (digits == wpl->width - 1) {
+        add_to_buf(buf, get_round_digit(buf, &num, counter) + SHIFT_zero, counter);
+      } else {
+        (num > 0) ? add_to_buf(buf, get_digit(&num) + SHIFT_zero, counter) : 
+                    add_to_buf(buf, ZERO, counter);
+      }
+      digits++;
+    }
+
+    
   } else {
     //then move to the left
   }
   // what if num == 1 ???
+  if (*err == ER) {
+    // handle the error
+  }
 
   // old 
-  temp = handler_flag_e(f, s21->floating, format, s21);
+  /*temp = handler_flag_e(f, s21->floating, format, s21);
   result = calloc(s21_strlen(temp) + 1, sizeof(char));
 
   result = s21_add_sign(result, temp, s21->signed_conversion,
                         s21->space_signed_conversion, f);
-  insert_and_free(s21, temp, buf, result);
-}*/
+  insert_and_free(s21, temp, buf, result);*/
+}
 
 /* processes the source string according to the specifiers */
 static void print_processing(char* buf, int specs, int* counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
   long num;  // for %d %i
-  // long double f;        // TODO for what?
+  long double fnum;        // for %e
   char ch;   // for %c
   // char* string;         // TODO for what?
   // uint64_t u;           // TODO for what?
@@ -355,12 +411,12 @@ static void print_processing(char* buf, int specs, int* counter, va_list* param,
     ch = (char)va_arg(*param, int);
     print_c(buf, flag, wpl, ch, counter, err);
   } else if (specs & spec_e) {
-    /*if (wpl->length == 'l') {
-      num = va_arg(*param, long double);
+    if (wpl->length == 'l') {
+      fnum = va_arg(*param, long double);
     } else {
-      num = va_arg(*param, double);
-      flag_e(sh21, temp, buf, result, f, *format);
-    }*/
+      fnum = va_arg(*param, double);
+      handle_e(buf, wpl, flag, fnum, counter, err);
+    }
   } else {
     *err = ER;
   }
