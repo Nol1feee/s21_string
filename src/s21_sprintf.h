@@ -11,6 +11,7 @@
 #define ZERO '0'
 #define MINUS '-'
 #define PLUS '+'
+#define DOT '.'
 // for get_width_precision()
 #define WIDTH 'w'
 #define PRECISION 'p'
