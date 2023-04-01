@@ -1,6 +1,7 @@
 #include "s21_sprintf.h"                                               
 
-void reset(Wid_prec_len* wpl, Flags* flag) {
+/* reset values in structures */
+static void reset(Wid_prec_len* wpl, Flags* flag) {
   wpl->width = 0;
   wpl->precision = 0;
   wpl->length = 0;
@@ -47,6 +48,7 @@ void get_flags(const char** format, Flags* flag) {
   return;
 }
 
+/* git specifier from format string */
 static int set_specs_printf(const char** format, int* err) {
   int specs = 0;
   switch (**format) {
@@ -108,28 +110,7 @@ static int set_specs_printf(const char** format, int* err) {
   return specs;
 }
 
-/*static char* s21_add_spaces(char* format, Flags* flag, int width) {
-  int str_len = s21_strlen(format);
-  if (str_len < width) {
-    char* temp = calloc(width + 1, sizeof(char));
-    int padding_len = width - str_len;
-    char* spc_ptr = calloc(padding_len + 1, sizeof(char));
-    spc_ptr[padding_len] = 0;  // Влад, посмотри
-    if (flag->fill_left) {
-      s21_strcat(temp, format);
-      s21_strcat(temp, spc_ptr);
-    } else {
-      s21_strcat(temp, spc_ptr);
-      s21_strcat(temp, format);
-    }
-    free(spc_ptr);
-    free(format);
-    format = temp;
-  }
-  return format;
-}*/
-
-/* */
+/* add ch into the buf and '\0' after it */
 static void add_to_buf(char* buf, char ch, int* counter) {
   buf[*counter] = ch;
   (*counter)++;
@@ -195,7 +176,6 @@ static void add_dec(char* buf, long num, int* counter, int digits, int* err) {
   } 
 }
 
-
 /* add sign into output buffer */
 static int add_sign(char* buf, Flags* flag, int sign, int* counter) {
   if (sign == MINUS) {
@@ -208,7 +188,58 @@ static int add_sign(char* buf, Flags* flag, int sign, int* counter) {
     add_to_buf(buf, SPACE, counter);
   }
   return 1;
+}
 
+/* get the sign and make the number positive */
+static int int_sign_check(long *num) {
+  int sign = MINUS;
+  if (*num < 0) {
+    *num *= -1;
+  } else {
+    sign = PLUS;
+  }
+  return sign;
+}
+
+/* add an integer with left alignment */
+static void left_int_addition(char *buf, Wid_prec_len *wpl, Flags *flag, 
+                              long num, int sign, int digits, int *zeros, 
+                              int *counter, int *err) {
+  add_sign(buf, flag, sign, counter); /* add sign into buf */
+  /* fill the buf by zeros if needed */
+  *zeros = fill_width(buf, wpl->precision - digits, ZERO, counter);
+  /* add decimal number into the buf */
+  add_dec(buf, num, counter, digits, err);
+  /* determine if we need to add or remove space for sign */
+  int sign_ch = (flag->hide_sign) ? 1 : (sign == MINUS) ? 1 : 0;
+  /* fill remain width by whitespaces */
+  fill_width(buf, wpl->width - digits - sign_ch - *zeros, SPACE, counter);
+}
+
+/* add an integer with right alignment */
+static void right_int_addition(char *buf, Wid_prec_len *wpl, Flags *flag, 
+                              long num, int sign, int digits, 
+                              int *counter, int *err) {
+  /* if there is zero_fill flag then add sign before the zeroes
+   * else add sign after spaces */
+  if (flag->zero_fill) {
+    add_sign(buf, flag, sign, counter);
+  }
+  /* choose the aggregate */
+  int aggregate = (flag->zero_fill) ? ZERO : SPACE;
+  /* fill the buf before the number */
+  fill_width(buf, wpl->width - digits - wpl->precision - ((sign == MINUS) ? 1 : 0), 
+               aggregate, counter);
+  /* if there was a sign then we don't need to add this one again
+   * else we need to add sign */
+  if (!flag->zero_fill) {
+    add_sign(buf, flag, sign, counter);
+  }
+  /* if precision has been added fill the remain width before 
+   * the number by zeros */
+  fill_width(buf, wpl->precision - digits, ZERO, counter);
+  /* add number into the buf */
+  add_dec(buf, num, counter, digits, err);
 }
 
 /* handling %d and %i */
@@ -221,70 +252,22 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
   }
   /* count the number of digits */
   int digits = count_digits((num < 0) ? num * -1 : num);
-  /* if there is - then we need subtract one ch from width of the buf */
-  int sign_ch = (num < 0) ? 1 : 0;
-  int sign = 0;
-  if (num < 0) {
-    num *= -1;
-    sign = MINUS;
-  } else {
-    sign = PLUS;
-  }
-  /* remember the fact of working add_sign func */
-  int was_sign = 0;
-  int zeros = 0; /* keeps the number of zeros that had added into the buf */
   /* if we have void precision and num ==0 then we won't add 0 into the buf */
   digits = (*err == VOID_PRECISION && num == 0) ? 0 : digits;
+  /* get the sign and make the number positive */
+  int sign = int_sign_check(&num); 
+  int zeros = 0; /* keeps the number of zeros that had added into the buf */
   if (wpl->width) { /* if a width has been entered */
-    // TODO make separate functions for print
     if (flag->fill_left) { /* if a '-' flag has been entered */
-      // здесь можно использовать только знак если заранее сделать все числа 
-      // больше 0 принудительно
-      // was_sign = add_sign(buf, flag, sign, counter);
-      // тогда надо будет заранее определять знак и, скорее всего,
-      // понадобится отдельная переменная для хранения информации, убираем мы из
-      // ширины единицу или нет (хотя это можно в самой функции заполнения сделать
-      // наверное
-      was_sign = add_sign(buf, flag, sign, counter); /* add sign into buf */
-      /* fill the buf by zeros if needed */
-      zeros = fill_width(buf, wpl->precision - digits, ZERO, counter);
-      /* add decimal number into the buf */
-      add_dec(buf, num, counter, digits, err);
-      /* determine if we need to add or remove space for sign */
-      sign_ch = (was_sign && flag->hide_sign) ? 1 : sign_ch;
-      /* fill remain width by whitespaces */
-      fill_width(buf, wpl->width - digits - sign_ch - zeros, SPACE, counter);
+      left_int_addition(buf, wpl, flag, num, sign, digits, &zeros, counter, err);
     } else {
-      /* if there is zero_fill flag then add sign before the zeroes
-       * else add sign after spaces */
-      was_sign = (flag->zero_fill) ? add_sign(buf, flag, sign, counter) : 0;
-      /* choose the aggregate */
-      int aggregate = (flag->zero_fill) ? ZERO : SPACE;
-      /* fill the buf before the number */
-      fill_width(buf, wpl->width - digits - wpl->precision - sign_ch, aggregate,
-                 counter);
-      /* if there was a sign then we don't need to add this one again
-       * else we need to add sign */
-      if (!flag->zero_fill) {
-        add_sign(buf, flag, sign, counter);
-      }
-      /* if precision has been added fill the remain width before 
-       * the number by zeros */
-      fill_width(buf, wpl->precision - digits, ZERO, counter);
-      /* add number into the buf */
-      add_dec(buf, num, counter, digits, err);
+      right_int_addition(buf, wpl, flag, num, sign, digits, counter, err);
     }
   } else {
-    /* add sign before the number */
-    add_sign(buf, flag, sign, counter);
-    /* if precision has been added fill the width before the number by zeros*/
-    fill_width(buf, wpl->precision - digits, ZERO, counter);
-    /* add number into the buf */
-    add_dec(buf, num, counter, digits, err);
+    right_int_addition(buf, wpl, flag, num, sign, digits, counter, err);
   }
-  // TODO handle errors
   if (*err) {
-    //
+  // TODO handle errors
   }
   reset(wpl, flag);
 }
@@ -351,12 +334,12 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
   insert_and_free(s21, temp, buf, result);
 }*/
 
-/* */
+/* processes the source string according to the specifiers */
 static void print_processing(char* buf, int specs, int* counter, va_list* param,
                       Wid_prec_len* wpl, Flags* flag, int* err) {
-  long num;  // TODO for what?
+  long num;  // for %d %i
   // long double f;        // TODO for what?
-  char ch;  // for %c
+  char ch;   // for %c
   // char* string;         // TODO for what?
   // uint64_t u;           // TODO for what?
   if ((specs & spec_d) || (specs & spec_i)) {
@@ -491,8 +474,6 @@ int s21_sprintf(char* buf, const char* format, ...) {
   va_end(param);
   return counter;
 }
-
-
 
 /*
 void flag_g(s21* sh21, char* temp, char* buf, char* result, long double f,
