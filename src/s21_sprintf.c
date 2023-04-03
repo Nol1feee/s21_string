@@ -300,7 +300,8 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
   return str;
 }*/
 
-/* returns current digit in num */
+/* returns current digit in num 
+ * and increase the num in 10 times */
 static int get_digit(long double *num) {
   int digit = (int)(*num);
   *num -= digit;
@@ -310,12 +311,15 @@ static int get_digit(long double *num) {
 
 /* rounded num that had added into the buf */
 static void round_buf(char *buf, int counter) {
-  if (buf[counter - 1] < 9) {
+  if (buf[counter - 1] < '9') {
     buf[counter - 1]++;
   } else {
     printf("last_buf = %c\n", buf[counter - 1]);
-    round_buf(buf, counter - 1);
-    buf[counter - 1] = ZERO;
+    while (buf[counter - 1] == '9') {
+      buf[counter - 1] = ZERO;
+      counter--;
+    }
+    buf[counter - 1]++;
   }
 }
 
@@ -327,7 +331,7 @@ static int get_round_digit(char *buf, long double *num, int *counter) {
     cur_digit++;
   }
   if (cur_digit == 10) {
-    // RECURSIVE ???? change last digit in buf
+    /* change the last few digits in the buf */
     round_buf(buf, *counter);
     cur_digit = 0;
   }
