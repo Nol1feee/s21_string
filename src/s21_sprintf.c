@@ -315,9 +315,13 @@ static void round_buf(char *buf, int counter) {
     buf[counter - 1]++;
   } else {
     printf("last_buf = %c\n", buf[counter - 1]);
-    while (buf[counter - 1] == '9') {
+    while (buf[counter - 1] == '9' || buf[counter - 1] == '.') {
+      if (buf[counter - 1] == '.') {
+        counter--;
+      } else {
       buf[counter - 1] = ZERO;
       counter--;
+      }
     }
     buf[counter - 1]++;
   }
@@ -325,8 +329,17 @@ static void round_buf(char *buf, int counter) {
 
 /* returns current digit in num after rounding */
 static int get_round_digit(char *buf, long double *num, int *counter) {
-  int cur_digit = get_digit(num);
-  int next_digit = get_digit(num);
+  int cur_digit = 0;
+  int next_digit = 0;
+  if (wpl-precision) {
+    cur_digit = get_digit(num);
+    next_digit = get_digit(num);
+  } else {
+    // take the last before the '.' as current
+    //take the first after '.' as next
+  }
+  printf("cur_digit = %d\n", cur_digit);
+  printf("next_digit = %d\n", next_digit);
   if (next_digit >= 5) {
     cur_digit++;
   }
@@ -364,10 +377,13 @@ static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
     //print remain digits of the number into the buf
     int digits = 0;
     //if width not given then set it in standard width (6)
-    wpl->width = (wpl->width) ? wpl->width : 6;
-    while(digits < wpl->width || !wpl->width) {
+    wpl->precision = (wpl->precision || *err == VOID_PRECISION) ? wpl->precision : 6;
+    while(digits < wpl->precision || !wpl->precision) {
       // if pre-last digit then we need to round number
-      if (digits == wpl->width - 1) {
+      if (!wpl->precision) {
+        add_to_buf(buf, get_round_digit(buf, &num, counter) + SHIFT_zero, counter);
+        break;
+      } else if (digits == wpl->precision - 1) {
         add_to_buf(buf, get_round_digit(buf, &num, counter) + SHIFT_zero, counter);
       } else {
         (num > 0) ? add_to_buf(buf, get_digit(&num) + SHIFT_zero, counter) : 
