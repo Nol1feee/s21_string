@@ -273,32 +273,6 @@ static void handle_di(char* buf, Wid_prec_len* wpl, Flags* flag, long num,
 }
 
 
-/*char* handler_flag_e(long double num, int floating, char format, s21* sh21) {
-  int point = (floating == -1) ? 6 : floating;
-  int count_e = 0;
-  if ((int)num == 0) {
-    while ((int)num == 0) {
-      num *= 10;
-      count_e--;
-    }
-  } else {
-    while ((int)num > 9) {
-      num /= 10;
-      count_e++;
-    }
-  }
-  char* str = s21_float_to_string(num, point, sh21->need_prefix);
-  if (count_e < 0 && format == 'e') s21_strcat(str, "e-");
-  if (count_e < 0 && format == 'E') s21_strcat(str, "E-");
-  if (count_e > 0 && format == 'e') s21_strcat(str, "e+");
-  if (count_e > 0 && format == 'E') s21_strcat(str, "E+");
-  if (count_e < 0) count_e *= -1;
-  if (count_e < 10) s21_strcat(str, "0");
-  char* clean = s21_int_to_string(count_e, floating);
-  s21_strcat(str, clean);
-  free(clean);
-  return str;
-}*/
 
 /* returns current digit in num 
  * and increase the num in 10 times */
@@ -328,18 +302,9 @@ static void round_buf(char *buf, int counter) {
 }
 
 /* returns current digit in num after rounding */
-static int get_round_digit(char *buf, long double *num, int *counter) {
-  int cur_digit = 0;
-  int next_digit = 0;
-  if (wpl-precision) {
-    cur_digit = get_digit(num);
-    next_digit = get_digit(num);
-  } else {
-    // take the last before the '.' as current
-    //take the first after '.' as next
-  }
-  printf("cur_digit = %d\n", cur_digit);
-  printf("next_digit = %d\n", next_digit);
+static int round_after_dot(char *buf, long double *num, int *counter) {
+  int cur_digit = get_digit(num);
+  int next_digit = get_digit(num);
   if (next_digit >= 5) {
     cur_digit++;
   }
@@ -350,6 +315,23 @@ static int get_round_digit(char *buf, long double *num, int *counter) {
   }
   return cur_digit;
 }
+
+/* change number in buf */
+static void round_before_dot(char *buf, int next_digit, int dot_pos) {
+  int cur_digit = buf[dot_pos - 1] - SHIFT_zero;
+  printf("cur_digit = %d\n", cur_digit);
+  printf("next_digit = %d\n", next_digit);
+  if (next_digit >= 5) {
+    cur_digit++;
+  }
+  if (cur_digit == 10) {
+    /* change the last few digits in the buf */
+    round_buf(buf, dot_pos - 1);
+    cur_digit = 0;
+  }
+  buf[dot_pos - 1] = cur_digit + SHIFT_zero;
+}
+
 /* handles the %e specifier */
 static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
                      int* counter, int* err) {
@@ -381,10 +363,12 @@ static void handle_e(char* buf, Wid_prec_len* wpl, Flags* flag, long double num,
     while(digits < wpl->precision || !wpl->precision) {
       // if pre-last digit then we need to round number
       if (!wpl->precision) {
-        add_to_buf(buf, get_round_digit(buf, &num, counter) + SHIFT_zero, counter);
+        round_before_dot(buf, get_digit(&num), *counter - 1);
+        (*counter)--; // stand on '.'
+        add_to_buf(buf, 0, counter); // "delete" '.'
         break;
       } else if (digits == wpl->precision - 1) {
-        add_to_buf(buf, get_round_digit(buf, &num, counter) + SHIFT_zero, counter);
+        add_to_buf(buf, round_after_dot(buf, &num, counter) + SHIFT_zero, counter);
       } else {
         (num > 0) ? add_to_buf(buf, get_digit(&num) + SHIFT_zero, counter) : 
                     add_to_buf(buf, ZERO, counter);
